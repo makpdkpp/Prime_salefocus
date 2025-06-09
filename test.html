@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Form: Progressive Checkboxes + Dates</title>
+  <style>
+    .row {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      margin: 1rem 0;
+      font-family: sans-serif;
+    }
+    .row label {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: .25rem;
+    }
+    .row input[type="date"]:disabled {
+      background: #f0f0f0;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <form id="statusForm" action="adduser.php" method="post">
+    <div class="row">
+      <!-- hidden fields เพื่อส่งค่า 0/'' เมื่อไม่ได้ติ๊ก -->
+      <input type="hidden" name="present" value="0">
+      <input type="hidden" name="present_date" value="">
+      <label>
+        <input type="checkbox" id="present" name="present" value="1">
+        <span>Present</span>
+      </label>
+      <input type="date" id="present_date" name="present_date" disabled>
+    </div>
+
+    <div class="row">
+      <input type="hidden" name="budgeted" value="0">
+      <input type="hidden" name="budgeted_date" value="">
+      <label>
+        <input type="checkbox" id="budgeted" name="budgeted" value="1" disabled>
+        <span>Budgeted</span>
+      </label>
+      <input type="date" id="budgeted_date" name="budgeted_date" disabled>
+    </div>
+
+    <div class="row">
+      <input type="hidden" name="tor" value="0">
+      <input type="hidden" name="tor_date" value="">
+      <label>
+        <input type="checkbox" id="tor" name="tor" value="1" disabled>
+        <span>TOR</span>
+      </label>
+      <input type="date" id="tor_date" name="tor_date" disabled>
+    </div>
+
+    <div class="row">
+      <input type="hidden" name="bidding" value="0">
+      <input type="hidden" name="bidding_date" value="">
+      <label>
+        <input type="checkbox" id="bidding" name="bidding" value="1" disabled>
+        <span>Bidding</span>
+      </label>
+      <input type="date" id="bidding_date" name="bidding_date" disabled>
+    </div>
+
+    <div class="row">
+      <input type="hidden" name="win" value="0">
+      <input type="hidden" name="win_date" value="">
+      <label>
+        <input type="checkbox" id="win" name="win" value="1" disabled>
+        <span>Win</span>
+      </label>
+      <input type="date" id="win_date" name="win_date" disabled>
+    </div>
+
+    <div class="row">
+      <input type="hidden" name="lost" value="0">
+      <input type="hidden" name="lost_date" value="">
+      <label>
+        <input type="checkbox" id="lost" name="lost" value="1" disabled>
+        <span>Lost</span>
+      </label>
+      <input type="date" id="lost_date" name="lost_date" disabled>
+    </div>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const order = [
+        { cb: 'present', dt: 'present_date' },
+        { cb: 'budgeted', dt: 'budgeted_date' },
+        { cb: 'tor', dt: 'tor_date' },
+        { cb: 'bidding', dt: 'bidding_date' },
+        { cb: 'win', dt: 'win_date' },
+        { cb: 'lost', dt: 'lost_date' }
+      ];
+
+      function update() {
+        order.forEach((item, i) => {
+          const box = document.getElementById(item.cb);
+          const date = document.getElementById(item.dt);
+          // checkbox แรกเปิดใช้งานเสมอ
+          if (i === 0) {
+            box.disabled = false;
+          } else {
+            const prev = document.getElementById(order[i-1].cb);
+            box.disabled = !prev.checked;
+            if (box.disabled) box.checked = false;
+          }
+          // date input เปิดก็ต่อเมื่อ checkbox ถูกเช็ค
+          date.disabled = !box.checked;
+          if (date.disabled) date.value = '';
+        });
+      }
+
+      // bind change event
+      order.forEach(item => {
+        document.getElementById(item.cb)
+          .addEventListener('change', update);
+      });
+
+      // ก่อน submit ให้ปลดล็อกทุก field เพื่อให้ form ส่งค่า
+      document.getElementById('statusForm').addEventListener('submit', () => {
+        order.forEach(item => {
+          document.getElementById(item.cb).disabled = false;
+          document.getElementById(item.dt).disabled = false;
+        });
+      });
+
+      update();
+    });
+  </script>
+</body>
+</html>
