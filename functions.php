@@ -8,9 +8,9 @@
 function connectDb(): mysqli
 {
     $host = '127.0.0.1';
-    $db   = 'sale';
-    $user = 'sale';
-    $pass = 'c!RmsO9HTeVBk.[B';
+    $db   = 'primes_sale';
+    $user = 'primes_sale';
+    $pass = '3kz&2G7r8';
 
     $mysqli = new mysqli($host, $user, $pass, $db);
     if ($mysqli->connect_error) {
