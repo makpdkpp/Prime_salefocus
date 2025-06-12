@@ -2,7 +2,7 @@
 require_once 'functions.php';
 session_start();
 
-// ตรวจสอบว่าล็อกอินและสิทธิ์เป็น admin (role_id 1)
+// ตรวจสอบว่าล็อกอินและสิทธิ์เป็น admin (role_id 1)"เเก้พี่มาเล่นๆ" พพพพ rrrrr
 if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 1) {
     header('Location: index.php');
     exit;
