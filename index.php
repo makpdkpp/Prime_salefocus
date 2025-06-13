@@ -163,7 +163,7 @@ ob_end_flush();
       </div>
 
       <div class="signup-form" id="signup">
-        <div class="title">Signup</div>
+        <div class="title">SignupSSS</div>
         <form method="post" action="functions.php">
           <div class="input-boxes">
             <div class="input-box">
