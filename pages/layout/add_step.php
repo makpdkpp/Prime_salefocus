@@ -3,32 +3,41 @@ session_start();
 require_once '../../functions.php';
 $mysqli = connectDb();
 
-// ตรวจสอบว่ามีการส่งข้อมูลมาจากฟอร์มหรือไม่
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // รับข้อมูลจากฟอร์ม
-    $level = $_POST['level'];
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $level = trim($_POST['level'] ?? '');
 
-    // คำสั่ง SQL เพื่อเพิ่มข้อมูล
-    $sql = "INSERT INTO step (level) VALUES (?)";
+    // แก้ไขข้อมูล
+    if (
+        isset($_POST['action']) &&
+        $_POST['action'] === 'edit' &&
+        !empty($_POST['level_id']) &&
+        is_numeric($_POST['level_id'])
+    ) {
+        $level_id = (int)$_POST['level_id'];
 
-    // เตรียมคำสั่ง SQL
-    $stmt = $mysqli->prepare($sql);
+        $stmt = $mysqli->prepare("UPDATE step SET level = ? WHERE level_id = ?");
+        $stmt->bind_param("si", $level, $level_id);
 
-    // ผูกค่าตัวแปรกับคำสั่ง SQL
-    $stmt->bind_param("s", $level);        // s = string, i = integer
+        if ($stmt->execute()) {
+            echo "<script>alert('อัปเดตข้อมูลสำเร็จ'); window.location.href='collapsed-sidebar.php';</script>";
+        } else {
+            echo "<script>alert('เกิดข้อผิดพลาดในการอัปเดตข้อมูล'); window.history.back();</script>";
+        }
+        $stmt->close();
 
-    // เรียกใช้คำสั่ง SQL และตรวจสอบการเพิ่มข้อมูล
-    if ($stmt->execute()) {
-        echo "ข้อมูลถูกเพิ่มสำเร็จ!";
-        header("location: collapsed-sidebar.php");
+    // เพิ่มข้อมูลใหม่
+    } elseif ($level !== '') {
+        $stmt = $mysqli->prepare("INSERT INTO step (level) VALUES (?)");
+        $stmt->bind_param("s", $level);
+
+        if ($stmt->execute()) {
+            echo "<script>alert('เพิ่มข้อมูลสำเร็จ'); window.location.href='collapsed-sidebar.php';</script>";
+        } else {
+            echo "<script>alert('เกิดข้อผิดพลาดในการเพิ่มข้อมูล'); window.history.back();</script>";
+        }
+        $stmt->close();
     } else {
-        echo "เกิดข้อผิดพลาด: " . $stmt->error;
+        echo "<script>alert('กรุณากรอกข้อมูลให้ครบถ้วน'); window.history.back();</script>";
     }
-
-    // ปิดการเชื่อมต่อ
-    $stmt->close();
 }
-
-// ปิดการเชื่อมต่อฐานข้อมูล
-$mysqli->close();
 ?>
