@@ -141,13 +141,13 @@ $email = htmlspecialchars($_SESSION['email']);
     <div class="row">
       <div class="col-md-6">
         <div class="box box-success">
-          <div class="box-header with-border"><h3 class="box-title">สถานะการขายในแต่ละขั้นตอน</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">สถานะการขายในแต่ละขั้นตอน (ย้ายไปกราฟ5)</h3></div>
           <div class="box-body"><canvas id="salestatusChart" height="180"></canvas></div>
         </div>
       </div>
       <div class="col-md-6">
         <div class="box box-info">
-          <div class="box-header with-border"><h3 class="box-title">ประมาณการรายได้ในแต่ละขั้นตอนการขาย</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">ประมาณการรายได้ในแต่ละขั้นตอนการขาย(ย้ายไปกราฟ6)</h3></div>
           <div class="box-body"><canvas id="statusValueChart" height="180"></canvas></div>
         </div>
       </div>
@@ -155,13 +155,13 @@ $email = htmlspecialchars($_SESSION['email']);
     <div class="row">
       <div class="col-md-6">
         <div class="box box-success">
-          <div class="box-header with-border"><h3 class="box-title">มูลค่า Forecast ทั้งหมด</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">มูลค่า Forecast ทั้งหมด(ย้ายไปกราฟ7)</h3></div>
           <div class="box-body"><canvas id="salesForecastChart" height="180"></canvas></div>
         </div>
       </div>
       <div class="col-md-6">
         <div class="box box-info">
-          <div class="box-header with-border"><h3 class="box-title">จำนวนโครงการที่ WIN</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">จำนวนโครงการที่ WIN(เอาออก)</h3></div>
           <div class="box-body"><canvas id="chart1" height="180"></canvas></div>
         </div>
       </div>
@@ -176,7 +176,7 @@ $email = htmlspecialchars($_SESSION['email']);
   </div>
   <div class="col-md-6">
     <div class="box box-info">
-      <div class="box-header with-border"><h3 class="box-title">มูลค่า WIN 2รายเดือน</h3></div>
+      <div class="box-header with-border"><h3 class="box-title">ยอดรวมสะสมทุกคนที่ WIN (เป็นกราฟที่1)</h3></div>
       <div class="box-body"><canvas id="winstatusValueChart" height="180"></canvas></div>
     </div>
   </div>
@@ -185,13 +185,13 @@ $email = htmlspecialchars($_SESSION['email']);
   <div class="row">
   <div class="col-md-6">
     <div class="box box-success">
-      <div class="box-header with-border"><h3 class="box-title">ยอดขายรายทีม (รายรับ)</h3></div>
+      <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(จำนวนโครงการ)(กราฟที่2)</h3></div>
       <div class="box-body"><canvas id="teamSumChart" height="180"></canvas></div>
     </div>
   </div>
   <div class="col-md-6">
     <div class="box box-info">
-      <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(จำนวน)</h3></div>
+      <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(มูลค่า)(กราฟ4)</h3></div>
       <div class="box-body"><canvas id="chartWin" height="180"></canvas></div>
     </div>
   </div>
@@ -200,11 +200,34 @@ $email = htmlspecialchars($_SESSION['email']);
   <div class="row">
   <div class="col-md-6">
     <div class="box box-success">
-      <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(รายได้)</h3></div>
+      <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(รายได้)(กราฟ3)</h3></div>
       <div class="box-body"><canvas id="personSumChart" height="180"></canvas></div>
     </div>
   </div>
+  <div class="col-md-6">
+    <div class="box box-info">
+      <div class="box-header with-border"><h3 class="box-title">กราฟข้อมูล % บิดดิ่ง(กราฟ8)</h3></div>
+      <div class="box-body"><canvas id="chartWin" height="180"></canvas></div>
+    </div>
   </div>
+  </div>
+  <div class="row">
+  <div class="col-md-6">
+    <div class="box box-success">
+      <div class="box-header with-border"><h3 class="box-title">TOP 10 ประเภทโซลูชั่น(กราฟ9)</h3></div>
+      <div class="box-body"><canvas id="personSumChart" height="180"></canvas></div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="box box-info">
+      <div class="box-header with-border"><h3 class="box-title">ยอดขาย Top 10 ของลูกค้า(กราฟ10)</h3></div>
+      <div class="box-body"><canvas id="chartWin" height="180"></canvas></div>
+    </div>
+  </div>
+  </div>
+  </div>
+  </div>
+  
 <script>
 const chartEstimate = new Chart(document.getElementById('chartEstimate'), {
   type: 'bar',
