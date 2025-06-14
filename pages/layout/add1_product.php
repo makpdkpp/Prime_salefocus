@@ -1,35 +1,47 @@
 <?php
+session_start();
+include("../../connect.php");
 include("../../functions.php");
+
 $conn = connectDb();
-$sql = "SELECT id, Product FROM product_group ";
 
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $Product = trim($_POST['Product'] ?? '');
 
-// ตรวจสอบว่ามีการส่งข้อมูลมาจากฟอร์มหรือไม่
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // รับข้อมูลจากฟอร์ม
-    $Product = $_POST['Product'];
+    // ตรวจสอบว่าต้องการ "แก้ไข"
+    if (
+        isset($_POST['action']) &&
+        $_POST['action'] === 'edit' &&
+        !empty($_POST['product_id']) &&
+        is_numeric($_POST['product_id'])
+    ) {
+        $id = (int)$_POST['product_id'];
 
-    // คำสั่ง SQL เพื่อเพิ่มข้อมูล
-    $sql = "INSERT INTO product_group (Product) VALUES (?)";
+        $stmt = $conn->prepare("UPDATE product_group SET Product = ? WHERE product_id = ?");
+        $stmt->bind_param("si", $Product, $id);
 
-    // เตรียมคำสั่ง SQL
-    $stmt = $conn->prepare($sql);
+        if ($stmt->execute()) {
+            echo "<script>alert('อัปเดตข้อมูลสำเร็จ'); window.location.href='boxed.php';</script>";
+        } else {
+            echo "<script>alert('เกิดข้อผิดพลาดในการอัปเดตข้อมูล'); window.history.back();</script>";
+        }
+        $stmt->close();
 
-    // ผูกค่าตัวแปรกับคำสั่ง SQL
-    $stmt->bind_param("s", $Product);  // s = string, i = integer
+    // ถ้าไม่ใช่การแก้ไข → ให้เป็นการเพิ่มใหม่
+    } elseif ($Product !== '') {
+        $stmt = $conn->prepare("INSERT INTO product_group (Product) VALUES (?)");
+        $stmt->bind_param("s", $Product);
 
-    // เรียกใช้คำสั่ง SQL และตรวจสอบการเพิ่มข้อมูล
-    if ($stmt->execute()) {
-        echo "ข้อมูลถูกเพิ่มสำเร็จ!";
-        header("location: boxed.php");
+        if ($stmt->execute()) {
+            echo "<script>alert('เพิ่มข้อมูลสำเร็จ'); window.location.href='boxed.php';</script>";
+        } else {
+            echo "<script>alert('เกิดข้อผิดพลาดในการเพิ่มข้อมูล'); window.history.back();</script>";
+        }
+        $stmt->close();
     } else {
-        echo "เกิดข้อผิดพลาด: " . $stmt->error;
+        echo "<script>alert('กรุณากรอกข้อมูลให้ครบถ้วน'); window.history.back();</script>";
     }
-
-    // ปิดการเชื่อมต่อ
-    $stmt->close();
 }
 
-// ปิดการเชื่อมต่อฐานข้อมูล
 $conn->close();
 ?>

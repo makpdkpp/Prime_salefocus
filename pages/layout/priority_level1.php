@@ -3,32 +3,39 @@ session_start();
 require_once '../../functions.php';
 $mysqli = connectDb();
 
-// ตรวจสอบว่ามีการส่งข้อมูลมาจากฟอร์มหรือไม่
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // รับข้อมูลจากฟอร์ม
-    $priority = $_POST['priority'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $priority = trim($_POST['priority'] ?? '');
 
-    // คำสั่ง SQL เพื่อเพิ่มข้อมูล
-    $sql = "INSERT INTO priority_level (priority) VALUES (?)";
+    if (
+        isset($_POST['action']) &&
+        $_POST['action'] === 'edit' &&
+        !empty($_POST['priority_id']) &&
+        is_numeric($_POST['priority_id'])
+    ) {
+        $priority_id = (int)$_POST['priority_id'];
 
-    // เตรียมคำสั่ง SQL
-    $stmt = $mysqli->prepare($sql);
+        $stmt = $mysqli->prepare("UPDATE priority_level SET priority = ? WHERE priority_id = ?");
+        $stmt->bind_param("si", $priority, $priority_id);
 
-    // ผูกค่าตัวแปรกับคำสั่ง SQL
-    $stmt->bind_param("s", $priority);  // s = string, i = integer
+        if ($stmt->execute()) {
+            echo "<script>alert('อัปเดตข้อมูลสำเร็จ'); window.location.href='of_winning.php';</script>";
+        } else {
+            echo "<script>alert('เกิดข้อผิดพลาดในการอัปเดตข้อมูล'); window.history.back();</script>";
+        }
+        $stmt->close();
 
-    // เรียกใช้คำสั่ง SQL และตรวจสอบการเพิ่มข้อมูล
-    if ($stmt->execute()) {
-        echo "ข้อมูลถูกเพิ่มสำเร็จ!";
-        header("location: of_winning.php");
+    } elseif ($priority !== '') {
+        $stmt = $mysqli->prepare("INSERT INTO priority_level (priority) VALUES (?)");
+        $stmt->bind_param("s", $priority);
+
+        if ($stmt->execute()) {
+            echo "<script>alert('เพิ่มข้อมูลสำเร็จ'); window.location.href='of_winning.php';</script>";
+        } else {
+            echo "<script>alert('เกิดข้อผิดพลาดในการเพิ่มข้อมูล'); window.history.back();</script>";
+        }
+        $stmt->close();
     } else {
-        echo "เกิดข้อผิดพลาด: " . $stmt->error;
+        echo "<script>alert('กรุณากรอกข้อมูลให้ครบถ้วน'); window.history.back();</script>";
     }
-
-    // ปิดการเชื่อมต่อ
-    $stmt->close();
 }
-
-// ปิดการเชื่อมต่อฐานข้อมูล
-$mysqli->close();
 ?>

@@ -1,35 +1,45 @@
 <?php
+session_start();
+include("../../connect.php");
 include("../../functions.php");
-$conn = connectDb();
-$sql = "SELECT id, Industry FROM industry_group ";
 
+$mysqli = connectDb();
 
-// ตรวจสอบว่ามีการส่งข้อมูลมาจากฟอร์มหรือไม่
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // รับข้อมูลจากฟอร์ม
-    $Industry = $_POST['Industry'];
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $industry = trim($_POST['Industry'] ?? '');
 
-    // คำสั่ง SQL เพื่อเพิ่มข้อมูล
-    $sql = "INSERT INTO industry_group (Industry) VALUES (?)";
+    // ตรวจสอบว่าต้องการ "แก้ไข"
+    if (
+        isset($_POST['action']) &&
+        $_POST['action'] === 'edit' &&
+        !empty($_POST['Industry_id']) &&
+        is_numeric($_POST['Industry_id'])
+    ) {
+        $industry_id = (int)$_POST['Industry_id'];
 
-    // เตรียมคำสั่ง SQL
-    $stmt = $conn->prepare($sql);
+        $stmt = $mysqli->prepare("UPDATE Industry_group SET Industry = ? WHERE Industry_id = ?");
+        $stmt->bind_param("si", $industry, $industry_id);
 
-    // ผูกค่าตัวแปรกับคำสั่ง SQL
-    $stmt->bind_param("s", $Industry);  // s = string, i = integer
+        if ($stmt->execute()) {
+            echo "<script>alert('อัปเดตข้อมูลสำเร็จ'); window.location.href='fixed.php';</script>";
+        } else {
+            echo "<script>alert('เกิดข้อผิดพลาดในการอัปเดตข้อมูล'); window.history.back();</script>";
+        }
+        $stmt->close();
 
-    // เรียกใช้คำสั่ง SQL และตรวจสอบการเพิ่มข้อมูล
-    if ($stmt->execute()) {
-        echo "ข้อมูลถูกเพิ่มสำเร็จ!";
-        header("location: fixed.php");
+    // ถ้าไม่ใช่การแก้ไข → ให้เป็นการเพิ่มใหม่
+    } elseif ($industry !== '') {
+        $stmt = $mysqli->prepare("INSERT INTO Industry_group (Industry) VALUES (?)");
+        $stmt->bind_param("s", $industry);
+
+        if ($stmt->execute()) {
+            echo "<script>alert('เพิ่มข้อมูลสำเร็จ'); window.location.href='fixed.php';</script>";
+        } else {
+            echo "<script>alert('เกิดข้อผิดพลาดในการเพิ่มข้อมูล'); window.history.back();</script>";
+        }
+        $stmt->close();
     } else {
-        echo "เกิดข้อผิดพลาด: " . $stmt->error;
+        echo "<script>alert('กรุณากรอกข้อมูลให้ครบถ้วน'); window.history.back();</script>";
     }
-
-    // ปิดการเชื่อมต่อ
-    $stmt->close();
 }
-
-// ปิดการเชื่อมต่อฐานข้อมูล
-$conn->close();
 ?>
