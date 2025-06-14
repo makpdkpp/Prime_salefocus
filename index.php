@@ -9,207 +9,181 @@ ob_end_flush();
 ?>
 
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' name='viewport'>
-  <link href="../../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" />
-  <link href="http://code.ionicframework.com/ionicons/2.0.0/css/ionicons.min.css" rel="stylesheet" />
-  <link href="../../dist/css/AdminLTE.min.css" rel="stylesheet" />
-  <link href="../../dist/css/skins/_all-skins.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- Custom Theme - Red and White -->
+  <title>Login | Prime Focus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      background-color: #ffffff;
-      color: #333;
-      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: #f1f5f9;
     }
 
-    .modal {
-      position: fixed;
-      z-index: 999;
-      left: 0;
-      top: 0;
+    .login-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding: 20px;
+    }
+
+    .card-login {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      max-width: 960px;
+      background: white;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .card-login .image-section {
+      flex: 1;
+    }
+
+    .card-login .image-section img {
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.5);
+      object-fit: cover;
+    }
+
+    .card-login .form-section {
+      flex: 1;
+      padding: 50px 40px;
+    }
+
+    .logo-title {
       display: flex;
       align-items: center;
-      justify-content: center;
-    }
-
-    .modal-content {
-      background-color: #d32f2f;
-      padding: 20px 30px;
-      border-radius: 10px;
-      color: #fff;
-      min-width: 300px;
-      max-width: 90%;
-      text-align: center;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-    }
-
-    .close {
-      position: absolute;
-      top: 12px;
-      right: 20px;
-      color: #fff;
-      font-size: 24px;
-      cursor: pointer;
-    }
-
-    .title {
-      color: #d32f2f;
-      font-size: 24px;
-      margin-bottom: 20px;
+      gap: 10px;
+      font-size: 22px;
       font-weight: bold;
     }
 
-    .input-box i {
-      color: #d32f2f;
+    .logo-title img {
+      height: 28px;
     }
 
-    .text a,
-    .text label {
-      color: #d32f2f;
-      cursor: pointer;
-    }
-
-    input.btn {
-      background-color: #d32f2f; /* สีแดงหลัก */
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-}
-
-    input.btn:hover {
-      background-color: #b71c1c; /* สีแดงเข้มตอน hover */
-      transform: scale(1.05);
+    .form-section h3 {
+      font-weight: 700;
+      margin-top: 15px;
+      margin-bottom: 30px;
     }
 
     .form-group label {
-      color: #d32f2f;
-      margin-top: 10px;
+      font-weight: 500;
     }
 
-    .cover img {
-      width: 100%;
-      height: auto;
-      border-radius: 10px;
+    .form-control {
+      border-radius: 6px;
+      font-size: 15px;
     }
-    
+
+    .btn-login {
+      background-color: #d32f2f;
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+
+    .btn-login:hover {
+      background-color: #b71c1c;
+    }
+
+    .btn-outline-custom {
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 6px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 15px;
+      margin-top: 10px;
+      background-color: white;
+    }
+
+    .btn-outline-custom img {
+      height: 20px;
+    }
+
+    .bottom-text {
+      text-align: center;
+      font-size: 14px;
+      margin-top: 15px;
+    }
+
+    .bottom-text a {
+      color: #d32f2f;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .bottom-text a:hover {
+      text-decoration: underline;
+    }
+
+    .text-link {
+      font-size: 13px;
+      color: #d32f2f;
+      text-decoration: none;
+    }
+
+    .text-link:hover {
+      text-decoration: underline;
+    }
+
   </style>
 </head>
-
 <body>
-<div id="popup" style="display:none;" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="closePopup()">&times;</span>
-    <p id="popup-message"></p>
-  </div>
-</div>
 
-<div class="container">
-  <input type="checkbox" id="flip">
-  <div class="cover">
-    <div class="front">
-      <img src="images/frontImg.jpg" alt="">
-      <div class="text">
-        <span class="text-1">Primes <br> -----</span>
-        <span class="text-2">------</span>
-      </div>
+<div class="login-wrapper">
+  <div class="card-login">
+    <div class="image-section">
+      <img src="images/login-illustration.jpg" alt="Login Illustration">
     </div>
-    <div class="back">
-      <img class="backImg" src="images/backImg.jpg" alt="">
-      <div class="text">
-        <span class="text-1">prime <br> ------</span>
-        <span class="text-2">-------</span>
+    <div class="form-section">
+      <div class="logo-title mb-2">
+        <img src="images/logo.png" alt="Logo">
+        <span><span style="color: #6a42f1;">Prime</span> Focus</span>
       </div>
-    </div>
-  </div>
+      <h3>Login</h3>
 
-  <div class="forms">
-    <div class="form-content" id="signIn">
-      <div class="login-form">
-        <div class="title">Login</div>
-        <form method="post" action="index.php">
-          <div class="input-boxes">
-            <div class="input-box">
-              <i class="fas fa-envelope"></i>
-              <input type="email" name="email" id="email" placeholder="Enter your email" required>
-            </div>
-            <div class="input-box">
-              <i class="fas fa-lock"></i>
-              <input type="password" name="password" id="password" placeholder="Enter your password" required>
-            </div>
-            <div class="text"><a href="#">Forgot password?</a></div>
-            <div class="button input-box">
-              <input type="submit" class="btn" value="Submit" name="signIn">
-            </div>
-            <div class="text sign-up-text">Don't have an account? <label for="flip">Signup now</label></div>
-          </div>
-        </form>
-      </div>
+      <form method="post" action="index.php">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" class="form-control" placeholder="JohnDoe@gmail.com" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" name="password" class="form-control" placeholder="Password" required>
+        </div>
 
-      <div class="signup-form" id="signup">
-        <div class="title">SignupSSS</div>
-        <form method="post" action="functions.php">
-          <div class="input-boxes">
-            <div class="input-box">
-              <i class="fas fa-envelope"></i>
-              <input type="email" name="email" id="email" placeholder="Enter your email" required>
-            </div>
-            <div class="input-box">
-              <i class="fas fa-lock"></i>
-              <input type="password" name="password" id="password" placeholder="Enter your password" required>
-            </div>
-            <div class="form-group">
-              <label>ประเภทผู้ใช้งาน :</label>
-              <select class="form-control" name="role" id="role">
-                <option value="">-- โปรดเลือก --</option>
-                <option value="Admin">Admin</option>
-                <option value="User">User</option>
-              </select>
-            </div>
-          </div>
-          <div class="button input-box" >
-            <input type="submit" class="btn" value="Submit" name="signUp">
-          </div>
-          <div class="text sign-up-text">Already have an account? <label for="flip">Login now</label></div>
-        </form>
-      </div>
+        <div class="d-flex justify-content-end mb-3">
+          <a href="#" class="text-link">Forgot password?</a>
+        </div>
+
+        <button type="submit" name="signIn" class="btn btn-login">Login</button>
+
+        <div class="bottom-text mt-4">
+          Don’t have an account? <a href="register.php">Signup now</a>
+        </div>
+      </form>
     </div>
   </div>
 </div>
 
-<script>
-function closePopup() {
-  document.getElementById("popup").style.display = "none";
-}
-
-window.onload = function() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const error = urlParams.get('error');
-  const success = urlParams.get('success');
-
-  if (error || success) {
-    const popup = document.getElementById("popup");
-    const message = document.getElementById("popup-message");
-    popup.style.display = "flex";
-    message.innerText = error ? error : success;
-  }
-};
-</script>
 </body>
 </html>
