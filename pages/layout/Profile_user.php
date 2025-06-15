@@ -3,7 +3,24 @@ session_start();
 require_once '../../functions.php';
 $mysqli = connectDb();
 
-$sql = "SELECT user_id, nname, surename, email FROM user WHERE role_id = 2";
+// Update forecast if submitted
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['updateForecast'])) {
+  $forecast = str_replace(',', '', $_POST['forecast'] ?? '');
+  $userId = $_POST['user_id'] ?? '';
+
+  if ($forecast !== '' && is_numeric($userId) && is_numeric($forecast)) {
+    $stmt = $mysqli->prepare("UPDATE user SET forecast = ? WHERE user_id = ?");
+    $stmt->bind_param("si", $forecast, $userId);
+    $stmt->execute();
+    $stmt->close();
+    header("Location: Profile_user.php");
+    exit;
+  } else {
+    $error = "กรุณากรอกเฉพาะตัวเลขเท่านั้น (บาท)";
+  }
+}
+
+$sql = "SELECT user_id, nname, surename, email, forecast FROM user WHERE role_id = 2";
 $result = $mysqli->query($sql);
 ?>
 <!DOCTYPE html>
@@ -12,6 +29,9 @@ $result = $mysqli->query($sql);
   <meta charset="UTF-8">
   <title>ผู้ใช้งาน | PrimeFocus</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="../../dist/css/AdminLTE.min.css">
   <link rel="stylesheet" href="../../dist/css/skins/_all-skins.min.css">
@@ -26,13 +46,23 @@ $result = $mysqli->query($sql);
       border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
+    input {
+      width: 100%; padding: 10px; margin-bottom: 20px;
+      border: 1px solid #ccc; border-radius: 5px; font-size: 16px;
+    }
+    .btn-add {
+      position: fixed; bottom: 30px; right: 30px; background: #0056b3;
+      color: #fff; border-radius: 50%; width: 56px; height: 56px;
+      font-size: 24px; border: none; z-index: 999;
+    }
+    .modal-content { border-radius: 10px; padding: 20px; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
     th { background: #0056b3; color: white; }
     tr:hover { background-color: #f5f5f5; }
   </style>
 </head>
-<body class="hold-transition skin-blue sidebar-mini fixed"><body class="hold-transition skin-blue sidebar-mini fixed">
+<body class="hold-transition skin-blue sidebar-mini fixed">
 <div class="wrapper">
 <header class="main-header">
   <a href="../../home_admin.php" class="logo"><b>Prime</b>Focus</a>
@@ -96,45 +126,99 @@ $result = $mysqli->query($sql);
     </ul>
   </section>
 </aside>
-<div class="wrapper">
-  <div class="content-wrapper">
-    <section class="content">
-      <div class="container1">
-        <h3>ข้อมูลผู้ใช้งาน</h3>
-        <table class="table table-bordered">
-          <thead>
+<div class="content-wrapper">
+  <section class="content">
+    <div class="container1">
+      <h3>ข้อมูลผู้ใช้งาน</h3>
+      <?php if (!empty($error)): ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+      <?php endif; ?>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>ชื่อ</th>
+            <th>นามสกุล</th>
+            <th>Email</th>
+            <th>Forecast</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php while ($row = $result->fetch_assoc()): ?>
             <tr>
-              <th>ชื่อ</th>
-              <th>นามสกุล</th>
-              <th>Email</th>
-              <th>Actions</th>
+              <td><?= htmlspecialchars($row['nname']) ?></td>
+              <td><?= htmlspecialchars($row['surename']) ?></td>
+              <td><?= htmlspecialchars($row['email']) ?></td>
+              <td><?= number_format((float)$row['forecast']) ?></td>
+              <td>
+                <button class='btn btn-sm btn-warning' data-toggle="modal" data-target="#editModal" data-id="<?= $row['user_id'] ?>" data-forecast="<?= $row['forecast'] ?>">
+                  <i class='fa fa-edit'></i> Edit
+                </button>
+                <a href='delete_Pro.php?user_id=<?= $row['user_id'] ?>' onclick="return confirm('คุณต้องการลบหรือไม่?')" class='btn btn-sm btn-danger'>
+                  <i class='fa fa-trash'></i> Delete
+                </a>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            <?php while ($row = $result->fetch_assoc()): ?>
-              <tr>
-                <td><?= htmlspecialchars($row['nname']) ?></td>
-                <td><?= htmlspecialchars($row['surename']) ?></td>
-                <td><?= htmlspecialchars($row['email']) ?></td>
-                <td>
-                  <a href='delete_Pro.php?user_id=<?= $row['user_id'] ?>' onclick="return confirm('คุณต้องการลบหรือไม่?')" class='btn btn-sm btn-danger'>
-                    <i class='fa fa-trash'></i> ลบ
-                  </a>
-                </td>
-              </tr>
-            <?php endwhile; ?>
-            <?php if ($result->num_rows === 0): ?>
-              <tr><td colspan='4' class='text-center'>-- ไม่พบข้อมูลในระบบ --</td></tr>
-            <?php endif; ?>
-          </tbody>
-        </table>
-      </div>
-    </section>
+          <?php endwhile; ?>
+          <?php if ($result->num_rows === 0): ?>
+            <tr><td colspan='5' class='text-center'>-- ไม่พบข้อมูลในระบบ --</td></tr>
+          <?php endif; ?>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form method="POST" onsubmit="return validateForecast()">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel">แก้ไข Forecast</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="user_id" id="editUserId">
+          <div class="form-group">
+            <label for="forecast">Forecast (บาท)</label>
+            <input type="text" name="forecast" id="editForecast" class="form-control" required pattern="^[0-9,]+$" title="กรุณากรอกเฉพาะตัวเลขหรือจุลภาค (,) เท่านั้น">
+            <div class="error-message d-none" id="forecastError">กรุณากรอกเฉพาะตัวเลขจำนวนเงินบาท เช่น 100,000</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">ยกเลิก</button>
+          <button type="submit" name="updateForecast" class="btn btn-primary">บันทึก</button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="../../dist/js/app.min.js"></script>
+<script>
+  $('#editModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var userId = button.data('id');
+    var forecast = button.data('forecast');
+
+    var modal = $(this);
+    modal.find('#editUserId').val(userId);
+    modal.find('#editForecast').val(forecast);
+    $('#forecastError').addClass('d-none');
+  });
+
+  function validateForecast() {
+    const input = document.getElementById('editForecast');
+    const value = input.value;
+    const regex = /^[0-9,]+$/;
+    if (!regex.test(value)) {
+      document.getElementById('forecastError').classList.remove('d-none');
+      return false;
+    }
+    return true;
+  }
+</script>
 </body>
 </html>
