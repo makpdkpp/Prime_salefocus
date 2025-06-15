@@ -1,17 +1,24 @@
 <?php
 session_start();
-include("../../functions.php");
+include __DIR__ . '/../../functions.php';   // หรือ include("../../functions.php");
 $mysqli = connectDb();
 
+$row = [];
+$stmt = $mysqli->prepare("SELECT * FROM industry_group WHERE Industry_id = ?");
+$stmt->bind_param("i", $Industry_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$row = $result->fetch_assoc() ?: [];
+$stmt->close();
 $limit = 5;
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $start = ($page - 1) * $limit;
 
-$totalQuery = $mysqli->query("SELECT COUNT(*) as total FROM Industry_group");
+$totalQuery = $mysqli->query("SELECT COUNT(*) as total FROM industry_group");
 $totalRow = $totalQuery->fetch_assoc()['total'];
 $totalPages = ceil($totalRow / $limit);
 
-$sql = "SELECT Industry_id, Industry FROM Industry_group LIMIT $start, $limit";
+$sql = "SELECT Industry_id, Industry FROM industry_group LIMIT $start, $limit";
 $result = $mysqli->query($sql);
 ?>
 <!DOCTYPE html>
@@ -167,7 +174,7 @@ $result = $mysqli->query($sql);
       <div class="modal fade" id="addModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-dialog-centered" role="document">
           <div class="modal-content">
-            <form action="add01_product.php" method="POST">
+            <form action="add_product.php" method="POST">
               <div class="modal-header">
                 <h4 class="modal-title">เพิ่มชื่อข้อมูลอุตสาหกรรม</h4>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -175,7 +182,8 @@ $result = $mysqli->query($sql);
               <div class="modal-body">
                 <div class="form-group">
                   <label for="Industry">ชื่ออุตสาหกรรม:</label>
-                  <input type="text" name="Industry" id="Industry" class="form-control" required>
+                   <input type="text" name="Industry" id="Industry" class="form-control" required>
+              
                 </div>
               </div>
               <div class="modal-footer">
