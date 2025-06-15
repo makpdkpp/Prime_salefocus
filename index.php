@@ -7,9 +7,8 @@ $db = connectDb();
 $error = handleLogin($db);
 ob_end_flush();
 ?>
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
   <meta charset="UTF-8">
   <title>Login | Prime Focus</title>
@@ -23,7 +22,6 @@ ob_end_flush();
       font-family: 'Inter', sans-serif;
       background: #f1f5f9;
     }
-
     .login-wrapper {
       display: flex;
       justify-content: center;
@@ -31,7 +29,6 @@ ob_end_flush();
       height: 100vh;
       padding: 20px;
     }
-
     .card-login {
       display: flex;
       flex-direction: row;
@@ -42,22 +39,18 @@ ob_end_flush();
       border-radius: 10px;
       overflow: hidden;
     }
-
-    .card-login .image-section {
+    .image-section {
       flex: 1;
     }
-
-    .card-login .image-section img {
+    .image-section img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
-
-    .card-login .form-section {
+    .form-section {
       flex: 1;
       padding: 50px 40px;
     }
-
     .logo-title {
       display: flex;
       align-items: center;
@@ -65,26 +58,18 @@ ob_end_flush();
       font-size: 22px;
       font-weight: bold;
     }
-
     .logo-title img {
       height: 28px;
     }
-
     .form-section h3 {
       font-weight: 700;
       margin-top: 15px;
       margin-bottom: 30px;
     }
-
-    .form-group label {
-      font-weight: 500;
-    }
-
     .form-control {
       border-radius: 6px;
       font-size: 15px;
     }
-
     .btn-login {
       background-color: #d32f2f;
       border: none;
@@ -96,59 +81,33 @@ ob_end_flush();
       width: 100%;
       transition: all 0.3s ease;
     }
-
     .btn-login:hover {
       background-color: #b71c1c;
     }
-
-    .btn-outline-custom {
-      border: 1px solid #ccc;
-      padding: 10px;
-      border-radius: 6px;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-size: 15px;
-      margin-top: 10px;
-      background-color: white;
-    }
-
-    .btn-outline-custom img {
-      height: 20px;
-    }
-
-    .bottom-text {
-      text-align: center;
-      font-size: 14px;
-      margin-top: 15px;
-    }
-
-    .bottom-text a {
-      color: #d32f2f;
-      font-weight: 500;
-      text-decoration: none;
-    }
-
-    .bottom-text a:hover {
-      text-decoration: underline;
-    }
-
     .text-link {
       font-size: 13px;
       color: #d32f2f;
       text-decoration: none;
     }
-
     .text-link:hover {
       text-decoration: underline;
     }
-
+    .bottom-text {
+      text-align: center;
+      font-size: 14px;
+      margin-top: 15px;
+    }
+    .bottom-text a {
+      color: #d32f2f;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    .bottom-text a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
-
 <div class="login-wrapper">
   <div class="card-login">
     <div class="image-section">
@@ -159,7 +118,11 @@ ob_end_flush();
         <img src="images/logo.png" alt="Logo">
         <span><span style="color: #6a42f1;">Prime</span> Focus</span>
       </div>
-      <h3>Login</h3>
+      <h3>เข้าสู่ระบบ</h3>
+
+      <?php if (!empty($error)): ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+      <?php endif; ?>
 
       <form method="post" action="index.php">
         <div class="form-group">
@@ -167,23 +130,22 @@ ob_end_flush();
           <input type="email" name="email" class="form-control" placeholder="JohnDoe@gmail.com" required>
         </div>
         <div class="form-group">
-          <label>Password</label>
+          <label>รหัสผ่าน</label>
           <input type="password" name="password" class="form-control" placeholder="Password" required>
         </div>
 
         <div class="d-flex justify-content-end mb-3">
-          <a href="#" class="text-link">Forgot password?</a>
+          <a href="#" class="text-link">ลืมรหัสผ่าน?</a>
         </div>
 
-        <button type="submit" name="signIn" class="btn btn-login">Login</button>
+        <button type="submit" name="signIn" class="btn btn-login">เข้าสู่ระบบ</button>
 
         <div class="bottom-text mt-4">
-          Don’t have an account? <a href="register.php">Signup now</a>
+          ยังไม่มีบัญชี? <a href="register.php">สมัครสมาชิก</a>
         </div>
       </form>
     </div>
   </div>
 </div>
-
 </body>
 </html>
