@@ -244,6 +244,19 @@ $companies = $mysqli->query("
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../../dist/js/app.min.js"></script>
 <script>
+  document.getElementById('searchInput').addEventListener('keyup', function () {
+    const filter = this.value.trim().toLowerCase();
+    const rows = document.querySelectorAll('#companyTable tr');
+
+    rows.forEach(row => {
+      const companyCell = row.cells[0]; // คอลัมน์แรก: ชื่อบริษัท
+      const companyText = companyCell.textContent.toLowerCase();
+      row.style.display = companyText.includes(filter) ? '' : 'none';
+    });
+  });
+</script>
+
+<script>
   document.querySelectorAll('.btn-edit').forEach(btn => {
     btn.addEventListener('click', function () {
       const id = this.dataset.id;
@@ -259,5 +272,18 @@ $companies = $mysqli->query("
     });
   });
 </script>
+<script>
+  document.getElementById('searchInput').addEventListener('keyup', function () {
+    const filter = this.value.trim().toLowerCase();
+    const rows = document.querySelectorAll('#companyTable tr');
+
+    rows.forEach(row => {
+      const companyCell = row.cells[0]; // คอลัมน์แรก: ชื่อบริษัท
+      const companyText = companyCell.textContent.toLowerCase();
+      row.style.display = companyText.includes(filter) ? '' : 'none';
+    });
+  });
+</script>
+
 </body>
 </html>
