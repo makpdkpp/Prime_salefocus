@@ -1,23 +1,25 @@
 <?php
 session_start();
-include("../../functions.php");
+require_once '../../functions.php';
 $conn = connectDb();
 
-if (isset($_GET['level_id'])) {
-    $level_id = intval($_GET['level_id']); // แปลงให้เป็นตัวเลขเพื่อความปลอดภัย
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['level_id']) && is_numeric($_GET['level_id'])) {
+    $level_id = (int)$_GET['level_id'];
 
-    // เปลี่ยนชื่อตารางจาก level_id เป็นชื่อที่ถูกต้อง เช่น step
+
+    // ถ้าไม่มีการใช้งาน ให้ลบได้
     $stmt = $conn->prepare("DELETE FROM step WHERE level_id = ?");
     $stmt->bind_param("i", $level_id);
 
     if ($stmt->execute()) {
-        header("Location: collapsed-sidebar.php"); // Redirect เมื่อสำเร็จ
-        exit();
+        echo "<script>alert('ลบข้อมูลสำเร็จ'); window.location.href='collapsed-sidebar.php';</script>";
     } else {
-        echo "เกิดข้อผิดพลาด: " . $stmt->error;
+        echo "<script>alert('เกิดข้อผิดพลาดในการลบข้อมูล'); window.history.back();</script>";
     }
 
     $stmt->close();
+} else {
+    echo "<script>alert('รหัสไม่ถูกต้อง หรือไม่มีข้อมูล'); window.history.back();</script>";
 }
 
 $conn->close();
