@@ -122,6 +122,17 @@ $output['sumbyperson'] = queryList($mysqli,
      ORDER BY u.nname"
 );
 
+// 7. countbyperson (จำนวนขายต่อผู้ใช้)
+$output['countbyperson'] = queryList($mysqli,
+    "SELECT
+        u.nname,
+        COALESCE(COUNT(t.product_value),0) AS count_value
+     FROM `user` u
+     LEFT JOIN transactional t ON t.user_id = u.user_id AND t.win = 1
+     GROUP BY u.nname
+     ORDER BY u.nname"
+);
+
 // 8. sumbyperteam (ยอดรวมต่อทีม)
 $output['sumbyperteam'] = queryList($mysqli,
     "SELECT
@@ -182,6 +193,51 @@ $output['saleforecast'] = queryList($mysqli,
     LEFT JOIN transactional AS t ON t.user_id = u.user_id AND t.win = 1 
     WHERE u.role_id = 2
     GROUP BY u.user_id, u.nname, u.forecast ORDER BY u.nname"
+);
+
+// 11. Productortderbywinrate (productwinrate)
+$output['productwinrate'] = queryList($mysqli,
+    "SELECT 
+  t.Product_detail AS Product,
+  p.priority
+FROM 
+  transactional AS t
+join
+  priority_level AS p 
+  ON t.priority_id = p.priority_id
+ORDER BY 
+  t.priority_id DESC"
+);
+
+// 12. TOP10ProductGroup 
+$output['TopProductGroup'] = queryList($mysqli,
+    "SELECT
+  transactional.Product_id,
+  product_group.product,
+  SUM(product_value) AS sum_value
+FROM
+  transactional
+  JOIN product_group on transactional.Product_id = product_group.product_id
+GROUP BY
+  transactional.Product_id
+ORDER BY
+  sum_value DESC
+LIMIT 10"
+);
+
+// 13. Top10custopmer
+$output['TopCustopmer'] = queryList($mysqli,
+    "SELECT
+  company_catalog.company,
+  SUM(product_value) AS sum_value
+FROM
+  transactional
+  JOIN company_catalog on transactional.company_id = company_catalog.company_id
+GROUP BY
+  transactional.Product_id
+ORDER BY
+  sum_value DESC
+LIMIT 10"
 );
 
 $mysqli->close();

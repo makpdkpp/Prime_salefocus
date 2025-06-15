@@ -141,28 +141,28 @@ $email = htmlspecialchars($_SESSION['email']);
     <div class="row">
       <div class="col-md-6">
         <div class="box box-success">
-          <div class="box-header with-border"><h3 class="box-title">สถานะการขายในแต่ละขั้นตอน (ย้ายไปกราฟ5)</h3></div>
-          <div class="box-body"><canvas id="salestatusChart" height="180"></canvas></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดรวมสะสมทุกคนที่ WIN (เป็นกราฟที่1)</h3></div>
+      <div class="box-body"><canvas id="winstatusValueChart" height="180"></canvas></div>
         </div>
       </div>
       <div class="col-md-6">
         <div class="box box-info">
-          <div class="box-header with-border"><h3 class="box-title">ประมาณการรายได้ในแต่ละขั้นตอนการขาย(ย้ายไปกราฟ6)</h3></div>
-          <div class="box-body"><canvas id="statusValueChart" height="180"></canvas></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(จำนวนโครงการ)(กราฟที่2)</h3></div>
+      <div class="box-body"><canvas id="teamSumChart" height="180"></canvas></div>
         </div>
       </div>
     </div>
     <div class="row">
       <div class="col-md-6">
         <div class="box box-success">
-          <div class="box-header with-border"><h3 class="box-title">มูลค่า Forecast ทั้งหมด(ย้ายไปกราฟ7)</h3></div>
-          <div class="box-body"><canvas id="salesForecastChart" height="180"></canvas></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(รายได้)(กราฟ3)</h3></div>
+      <div class="box-body"><canvas id="personSumChart" height="180"></canvas></div>
         </div>
       </div>
       <div class="col-md-6">
         <div class="box box-info">
-          <div class="box-header with-border"><h3 class="box-title">จำนวนโครงการที่ WIN(เอาออก)</h3></div>
-          <div class="box-body"><canvas id="chart1" height="180"></canvas></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(มูลค่า)(กราฟ4)</h3></div>
+      <div class="box-body"><canvas id="countByPersonChart" height="180"></canvas></div>
         </div>
       </div>
     </div>
@@ -170,14 +170,14 @@ $email = htmlspecialchars($_SESSION['email']);
     <div class="row">
   <div class="col-md-6">
     <div class="box box-success">
-      <div class="box-header with-border"><h3 class="box-title">ยอดขายรายทีม (จำนวน)</h3></div>
-      <div class="box-body"><canvas id="x1" height="180"></canvas></div>
+      <div class="box-header with-border"><h3 class="box-title">สถานะการขายในแต่ละขั้นตอน (ย้ายไปกราฟ55)</h3></div>
+          <div class="box-body"><canvas id="salestatusChart" height="180"></canvas></div>
     </div>
   </div>
   <div class="col-md-6">
     <div class="box box-info">
-      <div class="box-header with-border"><h3 class="box-title">ยอดรวมสะสมทุกคนที่ WIN (เป็นกราฟที่1)</h3></div>
-      <div class="box-body"><canvas id="winstatusValueChart" height="180"></canvas></div>
+      <div class="box-header with-border"><h3 class="box-title">ประมาณการรายได้ในแต่ละขั้นตอนการขาย(ย้ายไปกราฟ6)</h3></div>
+          <div class="box-body"><canvas id="statusValueChart" height="180"></canvas></div>
     </div>
   </div>
   </div>
@@ -185,14 +185,14 @@ $email = htmlspecialchars($_SESSION['email']);
   <div class="row">
   <div class="col-md-6">
     <div class="box box-success">
-      <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(จำนวนโครงการ)(กราฟที่2)</h3></div>
-      <div class="box-body"><canvas id="teamSumChart" height="180"></canvas></div>
+      <div class="box-header with-border"><h3 class="box-title">มูลค่า Forecast ทั้งหมด(ย้ายไปกราฟ7)</h3></div>
+          <div class="box-body"><canvas id="salesForecastChart" height="180"></canvas></div>
     </div>
   </div>
   <div class="col-md-6">
     <div class="box box-info">
-      <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(มูลค่า)(กราฟ4)</h3></div>
-      <div class="box-body"><canvas id="chartWin" height="180"></canvas></div>
+      <div class="box-header with-border"><h3 class="box-title">กราฟข้อมูล % บิดดิ่ง(กราฟ8)</h3></div>
+      <div class="box-body"><canvas id="productWinRateChart" height="180"></canvas></div>
     </div>
   </div>
   </div>
@@ -200,17 +200,18 @@ $email = htmlspecialchars($_SESSION['email']);
   <div class="row">
   <div class="col-md-6">
     <div class="box box-success">
-      <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(รายได้)(กราฟ3)</h3></div>
-      <div class="box-body"><canvas id="personSumChart" height="180"></canvas></div>
+      <div class="box-header with-border"><h3 class="box-title">TOP 10 ประเภทโซลูชั่น(กราฟ9)</h3></div>
+      <div class="box-body"><canvas id="topProductsChart" height="180"></canvas></div>
     </div>
   </div>
   <div class="col-md-6">
     <div class="box box-info">
-      <div class="box-header with-border"><h3 class="box-title">กราฟข้อมูล % บิดดิ่ง(กราฟ8)</h3></div>
-      <div class="box-body"><canvas id="chartWin" height="180"></canvas></div>
+      <div class="box-header with-border"><h3 class="box-title">ยอดขาย Top 10 ของลูกค้า(กราฟ10)</h3></div>
+      <div class="box-body"><canvas id="topCustomerChart" height="180"></canvas></div>
     </div>
   </div>
   </div>
+  <!--
   <div class="row">
   <div class="col-md-6">
     <div class="box box-success">
@@ -227,7 +228,7 @@ $email = htmlspecialchars($_SESSION['email']);
   </div>
   </div>
   </div>
-  
+  -->
 <script>
 const chartEstimate = new Chart(document.getElementById('chartEstimate'), {
   type: 'bar',
@@ -697,6 +698,262 @@ const chartWin = new Chart(document.getElementById('3'), {
       }
     })();
   </script>
+
+   <script>
+    (async () => {
+      try {
+        const res  = await fetch('admin_data.php');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const json = await res.json();
+        const raw  = json.countbyperson || [];
+
+        if (!raw.length) {
+          const canvas = document.getElementById('countByPersonChart');
+          canvas.parentNode.replaceChild(
+            document.createTextNode('ไม่มีข้อมูลสำหรับแสดงกราฟนี้'),
+            canvas
+          );
+          return;
+        }
+
+        // เตรียม labels และ data array
+        const labels      = raw.map(r => r.nname);
+        const countValues = raw.map(r => Number(r.count_value));
+
+        // ดึง context ของ canvas
+        const ctx = document
+          .getElementById('countByPersonChart')
+          .getContext('2d');
+
+        // สร้าง bar chart
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: 'จำนวน Win (count)',
+              data: countValues,
+              backgroundColor: 'rgba(54, 162, 235, 0.7)'
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              title: {
+                display: true,
+                text: 'Count of Wins per User'
+              },
+              legend: {
+                display: false
+              }
+            },
+            scales: {
+              x: {
+                title: { display: true, text: 'ผู้ใช้ (nname)' }
+              },
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: 'จำนวน Win' },
+                ticks: { precision: 0 }
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Error loading sumbyperson:', err);
+        const msg = document.createElement('p');
+        msg.style.color = 'red';
+        msg.textContent = 'เกิดข้อผิดพลาดในการโหลดข้อมูลกราฟ';
+        document.body.appendChild(msg);
+      }
+    })();
+  </script>
+<script>
+(async () => {
+  const res  = await fetch('admin_data.php');
+  const json = await res.json();
+  const raw  = json.productwinrate || [];
+
+  // แปลง priority จาก string -> ตัวเลข
+  function parsePriority(p) {
+    p = p.trim();
+    if (p.endsWith('%')) return parseFloat(p);
+    return 0;
+  }
+
+  // เตรียมข้อมูลและ sort จากมาก→น้อย
+  const items = raw
+    .map(r => ({
+      label: r.Product,
+      value: parsePriority(r.priority)
+    }))
+    .sort((a, b) => b.value - a.value);
+
+  const labels = items.map(i => i.label);
+  const data   = items.map(i => i.value);
+
+  // สร้าง array สี: ถ้า value >= 80 → แดง (red), else → น้ำเงิน (blue)
+  const backgroundColors = data.map(v =>
+    v >= 80
+      ? 'rgba(255, 99, 132, 0.7)'    // red
+      : 'rgba(54, 162, 235, 0.7)'    // blue
+  );
+
+  const ctx = document.getElementById('productWinRateChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Priority (%)',
+        data,
+        backgroundColor: backgroundColors
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      scales: {
+        y: {
+          reverse: false,
+          title: { display: true, text: 'Product' }
+        },
+        x: {
+          beginAtZero: true,
+          max: 100,
+          title: { display: true, text: 'Priority (%)' }
+        }
+      },
+      plugins: {
+        title: {
+          display: true,
+          text: 'Product Win Rate by Priority'
+        },
+        legend: { display: false }
+      }
+    }
+  });
+})();
+</script>
+
+<script>
+  (async () => {
+    // ดึงข้อมูลจาก admin_data.php
+    const res  = await fetch('admin_data.php');
+    const json = await res.json();
+    const raw  = json.TopProductGroup || [];
+
+    // เตรียม labels และ data
+    const labels = raw.map(r => r.product);
+    const data   = raw.map(r => Number(r.sum_value));
+
+    // สร้างสี: 2 อันดับแรกแดง ที่เหลือฟ้า
+    const backgroundColors = data.map((_, i) =>
+      i < 2
+        ? 'rgba(255, 99, 132, 0.7)'   // red
+        : 'rgba(54, 162, 235, 0.7)'   // blue
+    );
+
+    // วาดกราฟแท่งแนวนอน
+    const ctx = document.getElementById('topProductsChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'ยอดรวม (บาท)',
+          data,
+          backgroundColor: backgroundColors
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Top 10 Products by Total Value'
+          },
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            title: { display: true, text: 'ยอดรวม (บาท)' }
+          },
+          y: {
+            title: { display: true, text: 'สินค้า' },
+            ticks: { mirror: false }
+          }
+        }
+      }
+    });
+  })();
+  </script>
+
+  <script>
+  (async () => {
+    // ดึงข้อมูลจาก admin_data.php (key: TopCustopmer)
+    const res  = await fetch('admin_data.php');
+    const json = await res.json();
+    const raw  = json.TopCustopmer || [];
+
+    if (!raw.length) {
+      const canvas = document.getElementById('topCustomerChart');
+      canvas.parentNode.replaceChild(
+        document.createTextNode('ไม่มีข้อมูลสำหรับแสดงกราฟนี้'),
+        canvas
+      );
+      return;
+    }
+
+    // เตรียม labels และ data
+    const labels = raw.map(r => r.company);
+    const data   = raw.map(r => Number(r.sum_value));
+
+    // กำหนดสี: 2 อันดับแรกแดง ที่เหลือฟ้า
+    const backgroundColors = data.map((_, i) =>
+      i < 2
+        ? 'rgba(255, 99, 132, 0.7)'   // red
+        : 'rgba(54, 162, 235, 0.7)'   // blue
+    );
+
+    // วาดกราฟแท่งแนวนอน
+    const ctx = document.getElementById('topCustomerChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'ยอดรวม (บาท)',
+          data,
+          backgroundColor: backgroundColors
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Top 10 ลูกค้าตามยอดรวม'
+          },
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            title: { display: true, text: 'ยอดรวม (บาท)' }
+          },
+          y: {
+            title: { display: true, text: 'บริษัท/ลูกค้า' },
+            ticks: { mirror: false }
+          }
+        }
+      }
+    });
+  })();
+  </script>
+
   </section>
 </div>
 </div>
