@@ -249,12 +249,15 @@ $companies = $mysqli->query("
     const rows = document.querySelectorAll('#companyTable tr');
 
     rows.forEach(row => {
-      const companyCell = row.cells[0]; // คอลัมน์แรก: ชื่อบริษัท
-      const companyText = companyCell.textContent.toLowerCase();
-      row.style.display = companyText.includes(filter) ? '' : 'none';
+      const cells = row.querySelectorAll('td');
+      const match = Array.from(cells).some(cell => 
+        cell.textContent.toLowerCase().includes(filter)
+      );
+      row.style.display = match ? '' : 'none';
     });
   });
 </script>
+
 
 <script>
   document.querySelectorAll('.btn-edit').forEach(btn => {
