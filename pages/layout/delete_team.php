@@ -1,24 +1,38 @@
 <?php
+session_start();
 require_once '../../functions.php';
-$mysqli = connectDb();
+$conn = connectDb();
 
-if (isset($_GET['id'])) {
-    $id = (int)$_GET['id']; // แปลงให้เป็นตัวเลข ป้องกัน SQL injection
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['team_id']) && is_numeric($_GET['team_id'])) {
+    $team_id = (int)$_GET['team_id'];
 
-    // ขั้นตอนที่ 1: อัปเดต user ให้ team_id เป็น NULL ก่อน
-    $updateSql = "UPDATE user SET team_id = NULL WHERE team_id = $id";
-    $mysqli->query($updateSql);
+    // เช็คว่ามีการใช้งานอยู่ใน transactional หรือไม่
+    $check = $conn->prepare("SELECT COUNT(*) FROM transactional WHERE team_id = ?");
+    $check->bind_param("i", $team_id);
+    $check->execute();
+    $check->bind_result($count);
+    $check->fetch();
+    $check->close();
 
-    // ขั้นตอนที่ 2: ลบทีมออกจาก team_catalog
-    $deleteSql = "DELETE FROM team_catalog WHERE id = $id";
-
-    if ($mysqli->query($deleteSql) === TRUE) {
-        header("location: Saleteam.php?success=ลบทีมเรียบร้อย");
-        exit;
-    } else {
-        echo "เกิดข้อผิดพลาด: " . $mysqli->error;
+    if ($count > 0) {
+        echo "<script>alert('ไม่สามารถลบได้ เนื่องจากมีการใช้งาน priority นี้อยู่ในข้อมูลการขาย'); window.location.href='Saleteam.php';</script>";
+        exit();
     }
+
+    // ถ้าไม่มีการใช้งาน ให้ลบได้
+    $stmt = $conn->prepare("DELETE FROM team_catalog WHERE team_id = ?");
+    $stmt->bind_param("i", $team_id);
+
+    if ($stmt->execute()) {
+        echo "<script>alert('ลบข้อมูลสำเร็จ'); window.location.href='Saleteam.php';</script>";
+    } else {
+        echo "<script>alert('เกิดข้อผิดพลาดในการลบข้อมูล'); window.history.back();</script>";
+    }
+
+    $stmt->close();
+} else {
+    echo "<script>alert('รหัสไม่ถูกต้อง หรือไม่มีข้อมูล'); window.history.back();</script>";
 }
 
-$mysqli->close();
+$conn->close();
 ?>
