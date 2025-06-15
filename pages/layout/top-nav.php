@@ -259,5 +259,18 @@ $companies = $mysqli->query("
     });
   });
 </script>
+<script>
+  document.getElementById('searchInput').addEventListener('keyup', function () {
+    const filter = this.value.trim().toLowerCase();
+    const rows = document.querySelectorAll('#companyTable tr');
+
+    rows.forEach(row => {
+      const companyCell = row.cells[0]; // คอลัมน์แรก: ชื่อบริษัท
+      const companyText = companyCell.textContent.toLowerCase();
+      row.style.display = companyText.includes(filter) ? '' : 'none';
+    });
+  });
+</script>
+
 </body>
 </html>
