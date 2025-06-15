@@ -7,7 +7,7 @@ if (isset($_GET['Industry_id'])) {
     $Industry_id = intval($_GET['Industry_id']); // แปลงให้เป็นตัวเลขเพื่อความปลอดภัย
 
     // ใช้ prepared statement
-    $stmt = $conn->prepare("DELETE FROM Industry_group WHERE Industry_id = ?");
+    $stmt = $conn->prepare("DELETE FROM industry_group WHERE Industry_id = ?");
     $stmt->bind_param("i", $Industry_id);
 
     if ($stmt->execute()) {
