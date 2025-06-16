@@ -7,27 +7,27 @@ $mysqli = connectDb();
 
 // ตรวจสอบว่าเป็น POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $industry = trim($_POST['Industry'] ?? '');
+    $Product = trim($_POST['Product'] ?? '');
     $action   = $_POST['action']   ?? 'add';
 
-    if ($action === 'edit' && !empty($_POST['Industry_id']) && is_numeric($_POST['Industry_id'])) {
+    if ($action === 'edit' && !empty($_POST['product_id']) && is_numeric($_POST['product_id'])) {
         // แก้ไข
-        $industry_id = (int) $_POST['Industry_id'];
+        $product_id = (int) $_POST['product_id'];
 
         // ใช้ table ชื่อ lowercase ตามจริง
-        $sql = "UPDATE `industry_group`
-                   SET `Industry` = ?
-                 WHERE `industry_id` = ?";
+        $sql = "UPDATE `product_group`
+                   SET `Product` = ?
+                 WHERE `product_id` = ?";
         $stmt = $mysqli->prepare($sql);
         if (!$stmt) {
             die("Prepare failed: " . $mysqli->error);
         }
-        $stmt->bind_param("si", $industry, $industry_id);
+        $stmt->bind_param("si", $Product, $product_id);
 
         if ($stmt->execute()) {
             echo "<script>
                     alert('อัปเดตข้อมูลสำเร็จ');
-                    window.location.href = 'fixed.php';
+                    window.location.href = 'boxed.php';
                   </script>";
         } else {
             echo "<script>
@@ -37,19 +37,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt->close();
 
-    } elseif ($industry !== '') {
+    } elseif ($Product !== '') {
         // เพิ่มใหม่
-        $sql = "INSERT INTO `industry_group` (`Industry`) VALUES (?)";
+        $sql = "INSERT INTO `product_group` (`Product`) VALUES (?)";
         $stmt = $mysqli->prepare($sql);
         if (!$stmt) {
             die("Prepare failed: " . $mysqli->error);
         }
-        $stmt->bind_param("s", $industry);
+        $stmt->bind_param("s", $Product);
 
         if ($stmt->execute()) {
             echo "<script>
                     alert('เพิ่มข้อมูลสำเร็จ');
-                    window.location.href = 'fixed.php';
+                    window.location.href = 'boxed.php';
                   </script>";
         } else {
             echo "<script>

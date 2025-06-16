@@ -1,219 +1,111 @@
 <?php
+/***********************************************************************
+ *  edit_transaction.php (READY-TO-USE)
+ *  แก้ไขเรคคอร์ดของตาราง transactional ได้เฉพาะ user ที่ล็อกอิน
+ *  *** ไม่ต้องพึ่งตาราง step_catalog อีกต่อไป ***
+ ***********************************************************************/
+require_once '../functions.php';
 session_start();
-include("../connect.php");
 
-// ดึงข้อมูลของผู้ใช้จากเซสชัน
-$email = $_SESSION['email'];
-
-// ตรวจสอบว่าอีเมล์ในเซสชันมีอยู่หรือไม่
-if (isset($email)) {
-    // ดึงข้อมูลผู้ใช้จากฐานข้อมูล โดยการ JOIN ตาราง users และ profile_user
-    $sql = "SELECT users.id, users.email, profile_user.team, profile_user.F_name FROM users 
-            INNER JOIN profile_user ON users.email = profile_user.email 
-            WHERE users.email = '$email'";
-
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        $user_id = $row['id'];  // ID ของผู้ใช้ที่ล็อกอิน
-        $team = $row['team'];
-        $F_name = $row['F_name'];
-        $table_name = "user_" . $user_id; // ชื่อตารางที่เก็บข้อมูลของผู้ใช้
-
-        // รับค่า 'id' จาก URL
-        if (isset($_GET['id']) && !empty($_GET['id'])) {
-            $id = $_GET['id'];
-
-            
-
-            // ตรวจสอบว่า $id เป็นตัวเลข และเป็นข้อมูลของผู้ใช้ที่ล็อกอิน
-            if (is_numeric($id)) {
-                // ใช้ email หรือ user_id ที่เหมาะสมแทนการใช้ user_id ใน WHERE clause
-                // เพิ่มเงื่อนไขในการตรวจสอบผู้ใช้
-                $check_sql = "SELECT * FROM $table_name WHERE id = '$id' AND salesperson = '$F_name'";  // เช็คข้อมูลเฉพาะของผู้ใช้ที่ล็อกอิน
-                $check_result = $conn->query($check_sql);
-
-                if ($check_result->num_rows > 0) {
-                    $row = $check_result->fetch_assoc(); // ดึงข้อมูลแถวที่ต้องการแก้ไข
-                } else {
-                    echo "ไม่พบข้อมูลที่ต้องการแก้ไข หรือ คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้";
-                    echo $table_name;
-                    echo $id;
-                    echo $email;
-                    exit;
-                }
-            } else {
-                echo "ID ที่ส่งมาผิดพลาด";
-                exit;
-            }
-        } else {
-            echo "ไม่พบการระบุ ID ใน URL";
-            exit;
-        }
-
-        // เช็คว่าเมื่อกี้มีการกดปุ่มส่งข้อมูลหรือไม่
-        if (isset($_POST['submit'])) {
-            // รับค่าจากฟอร์ม
-            $Product_list = $_POST['Product_list'];
-            $Contact_start_date = $_POST['Contact_start_date'];
-            $Product_value = $_POST['Product_value'];
-            $date_of_closing_of_sale = $_POST['date_of_closing_of_sale'];
-            $sales_can_be_closed = $_POST['sales_can_be_closed'];
-            $Product = $_POST['Product'];
-            $Level = $_POST['Level'];
-            $add_office = $_POST['add_office'];
-            $Priority = $_POST['Priority'];
-
-            // สร้างคำสั่ง SQL สำหรับการอัปเดตข้อมูล
-            $update_sql = "UPDATE $table_name 
-                           SET Product_group = '$Product', 
-                               Product_list = '$Product_list', 
-                               Contact_start_date = '$Contact_start_date', 
-                               step = '$Level', 
-                               salesperson = '$F_name', 
-                               Sales_team = '$team', 
-                               Product_value = '$Product_value', 
-                               company = '$add_office', 
-                               date_of_closing_of_sale = '$date_of_closing_of_sale', 
-                               sales_can_be_closed = '$sales_can_be_closed', 
-                               Priority_level = '$Priority'
-                           WHERE id = '$id'";  // ใช้ id จาก URL เป็นตัวเลือกในการอัปเดตข้อมูล
-
-            // ตรวจสอบการอัปเดตข้อมูล
-            if ($conn->query($update_sql) === TRUE) {
-                echo "<script>alert('ข้อมูลถูกแก้ไขสำเร็จ'); window.location.href='../home_user.php';</script>";
-            } else {
-                echo "Error: " . $conn->error;
-            }
-        }
-    } else {
-        echo "ไม่พบข้อมูลผู้ใช้";
-    }
-} else {
-    echo "กรุณาล็อกอินก่อนที่จะทำการแก้ไขข้อมูล";
+// ─────────────────── 1) Auth ───────────────────
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {
+    header('Location: ../index.php');
+    exit;
 }
+
+$mysqli   = connectDb();
+$user_id  = (int)$_SESSION['user_id'];
+$email    = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
+$nname    = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
+
+// ─────────────────── 2) Static dropdown data ───────────────────
+$stepMap = [1=>'Present',2=>'Budget',3=>'TOR',4=>'Bidding',5=>'WIN',6=>'LOST'];
+function getOpts(mysqli $db,$tbl,$id,$label){$r=$db->query("SELECT `$id`,`$label` FROM `$tbl` ORDER BY `$label`");return $r?$r->fetch_all(MYSQLI_ASSOC):[];}
+$productOpts  = getOpts($mysqli,'product_group','product_id','product');
+$companyOpts  = getOpts($mysqli,'company_catalog','company_id','company');
+$teamOpts     = getOpts($mysqli,'team_catalog','team_id','team');
+$priorityOpts = getOpts($mysqli,'priority_level','priority_id','priority');
+// flags label map
+$subSteps = ['present'=>'Present','budgeted'=>'Budget','tor'=>'TOR','bidding'=>'Bidding','win'=>'WIN','lost'=>'LOST'];
+
+// ─────────────────── 3) รับ ID และดึงข้อมูล ───────────────────
+if (!isset($_GET['id']) || !ctype_digit($_GET['id'])) exit('Invalid id');
+$tid=(int)$_GET['id'];
+$stmt=$mysqli->prepare("SELECT * FROM transactional WHERE transac_id=? AND user_id=?");
+$stmt->bind_param('ii',$tid,$user_id);
+$stmt->execute();
+$rec=$stmt->get_result()->fetch_assoc();
+if(!$rec) exit('ไม่พบข้อมูล หรือไม่ใช่ข้อมูลของคุณ');
+
+// ─────────────────── 4) Save ───────────────────
+if($_SERVER['REQUEST_METHOD']==='POST'){
+    // ----- รับค่าฟอร์ม -----
+    $data=[
+        'company_id'   => (int)$_POST['company_id'],
+        'Product_id'   => (int)$_POST['Product_id'],
+        'team_id'      => (int)$_POST['team_id'],
+        'priority_id'  => $_POST['priority_id']===''?null:(int)$_POST['priority_id'],
+        'step_id'      => (int)$_POST['step_id'],
+        'Product_detail'=> trim($_POST['Product_detail']),
+        'product_value'=> (int)str_replace(',','',$_POST['product_value']),
+        'contact_start_date'     => $_POST['contact_start_date']     ?: null,
+        'date_of_closing_of_sale'=> $_POST['date_of_closing_of_sale']?: null,
+        'sales_can_be_close'     => $_POST['sales_can_be_close']     ?: null,
+        'remark'       => trim($_POST['remark'])
+    ];
+    // flags & dates
+    foreach($subSteps as $f=>$lb){
+        $data[$f]      = isset($_POST[$f])&&$_POST[$f]==='1'?1:0;
+        $data[$f.'_date'] = $_POST[$f.'_date']??null;
+    }
+    // ----- UPDATE SQL -----
+    $sql="UPDATE transactional SET
+            company_id=?, Product_id=?, team_id=?, priority_id=?, step_id=?,
+            Product_detail=?, product_value=?, contact_start_date=?,
+            date_of_closing_of_sale=?, sales_can_be_close=?, remark=?,
+            present=?,present_date=?, budgeted=?,budgeted_date=?, tor=?,tor_date=?,
+            bidding=?,bidding_date=?, win=?,win_date=?, lost=?,lost_date=?
+          WHERE transac_id=? AND user_id=?";
+    $st=$mysqli->prepare($sql);
+    $st->bind_param(
+        'iiiississssssisisisisisii',
+        $data['company_id'],$data['Product_id'],$data['team_id'],$data['priority_id'],$data['step_id'],
+        $data['Product_detail'],$data['product_value'],$data['contact_start_date'],
+        $data['date_of_closing_of_sale'],$data['sales_can_be_close'],$data['remark'],
+        $data['present'],$data['present_date'],$data['budgeted'],$data['budgeted_date'],$data['tor'],$data['tor_date'],
+        $data['bidding'],$data['bidding_date'],$data['win'],$data['win_date'],$data['lost'],$data['lost_date'],
+        $tid,$user_id
+    );
+    if($st->execute()){header('Location: ../home_user.php?edit=ok');exit;}
+    exit('Error: '.$st->error);
+}
+
+$sel=function($cur,$id){return $cur==$id?'selected':'';};
+$chk=function($v){return $v?'checked':'';};
 ?>
-
-
-
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>AdminLTE 2 | Fixed Layout</title>
-    <meta content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' name='viewport'>
-    <!-- Bootstrap 3.3.2 -->
-    <link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <!-- Theme style -->
-    <link href="../dist/css/AdminLTE.min.css" rel="stylesheet" type="text/css" />
-    <style>
-        .container {
-            width: 100%;
-            max-width: 500px;
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        input[type="text"], input[type="email"], textarea, select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-
-        button[type="submit"] {
-            background-color: #4b03a4;
-            color: #fff;
-            padding: 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 45px;
-        }
-
-        button[type="submit"]:hover {
-            background-color: #e6d5f8;
-        }
-    </style>
-</head>
-<body class="skin-blue fixed">
-    <div class="container">
-        <h2>แก้ไขข้อมูล</h2>
-        <form method="POST">
-            <label>กลุ่มสินค้า : </label>
-            <select name="Product">
-                <option value="<?php echo $row['Product_group']; ?>"><?php echo $row['Product_group']; ?></option>
-                <?php
-                    $product_industry = mysqli_query($conn, "SELECT id, Product FROM product_industry");
-                    while($c = mysqli_fetch_array($product_industry)) {
-                ?>
-                    <option value="<?php echo $c['Product']?>"><?php echo $c['Product']?></option>
-                <?php } ?>
-            </select><br/>
-
-            <label>รายการสินค้า : </label>
-            <input type="text" name="Product_list" value="<?php echo $row['Product_list']; ?>"><br/>
-
-            <label>วันที่ติดต่อ : </label>
-            <input type="date" name="Contact_start_date" value="<?php echo $row['Contact_start_date']; ?>"><br/>
-
-            <label>ขั้นตอน : </label>
-            <select name="Level">
-                <option value="<?php echo $row['step']; ?>"><?php echo $row['step']; ?></option>
-                <?php
-                    $step = mysqli_query($conn, "SELECT id, Level FROM step");
-                    while($c = mysqli_fetch_array($step)) {
-                ?>
-                    <option value="<?php echo $c['Level']?>"><?php echo $c['Level']?></option>
-                <?php } ?>
-            </select><br/>
-
-            <label>พนักงานขาย : </label>
-            <p style="display: inline; font-size: 16px;"><?php echo $F_name; ?></p><br/>
-
-            <label>ทีมขาย : </label>
-            <p style="display: inline; font-size: 16px;"><?php echo $team; ?></p><br/>
-
-            <label>มูลค่า : </label>
-            <input type="text" name="Product_value" value="<?php echo $row['Product_value']; ?>"><br/>
-
-            <label>บริษัท : </label>
-            <select name="add_office">
-                <option value="<?php echo $row['company']; ?>"><?php echo $row['company']; ?></option>
-                <?php
-                    $office = mysqli_query($conn, "SELECT id, add_office FROM office");
-                    while($c = mysqli_fetch_array($office)) {
-                ?>
-                    <option value="<?php echo $c['add_office']?>"><?php echo $c['add_office']?></option>
-                <?php } ?>
-            </select><br/>
-
-            <label>คาดว่าจะปิดการขาย : </label>
-            <input type="date" name="date_of_closing_of_sale" value="<?php echo $row['date_of_closing_of_sale']; ?>"><br/>
-
-            <label>วันที่ปิดการขายได้ : </label>
-            <input type="date" name="sales_can_be_closed" value="<?php echo $row['sales_can_be_closed']; ?>"><br/>
-
-            <label>ระดับความสำคัญ : </label>
-            <select name="Priority">
-                <option value="<?php echo $row['Priority_level']; ?>"><?php echo $row['Priority_level']; ?></option>
-                <?php
-                    $Priority_level = mysqli_query($conn, "SELECT id, Priority FROM Priority_level");
-                    while($c = mysqli_fetch_array($Priority_level)) {
-                ?>
-                    <option value="<?php echo $c['Priority']?>"><?php echo $c['Priority']?></option>
-                <?php } ?>
-            </select><br/>
-
-            <button type="submit" name="submit">Submit</button>
-        </form>
-    </div>
-</body>
-</html>
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Edit Transaction</title>
+<link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css"><link rel="stylesheet" href="../dist/css/AdminLTE.min.css"><link rel="stylesheet" href="../dist/css/skins/_all-skins.min.css">
+<style>.card{max-width:760px;margin:40px auto;padding:32px 40px;background:#fff;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.1)}label{font-weight:500}#product_value{text-align:right}.btn-save{background:#c82333;color:#fff;border:none}</style></head>
+<body class="hold-transition skin-red sidebar-mini">
+<div class="card">
+  <h3>แก้ไขโอกาสขาย #<?= $tid ?></h3>
+  <form method="post" id="editForm">
+    <div class="form-group"><label>ชื่อโครงการ</label><input name="Product_detail" class="form-control" value="<?= htmlspecialchars($rec['Product_detail']) ?>" required></div>
+    <div class="row"><div class="col-sm-6 form-group"><label>บริษัท</label><select name="company_id" class="form-control"><?php foreach($companyOpts as $o):?><option value="<?= $o['company_id'] ?>" <?= $sel($rec['company_id'],$o['company_id']) ?>><?= htmlspecialchars($o['company']) ?></option><?php endforeach;?></select></div>
+      <div class="col-sm-6 form-group"><label>มูลค่า (บาท)</label><input id="product_value" name="product_value" class="form-control" value="<?= number_format($rec['product_value']) ?>"></div></div>
+    <div class="row"><div class="col-sm-4 form-group"><label>สินค้า</label><select name="Product_id" class="form-control"><?php foreach($productOpts as $o):?><option value="<?= $o['product_id'] ?>" <?= $sel($rec['Product_id'],$o['product_id']) ?>><?= htmlspecialchars($o['product']) ?></option><?php endforeach;?></select></div>
+      <div class="col-sm-4 form-group"><label>ทีมขาย</label><select name="team_id" class="form-control"><?php foreach($teamOpts as $o):?><option value="<?= $o['team_id'] ?>" <?= $sel($rec['team_id'],$o['team_id']) ?>><?= htmlspecialchars($o['team']) ?></option><?php endforeach;?></select></div>
+      <div class="col-sm-4 form-group"><label>Priority</label><select name="priority_id" class="form-control"><option value="">--</option><?php foreach($priorityOpts as $o):?><option value="<?= $o['priority_id'] ?>" <?= $sel($rec['priority_id'],$o['priority_id']) ?>><?= htmlspecialchars($o['priority']) ?></option><?php endforeach;?></select></div></div>
+    <div class="row"><div class="col-sm-4 form-group"><label>Contact Start</label><input type="date" class="form-control" name="contact_start_date" value="<?= $rec['contact_start_date'] ?>"></div>
+      <div class="col-sm-4 form-group"><label>Predict Close</label><input type="date" class="form-control" name="date_of_closing_of_sale" value="<?= $rec['date_of_closing_of_sale'] ?>"></div>
+      <div class="col-sm-4 form-group"><label>Deal Close</label><input type="date" class="form-control" name="sales_can_be_close" value="<?= $rec['sales_can_be_close'] ?>"></div></div>
+    <div class="form-group"><label>ขั้นตอน (Step)</label><select name="step_id" class="form-control"><?php foreach($stepMap as $id=>$name):?><option value="<?= $id ?>" <?= $sel($rec['Step_id'],$id) ?>><?= $name ?></option><?php endforeach;?></select></div>
+    <div class="form-group"><label>สถานะย่อย</label><br><?php foreach($subSteps as $f=>$lb):?><label style="margin-right:1rem"><input type="hidden" name="<?= $f ?>" value="0"><input type="checkbox" name="<?= $f ?>" value="1" <?= $chk($rec[$f]) ?>> <?= $lb ?></label><?php endforeach;?></div>
+    <div class="form-group"><label>หมายเหตุ</label><textarea name="remark" rows="2" class="form-control"><?= htmlspecialchars($rec['remark']) ?></textarea></div>
+    <button class="btn btn-save" type="submit">Save</button>
+  </form>
+</div>
+<script src="../plugins/jQuery/jQuery-2.1.3.min.js"></script><script src="../bootstrap/js/bootstrap.min.js"></script>
+<script>(function(){const el=document.getElementById('product_value');const fm=v=>{v=v.replace(/[^0-9.]/g,'');if(!v)return '';const[p,s]=v.split('.');return(+p).toLocaleString('en-US')+(s?'.'+s.slice(0,2):'');};el.addEventListener('input',()=>{const st=el.selectionStart,l=el.value.length;el.value=fm(el.value);el.setSelectionRange(st+(el.value.length-l),st+(el.value.length-l));});document.getElementById('editForm').addEventListener('submit',()=>{el.value=el.value.replace(/,/g,'');});})();</script>
+</body></html>

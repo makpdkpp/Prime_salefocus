@@ -172,7 +172,7 @@ $products = $mysqli->query("SELECT product_id, Product FROM product_group LIMIT 
             <button type="button" class="close" data-dismiss="modal">&times;</button>
           </div>
           <div class="modal-body">
-            <form action="add1_product.php" method="POST">
+            <form action="add_product.php" method="POST">
               <div class="form-group">
                 <label for="Product">ชื่อกลุ่มสินค้า:</label>
                 <input type="text" name="Product" id="Product" class="form-control" required>
