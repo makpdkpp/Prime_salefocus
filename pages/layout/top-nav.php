@@ -15,7 +15,9 @@ $mysqli = connectDb();
   <link rel="stylesheet" href="../../dist/css/AdminLTE.min.css">
   <link rel="stylesheet" href="../../dist/css/skins/_all-skins.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="../../dist/js/app.min.js"></script>
   <style>
     body { background: #b3d6e4; }
     .card-custom { background: #fff; border-radius: 10px; padding: 25px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
@@ -188,9 +190,9 @@ $companies = $mysqli->query("
                   <select name="industry" class="form-control" required>
                     <option value="">-- เลือกกลุ่มอุตสาหกรรม --</option>
                     <?php
-                    $result = $mysqli->query("SELECT industry_id, Industry FROM Industry_group");
+                    $result = $mysqli->query("SELECT Industry_id, Industry FROM industry_group");
                     while ($row = $result->fetch_assoc()) {
-                      echo "<option value='{$row['industry_id']}'>{$row['Industry']}</option>";
+                      echo "<option value='{$row['Industry_id']}'>{$row['Industry']}</option>";
                     }
                     ?>
                   </select>
@@ -201,6 +203,7 @@ $companies = $mysqli->query("
           </div>
         </div>
       </div>
+
 
       <!-- Edit Modal -->
       <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
@@ -224,9 +227,9 @@ $companies = $mysqli->query("
                   <select name="industry" id="edit_industry" class="form-control" required>
                     <option value="">-- เลือกกลุ่มอุตสาหกรรม --</option>
                     <?php
-                    $result = $mysqli->query("SELECT industry_id, Industry FROM Industry_group");
+                    $result = $mysqli->query("SELECT Industry_id, Industry FROM industry_group");
                     while ($row = $result->fetch_assoc()) {
-                      echo "<option value='{$row['industry_id']}'>{$row['Industry']}</option>";
+                      echo "<option value='{$row['Industry_id']}'>{$row['Industry']}</option>";
                     }
                     ?>
                   </select>
@@ -240,9 +243,7 @@ $companies = $mysqli->query("
     </section>
   </div>
 </div>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="../../dist/js/app.min.js"></script>
+
 <script>
   document.getElementById('searchInput').addEventListener('keyup', function () {
     const filter = this.value.trim().toLowerCase();
