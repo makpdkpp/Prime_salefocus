@@ -29,6 +29,7 @@ $email = htmlspecialchars($_SESSION['email']);
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
+
   <style>
     .summary-boxes {
       display: flex;
@@ -144,13 +145,13 @@ $email = htmlspecialchars($_SESSION['email']);
     <div class="row">
       <div class="col-md-6">
         <div class="box box-success">
-          <div class="box-header with-border"><h3 class="box-title">ยอดรวมสะสมทุกคนที่ WIN (เป็นกราฟที่1)</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดรวมสะสมทุกคนที่ WIN</h3></div>
       <div class="box-body"><canvas id="winstatusValueChart" height="180"></canvas></div>
         </div>
       </div>
       <div class="col-md-6">
         <div class="box box-info">
-          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(จำนวนโครงการ)(กราฟที่2)</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(จำนวนโครงการ)</h3></div>
       <div class="box-body"><canvas id="teamSumChart" height="180"></canvas></div>
         </div>
       </div>
@@ -158,13 +159,13 @@ $email = htmlspecialchars($_SESSION['email']);
     <div class="row">
       <div class="col-md-6">
         <div class="box box-success">
-          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(รายได้)(กราฟ3)</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(รายได้)</h3></div>
       <div class="box-body"><canvas id="personSumChart" height="180"></canvas></div>
         </div>
       </div>
       <div class="col-md-6">
         <div class="box box-info">
-          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(มูลค่า)(กราฟ4)</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(มูลค่า)</h3></div>
       <div class="box-body"><canvas id="countByPersonChart" height="180"></canvas></div>
         </div>
       </div>
@@ -173,13 +174,13 @@ $email = htmlspecialchars($_SESSION['email']);
     <div class="row">
   <div class="col-md-6">
     <div class="box box-success">
-      <div class="box-header with-border"><h3 class="box-title">สถานะการขายในแต่ละขั้นตอน (ย้ายไปกราฟ55)</h3></div>
+      <div class="box-header with-border"><h3 class="box-title">สถานะการขายในแต่ละขั้นตอน</h3></div>
           <div class="box-body"><canvas id="salestatusChart" height="180"></canvas></div>
     </div>
   </div>
   <div class="col-md-6">
     <div class="box box-info">
-      <div class="box-header with-border"><h3 class="box-title">ประมาณการรายได้ในแต่ละขั้นตอนการขาย(ย้ายไปกราฟ6)</h3></div>
+      <div class="box-header with-border"><h3 class="box-title">ประมาณการรายได้ในแต่ละขั้นตอนการขาย</h3></div>
           <div class="box-body"><canvas id="statusValueChart" height="180"></canvas></div>
     </div>
   </div>
@@ -188,13 +189,13 @@ $email = htmlspecialchars($_SESSION['email']);
   <div class="row">
   <div class="col-md-6">
     <div class="box box-success">
-      <div class="box-header with-border"><h3 class="box-title">มูลค่า Forecast ทั้งหมด(ย้ายไปกราฟ7)</h3></div>
+      <div class="box-header with-border"><h3 class="box-title">มูลค่า Forecast ทั้งหมด</h3></div>
           <div class="box-body"><canvas id="salesForecastChart" height="180"></canvas></div>
     </div>
   </div>
   <div class="col-md-6">
     <div class="box box-info">
-      <div class="box-header with-border"><h3 class="box-title">กราฟข้อมูล % บิดดิ่ง(กราฟ8)</h3></div>
+      <div class="box-header with-border"><h3 class="box-title">กราฟข้อมูล % บิดดิ่ง</h3></div>
       <div class="box-body"><canvas id="productWinRateChart" height="180"></canvas></div>
     </div>
   </div>
@@ -203,13 +204,13 @@ $email = htmlspecialchars($_SESSION['email']);
   <div class="row">
   <div class="col-md-6">
     <div class="box box-success">
-      <div class="box-header with-border"><h3 class="box-title">TOP 10 ประเภทโซลูชั่น(กราฟ9)</h3></div>
+      <div class="box-header with-border"><h3 class="box-title">TOP 10 ประเภทโซลูชั่น</h3></div>
       <div class="box-body"><canvas id="topProductsChart" height="180"></canvas></div>
     </div>
   </div>
   <div class="col-md-6">
     <div class="box box-info">
-      <div class="box-header with-border"><h3 class="box-title">ยอดขาย Top 10 ของลูกค้า(กราฟ10)</h3></div>
+      <div class="box-header with-border"><h3 class="box-title">ยอดขาย Top 10 ของลูกค้า</h3></div>
       <div class="box-body"><canvas id="topCustomerChart" height="180"></canvas></div>
     </div>
   </div>
