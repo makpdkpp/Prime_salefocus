@@ -29,8 +29,8 @@ $_id = $_SESSION['user_id'];
   <link href="dist/css/AdminLTE.min.css" rel="stylesheet" />
   <link href="dist/css/skins/_all-skins.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script type="text/javascript" defer="true" src="https://68.183.181.61:8443/file/js/850f006c-a9ed-4bbf-a381-b1dc8ba11286/a363828a-5d40-4365-8f77-04642611fa4a"></script>
-  <!-- pcube.open(); //open dialog-->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
   <style>
     .user-data-table {
         width: 100%;
@@ -136,17 +136,17 @@ $_id = $_SESSION['user_id'];
                 <li class="active"><a href="home_user_01.php"><i class="fa fa-circle-o"></i>Dashboard (ตาราง)</a></li>
               </ul>
             </li>
-            <li class="treeview">
-              <a href="#">
-                <i class="fa fa-files-o"></i>
-                <span>เพิ่มข้อมูล</span>
-                <!--<span class="label label-primary pull-right">4</span> -->
-              </a>
-              <ul class="treeview-menu">
-                <li><a href="User/adduser01.php"><i class="fa fa-circle-o"></i>เพิ่มรายละเอียดการขาย</a></li>
-              </ul>
-            </li>
-          </ul>
+            <!-- Add data -->
+                <li class="treeview">
+                    <a href="#">
+                        <i class="fa fa-files-o"></i> <span>เพิ่มข้อมูล</span>
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li class="active"><a href="User/adduser01.php"><i class="fa fa-circle-o"></i> เพิ่มรายละเอียดการขาย</a></li>
+                    </ul>
+                </li>
+            </ul>
         </section>
         <!-- /.sidebar -->
       </aside>
@@ -246,9 +246,6 @@ if ($result->num_rows > 0) {
                 echo "<td>
                         <a href='User/edit_adduser.php?id=" . $data_row['transac_id'] . "'>
                                 <i class='fa fa-pencil-square-o' style='color: #4CAF50;'></i> Edit 
-                            </a> | 
-                            <a href='User/delete_adduser.php?id=" . $data_row['transac_id'] . "' onclick='return confirm(\"Are you sure you want to delete?\")'>
-                                <i class='fa fa-trash' style='color: #f44336;'></i> Delete
                             </a>
                       </td>";
 
