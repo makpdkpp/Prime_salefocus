@@ -64,93 +64,69 @@ $steps = [
 </head>
 <body class="hold-transition skin-red sidebar-mini">
 <div class="wrapper">
+<header class="main-header">
+  <a href="../home_user.php" class="logo"><b>Prime</b>Focus</a>
+  <nav class="navbar navbar-static-top" role="navigation">
+    <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button"><span class="sr-only">Toggle</span></a>
+    <div class="navbar-custom-menu">
+      <ul class="nav navbar-nav">
+        <li class="dropdown user user-menu">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            <img src="../dist/img/user2-160x160.jpg" class="user-image" alt="User Image" />
+            <span class="hidden-xs"><?php echo $email; ?></span>
+          </a>
+          <ul class="dropdown-menu">
+            <li class="user-header">
+              <img src="../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image" />
+              <p><?php echo $email; ?><small>User</small></p>
+            </li>
+            <li class="user-footer">
+              <div class="pull-right"><a href="../logout.php" class="btn btn-default btn-flat">Sign out</a></div>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</header>
 
-    <!-- =====================================================
-         Header
-    ====================================================== -->
-    <header class="main-header">
-        <a href="../home_user.php" class="logo"><b>Prime</b>Focus</a>
-
-        <nav class="navbar navbar-static-top" role="navigation">
-            <!-- Sidebar toggle button -->
-            <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
-                <span class="sr-only">Toggle navigation</span>
-            </a>
-
-            <div class="navbar-custom-menu">
-                <ul class="nav navbar-nav">
-                    <!-- User Account -->
-                    <li class="dropdown user user-menu">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                            <img src="../dist/img/user2-160x160.jpg" class="user-image" alt="User Image">
-                            <span class="hidden-xs"><?= $email ?></span>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li class="user-header">
-                                <img src="../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
-                                <p><?= $email ?> <small>User</small></p>
-                            </li>
-                            <li class="user-footer">
-                                <div class="pull-right">
-                                    <a href="../logout.php" class="btn btn-default btn-flat">Sign out</a>
-                                </div>
-                            </li>
-                        </ul>
-                    </li>
-                    <!-- /.user-menu -->
-                </ul>
-            </div>
-        </nav>
-    </header>
-
-    <!-- =====================================================
-         Sidebar
-    ====================================================== -->
-    <aside class="main-sidebar">
-        <section class="sidebar">
-            <!-- User panel -->
-            <div class="user-panel">
-                <div class="pull-left image">
-                    <img src="../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
-                </div>
-                <div class="pull-left info">
-                    <p><?= $email ?> (User)</p>
-                    <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
-                </div>
-            </div>
-
-            <!-- Sidebar Menu -->
-            <ul class="sidebar-menu" data-widget="tree">
-                <li class="header">MAIN NAVIGATION</li>
-
-                <!-- Dashboard -->
-                <li class="active treeview">
-                    <a href="#">
-                        <i class="fa fa-dashboard"></i> <span>Dashboard</span>
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </a>
-                    <ul class="treeview-menu">
-                        <li><a href="../home_user.php"><i class="fa fa-circle-o"></i> Dashboard (กราฟ)</a></li>
-                        <li><a href="../home_user_01.php"><i class="fa fa-circle-o"></i> Dashboard (ตาราง)</a></li>
-                    </ul>
-                </li>
-
-                <!-- Add data -->
+<aside class="main-sidebar">
+  <section class="sidebar">
+    <div class="user-panel">
+      <div class="pull-left image">
+        <img src="../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image" />
+      </div>
+      <div class="pull-left info">
+        <p><?php echo $email; ?> (User)</p>
+        <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
+      </div>
+    </div>
+          <!-- sidebar menu: : style can be found in sidebar.less -->
+          <ul class="sidebar-menu">
+            <li class="header">MAIN NAVIGATION</li>
+            <li class="active treeview">
+              <a href="../home_user.php">
+                <i class="fa fa-dashboard"></i> <span>Dashboard</span> <i class="fa fa-angle-left pull-right"></i>
+              </a>
+              <ul class="treeview-menu">
+                <li class="active"><a href="../home_user.php"><i class="fa fa-circle-o"></i>Dashboard (กราฟ)</a></li>
+                <li class="active"><a href="../home_user_01.php"><i class="fa fa-circle-o"></i>Dashboard (ตาราง)</a></li>
+              </ul>
+            </li>
+            <!-- Add data -->
                 <li class="treeview">
                     <a href="#">
                         <i class="fa fa-files-o"></i> <span>เพิ่มข้อมูล</span>
                         <i class="fa fa-angle-left pull-right"></i>
                     </a>
                     <ul class="treeview-menu">
-                        <li class="active"><a href="User/adduser01.php"><i class="fa fa-circle-o"></i> เพิ่มรายละเอียดการขาย</a></li>
+                        <li class="active"><a href="../User/adduser01.php"><i class="fa fa-circle-o"></i> เพิ่มรายละเอียดการขาย</a></li>
                     </ul>
                 </li>
             </ul>
-            <!-- /.sidebar-menu -->
         </section>
         <!-- /.sidebar -->
-    </aside>
-
+      </aside>
 
 <!-- ========== CONTENT ========== -->
 <div class="content-wrapper"><section class="content">
