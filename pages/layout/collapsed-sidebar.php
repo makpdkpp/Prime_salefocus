@@ -3,7 +3,7 @@ session_start();
 include("../../functions.php");
 $conn = connectDb();
 
-$limit = 5;
+$limit = 6;
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $start = ($page - 1) * $limit;
 
