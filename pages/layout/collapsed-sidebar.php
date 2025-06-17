@@ -1,7 +1,9 @@
 <?php
 session_start();
-include("../../functions.php");
-$conn = connectDb();
+
+/* ---------- เชื่อมต่อฐานข้อมูล ---------- */
+require_once '../../functions.php';   // หรือ include '../../connect.php';
+$conn = connectDb();                  // ถ้าใช้ functions.php
 
 $limit = 6;
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
@@ -104,6 +106,7 @@ $result = $conn->query($sql);
           <li><a href="../layout/top-nav.php"><i class="fas fa-building"></i> เพิ่มข้อมูลบริษัท</a></li>
             <li><a href="../layout/boxed.php"><i class="fas fa-boxes"></i> เพิ่มข้อมูลกลุ่มสินค้า</a></li>
             <li ><a href="../layout/fixed.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลอุตสาหกรรม</a></li>
+            <li><a href="../layout/Source_of_the_budget.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลที่มาของงบประมาณ</a></li>
             <li class="active"><a href="../layout/collapsed-sidebar.php"><i class="fas fa-tasks"></i> ขั้นตอนการขาย</a></li>
             <li><a href="../layout/of_winning.php"><i class="fas fa-trophy"></i> โอกาสการชนะ</a></li>
             <li><a href="../layout/Saleteam.php"><i class="fas fa-users"></i> ทีมขาย</a></li>
