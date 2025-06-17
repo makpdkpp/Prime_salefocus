@@ -130,7 +130,7 @@ $result = $mysqli->query(
 
     <table class="table table-bordered">
       <thead>
-        <tr><th>ที่มา งบประมาณ</th><th>Actions</th></tr>
+        <tr><th>ที่มาของบประมาณ</th><th>Actions</th></tr>
       </thead>
       <tbody>
       <?php while ($row = $result->fetch_assoc()): ?>
@@ -187,7 +187,7 @@ $result = $mysqli->query(
           </div>
           <div class="modal-body">
             <div class="form-group">
-              <label>ชื่อที่มา:</label>
+              <label>ที่มาของงบประมาณ:</label>
               <input type="text" name="Source_budge" class="form-control" required>
             </div>
           </div>
