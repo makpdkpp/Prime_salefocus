@@ -1,6 +1,5 @@
 <?php
-include("../../connect.php");
-include("../../functions.php");
+require_once '../../functions.php';      // ← ปรับ path ให้ถูกกับโปรเจ็กต์
 $mysqli = connectDb();
 
 if (isset($_GET['company_id'])) {
