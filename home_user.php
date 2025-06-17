@@ -181,50 +181,58 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 
     /* ------------------------- Step Chart ------------------------- */
     function drawStepChart(rows) {
-        if (!Array.isArray(rows) || rows.length === 0) {
-            document.getElementById('stepChart').replaceWith(
-                document.createTextNode('ไม่มีข้อมูลแสดงกราฟขั้นตอน')
-            );
-            return;
-        }
+    if (!Array.isArray(rows) || rows.length === 0) {
+        document.getElementById('stepChart').replaceWith(
+            document.createTextNode('ไม่มีข้อมูลแสดงกราฟขั้นตอน')
+        );
+        return;
+    }
 
-        const labels = rows.map(r => r.month);
+    // แยกเอาแต่ละชุดข้อมูลออกมาเป็น array
+    const labels    = rows.map(r => r.month);
+    const present   = rows.map(r => +r.present_value);
+    const budgeted  = rows.map(r => +r.budgeted_value);
+    const tor       = rows.map(r => +r.tor_value);
+    const bidding   = rows.map(r => +r.bidding_value);
+    const win       = rows.map(r => +r.win_value);
+    const lost      = rows.map(r => +r.lost_value);
 
-        const datasets = [
-            { label: 'Present',   data: rows.map(r => +r.present_value),  backgroundColor: 'rgba(75,192,192,0.7)', stack: 'stack1' },
-            { label: 'Budgeted',  data: rows.map(r => +r.budgeted_value), backgroundColor: 'rgba(54,162,235,0.7)', stack: 'stack1' },
-            { label: 'TOR',       data: rows.map(r => +r.tor_value),      backgroundColor: 'rgba(255,206,86,0.7)', stack: 'stack1' },
-            { label: 'Bidding',   data: rows.map(r => +r.bidding_value),  backgroundColor: 'rgba(255,99,132,0.7)', stack: 'stack1' },
-            { label: 'Win',       data: rows.map(r => +r.win_value),      backgroundColor: 'rgba(153,102,255,0.7)', stack: 'stack1' },
-            { label: 'Lost',      data: rows.map(r => +r.lost_value),     backgroundColor: 'rgba(255,159,64,0.7)', stack: 'stack1' }
-        ];
+    // สร้าง datasets โดยไม่กำหนด stack และกำหนดสีใหม่
+    const datasets = [
+        { label: 'Present',  data: present,   backgroundColor: 'rgba(153,102,255,0.7)' }, // ม่วง
+        { label: 'Budgeted', data: budgeted,  backgroundColor: 'rgba(54,162,235,0.7)' },  // ฟ้า
+        { label: 'TOR',      data: tor,       backgroundColor: 'rgba(255,206,86,0.7)' },  // เหลือง
+        { label: 'Bidding',  data: bidding,   backgroundColor: 'rgba(255,159,64,0.7)' },  // ส้ม
+        { label: 'Win',      data: win,       backgroundColor: 'rgba(75,192,192,0.7)' },  // เขียว
+        { label: 'Lost',     data: lost,      backgroundColor: 'rgba(255,99,132,0.7)' }   // แดง
+    ];
 
-        new Chart(
-            document.getElementById('stepChart').getContext('2d'),
-            {
-                type: 'bar',
-                data: { labels, datasets },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        title: { display: true, text: 'Sales Status per Month (Stacked)' },
-                        legend: { position: 'top' }
+    new Chart(
+        document.getElementById('stepChart').getContext('2d'),
+        {
+            type: 'bar',
+            data: { labels, datasets },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: { display: true, text: 'Sales Status per Month' },
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    x: {
+                        stacked: false,
+                        title: { display: true, text: 'เดือน (YYYY-MM)' }
                     },
-                    scales: {
-                        x: {
-                            stacked: true,
-                            title: { display: true, text: 'เดือน (YYYY-MM)' }
-                        },
-                        y: {
-                            stacked: true,
-                            beginAtZero: true,
-                            title: { display: true, text: 'จำนวนครั้ง' }
-                        }
+                    y: {
+                        stacked: false,
+                        beginAtZero: true,
+                        title: { display: true, text: 'จำนวนครั้ง' }
                     }
                 }
             }
-        );
-    }
+        }
+    );
+}
 
     /* -------------- Cumulative Win vs Forecast Chart -------------- */
     function drawWinForecastChart(rows) {
