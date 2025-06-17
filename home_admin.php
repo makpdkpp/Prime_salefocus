@@ -152,7 +152,7 @@ $email = htmlspecialchars($_SESSION['email']);
       </div>
       <div class="col-md-6">
         <div class="box box-info">
-          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(จำนวนโครงการ)</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายทีม(มูลค่า)</h3></div>
       <div class="box-body"><canvas id="teamSumChart" height="180"></canvas></div>
         </div>
       </div>
@@ -160,14 +160,14 @@ $email = htmlspecialchars($_SESSION['email']);
     <div class="row">
       <div class="col-md-6">
         <div class="box box-success">
-          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(รายได้)</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(มูลค่า)</h3></div>
       <div class="box-body"><canvas id="personSumChart" height="180"></canvas></div>
         </div>
       </div>
       <div class="col-md-6">
         <div class="box box-info">
-          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(มูลค่า)</h3></div>
-      <div class="box-body"><canvas id="countByPersonChart" height="180"></canvas></div>
+          <div class="box-header with-border"><h3 class="box-title">สถานะการขายในแต่ละขั้นตอน</h3></div>
+          <div class="box-body"><canvas id="salestatusChart" height="180"></canvas></div>
         </div>
       </div>
     </div>
@@ -175,33 +175,18 @@ $email = htmlspecialchars($_SESSION['email']);
     <div class="row">
   <div class="col-md-6">
     <div class="box box-success">
-      <div class="box-header with-border"><h3 class="box-title">สถานะการขายในแต่ละขั้นตอน</h3></div>
-          <div class="box-body"><canvas id="salestatusChart" height="180"></canvas></div>
-    </div>
-  </div>
-  <div class="col-md-6">
-    <div class="box box-info">
       <div class="box-header with-border"><h3 class="box-title">ประมาณการรายได้ในแต่ละขั้นตอนการขาย</h3></div>
           <div class="box-body"><canvas id="statusValueChart" height="180"></canvas></div>
     </div>
   </div>
-  </div>
-
-  <div class="row">
-  <div class="col-md-6">
-    <div class="box box-success">
-      <div class="box-header with-border"><h3 class="box-title">มูลค่า Forecast ทั้งหมด</h3></div>
-          <div class="box-body"><canvas id="salesForecastChart" height="180"></canvas></div>
-    </div>
-  </div>
   <div class="col-md-6">
     <div class="box box-info">
-      <div class="box-header with-border"><h3 class="box-title">กราฟข้อมูล % บิดดิ่ง</h3></div>
-      <div class="box-body"><canvas id="productWinRateChart" height="180"></canvas></div>
+      <div class="box-header with-border"><h3 class="box-title">มูลค่า Forecast ทั้งหมด</h3></div>
+          <div class="box-body"><canvas id="saleForecastChart" height="180"></canvas></div>
     </div>
   </div>
   </div>
-  
+
   <div class="row">
   <div class="col-md-6">
     <div class="box box-success">
@@ -216,24 +201,8 @@ $email = htmlspecialchars($_SESSION['email']);
     </div>
   </div>
   </div>
-  <!--
-  <div class="row">
-  <div class="col-md-6">
-    <div class="box box-success">
-      <div class="box-header with-border"><h3 class="box-title">TOP 10 ประเภทโซลูชั่น(กราฟ9)</h3></div>
-      <div class="box-body"><canvas id="personSumChart" height="180"></canvas></div>
-    </div>
-  </div>
-  <div class="col-md-6">
-    <div class="box box-info">
-      <div class="box-header with-border"><h3 class="box-title">ยอดขาย Top 10 ของลูกค้า(กราฟ10)</h3></div>
-      <div class="box-body"><canvas id="chartWin" height="180"></canvas></div>
-    </div>
-  </div>
-  </div>
-  </div>
-  </div>
-  -->
+  
+
 <script>
 const chartEstimate = new Chart(document.getElementById('chartEstimate'), {
   type: 'bar',
@@ -352,19 +321,43 @@ const chartWin = new Chart(document.getElementById('3'), {
           data: {
             labels: labels,
             datasets: [
-              { label: 'Present',   data: present,   backgroundColor: 'rgba(75,192,192,0.7)' },
-              { label: 'Budgeted',  data: budgeted,  backgroundColor: 'rgba(54,162,235,0.7)' },
-              { label: 'TOR',       data: tor,       backgroundColor: 'rgba(255,206,86,0.7)' },
-              { label: 'Bidding',   data: bidding,   backgroundColor: 'rgba(255,99,132,0.7)' },
-              { label: 'Win',       data: win,       backgroundColor: 'rgba(153,102,255,0.7)' },
-              { label: 'Lost',      data: lost,      backgroundColor: 'rgba(255,159,64,0.7)' }
+              {
+    label: 'Present',
+    data: present,
+    backgroundColor: 'rgba(153,102,255,0.7)'  // ม่วง
+  },
+  {
+    label: 'Budgeted',
+    data: budgeted,
+    backgroundColor: 'rgba(54,162,235,0.7)'   // <– ยังไม่ได้กำหนด อยากได้สีอะไรครับ?
+  },
+  {
+    label: 'TOR',
+    data: tor,
+    backgroundColor: 'rgba(255,206,86,0.7)'   // เหลือง
+  },
+  {
+    label: 'Bidding',
+    data: bidding,
+    backgroundColor: 'rgba(255,159,64,0.7)'   // ส้ม
+  },
+  {
+    label: 'Win',
+    data: win,
+    backgroundColor: 'rgba(75,192,192,0.7)'   // เขียว
+  },
+  {
+    label: 'Lost',
+    data: lost,
+    backgroundColor: 'rgba(255,99,132,0.7)'   // แดง
+  }
             ]
           },
           options: {
             responsive: true,
             plugins: {
               title: {
-                display: true,
+                display: false,
                 text: 'Salestatus per Month'
               },
               legend: {
@@ -421,7 +414,7 @@ const chartWin = new Chart(document.getElementById('3'), {
             responsive: true,
             plugins: {
               title: {
-                display: true,
+                display: false,
                 text: 'สรุปยอดรวม product_value ต่อผู้ใช้'
               },
               legend: { display: false }
@@ -476,7 +469,7 @@ const chartWin = new Chart(document.getElementById('3'), {
             responsive: true,
             plugins: {
               title: {
-                display: true,
+                display: false,
                 text: 'สรุปยอดรวม product_value ต่อทีม'
               },
               legend: { display: false }
@@ -529,19 +522,43 @@ const chartWin = new Chart(document.getElementById('3'), {
           data: {
             labels: labels,
             datasets: [
-              { label: 'Present',   data: present,   backgroundColor: 'rgba(75,192,192,0.7)' },
-              { label: 'Budgeted',  data: budgeted,  backgroundColor: 'rgba(54,162,235,0.7)' },
-              { label: 'TOR',       data: tor,       backgroundColor: 'rgba(255,206,86,0.7)' },
-              { label: 'Bidding',   data: bidding,   backgroundColor: 'rgba(255,99,132,0.7)' },
-              { label: 'Win',       data: win,       backgroundColor: 'rgba(153,102,255,0.7)' },
-              { label: 'Lost',      data: lost,      backgroundColor: 'rgba(255,159,64,0.7)' }
+               {
+    label: 'Present',
+    data: present,
+    backgroundColor: 'rgba(153,102,255,0.7)'  // ม่วง
+  },
+  {
+    label: 'Budgeted',
+    data: budgeted,
+    backgroundColor: 'rgba(54,162,235,0.7)'   // <– ยังไม่ได้กำหนด อยากได้สีอะไรครับ?
+  },
+  {
+    label: 'TOR',
+    data: tor,
+    backgroundColor: 'rgba(255,206,86,0.7)'   // เหลือง
+  },
+  {
+    label: 'Bidding',
+    data: bidding,
+    backgroundColor: 'rgba(255,159,64,0.7)'   // ส้ม
+  },
+  {
+    label: 'Win',
+    data: win,
+    backgroundColor: 'rgba(75,192,192,0.7)'   // เขียว
+  },
+  {
+    label: 'Lost',
+    data: lost,
+    backgroundColor: 'rgba(255,99,132,0.7)'   // แดง
+  }
             ]
           },
           options: {
             responsive: true,
             plugins: {
               title: {
-                display: true,
+                display: false,
                 text: 'Salestatus Value per Month'
               },
               legend: {
@@ -591,14 +608,14 @@ const chartWin = new Chart(document.getElementById('3'), {
             labels: labels,
             datasets: [
              
-              { label: 'Win',       data: win,       backgroundColor: 'rgba(153,102,255,0.7)' }            
+              { label: 'Win',       data: win,       backgroundColor: 'rgba(75,192,192,0.7)' }            
             ]
           },
           options: {
             responsive: true,
             plugins: {
               title: {
-                display: true,
+                display: false,
                 text: 'Salestatus Value per Month'
               },
               legend: {
@@ -627,16 +644,18 @@ const chartWin = new Chart(document.getElementById('3'), {
       });
   </script>
 
-  <script>
+  <script> // salesForecastChart
     (async () => {
       try {
+        // 1) fetch ข้อมูล
         const res  = await fetch('admin_data.php');
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const json = await res.json();
         const raw  = json.saleforecast || [];
 
+        // 2) กรณีไม่มีข้อมูล ให้แสดงข้อความแทน canvas
         if (!raw.length) {
-          const canvas = document.getElementById('salesForecastChart');
+          const canvas = document.getElementById('saleForecastChart');
           canvas.parentNode.replaceChild(
             document.createTextNode('ไม่มีข้อมูลสำหรับแสดงกราฟนี้'),
             canvas
@@ -644,62 +663,51 @@ const chartWin = new Chart(document.getElementById('3'), {
           return;
         }
 
-        const labels   = raw.map(r => r.nname);
-        const forecast = raw.map(r => Number(r.forecast));
-        const actual   = raw.map(r => Number(r.win_total));
+        // 3) เตรียม labels และ datasets
+        const labels    = raw.map(item => item.nname);
+        const targets   = raw.map(item => +item.Target);
+        const forecasts = raw.map(item => +item.Forecast);
+        const wins      = raw.map(item => +item.Win);
 
-        const ctx = document
-          .getElementById('salesForecastChart')
-          .getContext('2d');
-
+        // 4) วาดกราฟ
+        const ctx = document.getElementById('saleForecastChart').getContext('2d');
         new Chart(ctx, {
           type: 'bar',
           data: {
             labels,
             datasets: [
               {
-                label: 'Win Total',
-                data: actual,
-                backgroundColor: 'rgba(255, 99, 132, 0.7)'
+                label: 'Target',
+                data: targets,
+                backgroundColor: 'rgba(54,162,235,0.7)'
               },
-{
-  		label: 'Forecast',
-    		data: forecast,
-      		backgroundColor: 'rgba(54, 162, 235, 0.7)'
-      		}
+              {
+                label: 'Forecast',
+                data: forecasts,
+                backgroundColor: 'rgba(255,206,86,0.7)'
+              },
+              {
+                label: 'Win',
+                data: wins,
+                backgroundColor: 'rgba(75,192,192,0.7)'
+              }
             ]
           },
           options: {
             responsive: true,
-            plugins: {
-              title: {
-                display: true,
-                text: 'Forecast vs Actual Win per User'
-              },
-              legend: {
-                position: 'top'
-              }
-            },
             scales: {
-              x: {
-                title: { display: true, text: 'ผู้ใช้ (nname)' }
-              },
-              y: {
-                beginAtZero: true,
-                title: { display: true, text: 'มูลค่า (บาท)' },
-                ticks: {
-                  callback: v => v.toLocaleString('th-TH')
-                }
-              }
+              x: { title: { display: true, text: 'User' } },
+              y: { beginAtZero: true, title: { display: true, text: 'Value' } }
+            },
+            plugins: {
+              tooltip: { mode: 'index', intersect: false },
+              legend: { position: 'top' }
             }
           }
         });
       } catch (err) {
-        console.error('Error loading saleforecast:', err);
-        const msg = document.createElement('p');
-        msg.style.color = 'red';
-        msg.textContent = 'เกิดข้อผิดพลาดในการโหลดข้อมูลกราฟ';
-        document.body.appendChild(msg);
+        console.error('Error loading data:', err);
+        // อาจโชว์ข้อความให้ user ทราบเพิ่มเติมได้ตรงนี้
       }
     })();
   </script>
@@ -830,7 +838,7 @@ const chartWin = new Chart(document.getElementById('3'), {
       },
       plugins: {
         title: {
-          display: true,
+          display: false,
           text: 'Product Win Rate by Priority'
         },
         legend: { display: false }
@@ -875,7 +883,7 @@ const chartWin = new Chart(document.getElementById('3'), {
         responsive: true,
         plugins: {
           title: {
-            display: true,
+            display: false,
             text: 'Top 10 Products by Total Value'
           },
           legend: { display: false }
@@ -939,7 +947,7 @@ const chartWin = new Chart(document.getElementById('3'), {
         responsive: true,
         plugins: {
           title: {
-            display: true,
+            display: false,
             text: 'Top 10 ลูกค้าตามยอดรวม'
           },
           legend: { display: false }
