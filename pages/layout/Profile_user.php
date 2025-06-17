@@ -116,6 +116,7 @@ $result = $mysqli->query($sql);
           <li><a href="../layout/top-nav.php"><i class="fas fa-building"></i> เพิ่มข้อมูลบริษัท</a></li>
             <li><a href="../layout/boxed.php"><i class="fas fa-boxes"></i> เพิ่มข้อมูลกลุ่มสินค้า</a></li>
             <li><a href="../layout/fixed.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลอุตสาหกรรม</a></li>
+            <li><a href="../layout/Source_of_the_budget.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลที่มาของงบประมาณ</a></li>
             <li><a href="../layout/collapsed-sidebar.php"><i class="fas fa-tasks"></i> ขั้นตอนการขาย</a></li>
             <li><a href="../layout/of_winning.php"><i class="fas fa-trophy"></i> โอกาสการชนะ</a></li>
             <li><a href="../layout/Saleteam.php"><i class="fas fa-users"></i> ทีมขาย</a></li>
@@ -139,7 +140,7 @@ $result = $mysqli->query($sql);
             <th>ชื่อ</th>
             <th>นามสกุล</th>
             <th>Email</th>
-            <th>Forecast</th>
+            <th>Target</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -184,7 +185,7 @@ $result = $mysqli->query($sql);
           <input type="hidden" name="user_id" id="editUserId">
           <div class="form-group">
             <label for="forecast">Forecast (บาท)</label>
-            <input type="text" name="forecast" id="editForecast" class="form-control" required pattern="^[0-9,]+$" title="กรุณากรอกเฉพาะตัวเลขหรือจุลภาค (,) เท่านั้น">
+            <input type="int" name="forecast" id="editForecast" class="form-control" required pattern="^[0-9,]+$" title="กรุณากรอกเฉพาะตัวเลขหรือจุลภาค (,) เท่านั้น">
             <div class="error-message d-none" id="forecastError">กรุณากรอกเฉพาะตัวเลขจำนวนเงินบาท เช่น 100,000</div>
           </div>
         </div>
