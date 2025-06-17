@@ -187,12 +187,19 @@ ORDER BY
 
 // 10. saleforecast (saleforecast)
 $output['saleforecast'] = queryList($mysqli,
-    "SELECT u.nname, COALESCE(u.forecast, 0) AS forecast, 
-    COALESCE(SUM(t.product_value), 0) AS win_total
-    FROM `user` AS u 
-    LEFT JOIN transactional AS t ON t.user_id = u.user_id AND t.win = 1 
-    WHERE u.role_id = 2
-    GROUP BY u.user_id, u.nname, u.forecast ORDER BY u.nname"
+    "SELECT
+	u.forecast AS Target,
+  SUM(t.product_value) AS Forecast,
+  SUM(
+    CASE WHEN t.win = 1
+         THEN t.product_value
+         ELSE 0
+    END
+  ) AS Win,
+  u.nname
+FROM transactional t
+JOIN `user` u ON u.user_id = t.user_id
+GROUP by u.nname"
 );
 
 // 11. Productortderbywinrate (productwinrate)
@@ -234,7 +241,7 @@ FROM
   transactional
   JOIN company_catalog on transactional.company_id = company_catalog.company_id
 GROUP BY
-  transactional.Product_id
+  company_catalog.company
 ORDER BY
   sum_value DESC
 LIMIT 10"
