@@ -1,40 +1,62 @@
 <?php
-/* ------------------------------------------------------------------
-   fixed.php  –  แสดง/เพิ่ม/แก้ไข industry_group  (AdminLTE 2 + PHP 5/7)
-------------------------------------------------------------------- */
 session_start();
-require_once '../../functions.php';
+include("../../connect.php");       // <— ถ้า connect.php ใช้ $mysqli ให้ลบบรรทัดนี้
+include("../../functions.php");
 $mysqli = connectDb();
-$mysqli->set_charset('utf8');
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-/* ---------- Pagination ---------- */
-$limit  = 5;
-$page   = isset($_GET['page']) && ctype_digit($_GET['page']) ? (int)$_GET['page'] : 1;
-$start  = ($page-1)*$limit;
+/* ---------- เปลี่ยนเฉพาะตรงนี้ ---------- */
+$limit = 5;
+$page  = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$start = ($page-1)*$limit;
 
-$total  = $mysqli->query("SELECT COUNT(*) AS c FROM industry_group")->fetch_assoc()['c'];
-$pages  = ceil($total/$limit);
+/* นับจำนวนแถว */
+$total  = $mysqli->query("SELECT COUNT(*) AS total FROM industry_group")
+                 ->fetch_assoc()['total'];
+$totalPages = ceil($total/$limit);
 
-$stmt   = $mysqli->prepare("SELECT industry_id, industry FROM industry_group ORDER BY industry LIMIT ?,?");
-$stmt->bind_param('ii',$start,$limit);
-$stmt->execute();
-$listRs = $stmt->get_result();
+/* ดึงรายการ 1 หน้า */
+$result = $mysqli->query(
+            "SELECT Industry_id, Industry
+               FROM industry_group
+              ORDER BY industry
+              LIMIT $start, $limit");
 ?>
-<!DOCTYPE html><html lang="th"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Industry | PrimeFocus</title>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="../../dist/css/AdminLTE.min.css">
-<link rel="stylesheet" href="../../dist/css/skins/_all-skins.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<style>
- body{background:#e9f2f9}
- .container1{max-width:1100px;margin:40px auto;background:#fff;padding:25px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
- .btn-add{position:fixed;bottom:30px;right:30px;width:56px;height:56px;border-radius:50%;font-size:24px;color:#fff;background:#0056b3;border:none;z-index:999}
- table th{background:#0056b3;color:#fff}
-</style></head>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>ข้อมูลกลุ่มอุตสาหกรรม | PrimeFocus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../dist/css/AdminLTE.min.css">
+  <link rel="stylesheet" href="../../dist/css/skins/_all-skins.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  <style>
+    body { background: #e9f2f9; }
+    .container1 {
+      max-width: 1100px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    input, select {
+      width: 100%; padding: 10px; margin-bottom: 20px;
+      border: 1px solid #ccc; border-radius: 5px; font-size: 16px;
+    }
+    .btn-add {
+      position: fixed; bottom: 30px; right: 30px; background: #0056b3;
+      color: #fff; border-radius: 50%; width: 56px; height: 56px;
+      font-size: 24px; border: none; z-index: 999;
+    }
+    .modal-content { border-radius: 10px; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+    th { background: #0056b3; color: white; }
+    tr:hover { background-color: #f5f5f5; }
+  </style>
+</head>
 <body class="hold-transition skin-blue sidebar-mini fixed">
 <div class="wrapper">
 <header class="main-header">
@@ -87,8 +109,9 @@ $listRs = $stmt->get_result();
         </a>
         <ul class="treeview-menu">
           <li><a href="../layout/top-nav.php"><i class="fas fa-building"></i> เพิ่มข้อมูลบริษัท</a></li>
-            <li ><a href="../layout/boxed.php"><i class="fas fa-boxes"></i> เพิ่มข้อมูลกลุ่มสินค้า</a></li>
+            <li><a href="../layout/boxed.php"><i class="fas fa-boxes"></i> เพิ่มข้อมูลกลุ่มสินค้า</a></li>
             <li class="active"><a href="../layout/fixed.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลอุตสาหกรรม</a></li>
+            <li><a href="../layout/Source_of_the_budget.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลที่มาของงบประมาณ</a></li>
             <li><a href="../layout/collapsed-sidebar.php"><i class="fas fa-tasks"></i> ขั้นตอนการขาย</a></li>
             <li><a href="../layout/of_winning.php"><i class="fas fa-trophy"></i> โอกาสการชนะ</a></li>
             <li><a href="../layout/Saleteam.php"><i class="fas fa-users"></i> ทีมขาย</a></li>
@@ -100,88 +123,114 @@ $listRs = $stmt->get_result();
   </section>
 </aside>
 
-<div class="content-wrapper"><section class="content">
+<div class="content-wrapper">
+<section class="content">
   <div class="container1">
-    <h3 class="mb-3">ข้อมูลอุตสาหกรรม</h3>
+    <h3>ข้อมูลกลุ่มอุตสาหกรรม</h3>
+
     <table class="table table-bordered">
-      <thead><tr><th>ชื่ออุตสาหกรรม</th><th width="180">Actions</th></tr></thead>
+      <thead>
+        <tr><th>กลุ่มอุตสาหกรรม</th><th>Actions</th></tr>
+      </thead>
       <tbody>
-        <?php while($r=$listRs->fetch_assoc()): ?>
+      <?php while ($row = $result->fetch_assoc()): ?>
         <tr>
-          <td><?= htmlspecialchars($r['industry']) ?></td>
+          <td><?= htmlspecialchars($row['Industry']) ?></td>
           <td>
             <button class="btn btn-sm btn-info btn-edit"
-                    data-id="<?= $r['industry_id'] ?>"
-                    data-name="<?= htmlspecialchars($r['industry']) ?>"
+                    data-id="<?= $row['Industry_id'] ?>"
+                    data-name="<?= htmlspecialchars($row['Industry'],ENT_QUOTES,'UTF-8') ?>"
                     data-toggle="modal" data-target="#editModal">
               <i class="fa fa-edit"></i> Edit
             </button>
-            <a class="btn btn-sm btn-danger"
-               onclick="return confirm('ลบข้อมูลนี้ ?')"
-               href="delete_fixed.php?industry_id=<?= $r['industry_id'] ?>">
+            <a href="delete_fixed.php?Industry_id=<?= $row['Industry_id'] ?>"
+               class="btn btn-sm btn-danger"
+               onclick="return confirm('ยืนยันการลบ?')">
               <i class="fa fa-trash"></i> Delete
             </a>
           </td>
         </tr>
-        <?php endwhile; ?>
+      <?php endwhile; ?>
       </tbody>
     </table>
 
     <!-- pagination -->
-    <nav class="mt-3">
-      <ul class="pagination justify-content-center">
+    <nav>
+      <ul class="pagination justify-content-center mt-3">
         <li class="page-item <?= $page<=1?'disabled':'' ?>">
-          <a class="page-link" href="?page=<?= $page-1 ?>">«</a>
+          <a class="page-link" href="?page=<?= $page-1 ?>">ก่อนหน้า</a>
         </li>
-        <?php for($i=1;$i<=$pages;$i++): ?>
+        <?php for($i=1;$i<=$totalPages;$i++): ?>
           <li class="page-item <?= $i==$page?'active':'' ?>">
             <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
           </li>
         <?php endfor; ?>
-        <li class="page-item <?= $page>=$pages?'disabled':'' ?>">
-          <a class="page-link" href="?page=<?= $page+1 ?>">»</a>
+        <li class="page-item <?= $page>=$totalPages?'disabled':'' ?>">
+          <a class="page-link" href="?page=<?= $page+1 ?>">ถัดไป</a>
         </li>
       </ul>
     </nav>
   </div>
 
-  <!-- ปุ่ม Add -->
+  <!-- ปุ่ม + -->
   <button class="btn-add" data-toggle="modal" data-target="#addModal"><i class="fa fa-plus"></i></button>
 
   <!-- Add Modal -->
-  <div class="modal fade" id="addModal"><div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <form action="add_Industry.php" method="post">
-        <input type="hidden" name="action" value="add">
-        <div class="modal-header"><h5 class="modal-title">เพิ่มอุตสาหกรรม</h5><button type="button" class="close" data-dismiss="modal">&times;</button></div>
-        <div class="modal-body"><input class="form-control" name="Industry" placeholder="ชื่ออุตสาหกรรม" required></div>
-        <div class="modal-footer"><button class="btn btn-primary btn-block">บันทึก</button></div>
-      </form>
-    </div></div></div>
+  <div class="modal fade" id="addModal">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form action="add_Industry.php" method="POST">
+          <input type="hidden" name="action" value="add">
+          <div class="modal-header">
+            <h4 class="modal-title">เพิ่มกลุ่มอุตสาหกรรม</h4>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>กลุ่มอุตสาหกรรม:</label>
+              <input type="text" name="Industry" class="form-control" required>
+            </div>
+          </div>
+          <div class="modal-footer"><button class="btn btn-primary btn-block">บันทึกข้อมูล</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <!-- Edit Modal -->
-  <div class="modal fade" id="editModal"><div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <form action="add_Industry.php" method="post">
+  <div class="modal fade" id="editModal">
+    <div class="modal-dialog modal-dialog-centered">
+      <form action="add_Industry.php" method="POST">
         <input type="hidden" name="action" value="edit">
+        <!-- ***** ไม่มีช่องว่าง ***** -->
         <input type="hidden" name="Industry_id" id="edit_id">
-        <div class="modal-header"><h5 class="modal-title">แก้ไขอุตสาหกรรม</h5><button type="button" class="close" data-dismiss="modal">&times;</button></div>
-        <div class="modal-body"><input class="form-control" name="Industry" id="edit_name" required></div>
-        <div class="modal-footer"><button class="btn btn-primary">บันทึก</button></div>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">แก้ไขกลุ่มอุสาหกรรม</h5>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>กลุ่มอุตสาหกรรม:</label>
+              <input type="text" name="Industry" id="edit_name" class="form-control" required>
+            </div>
+          </div>
+          <div class="modal-footer"><button class="btn btn-primary">บันทึก</button></div>
+        </div>
       </form>
-    </div></div></div>
-
-</section></div><!-- /.content-wrapper -->
+    </div>
+  </div>
+</section>
+</div><!-- /.content-wrapper -->
 </div><!-- /.wrapper -->
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../../dist/js/app.min.js"></script>
-<script>$(function(){
-  $('.sidebar-menu').tree();
-  $('.btn-edit').click(function(){
-      $('#edit_id').val($(this).data('id'));
-      $('#edit_name').val($(this).data('name'));
-  });
-});</script>
+<script>
+$(document).on('click','.btn-edit',function(){
+  $('#edit_id').val($(this).data('id'));
+  $('#edit_name').val($(this).data('name'));
+});
+</script>
 </body></html>
