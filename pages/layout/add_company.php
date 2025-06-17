@@ -1,7 +1,6 @@
 <?php
 session_start();
-include("../../functions.php");
-
+require_once '../../functions.php';      // ← ปรับ path ให้ถูกกับโปรเจ็กต์
 $mysqli = connectDb();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

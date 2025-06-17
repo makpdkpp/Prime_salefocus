@@ -10,22 +10,22 @@ $page  = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $start = ($page-1)*$limit;
 
 /* นับจำนวนแถว */
-$total  = $mysqli->query("SELECT COUNT(*) AS total FROM industry_group")
+$total  = $mysqli->query("SELECT COUNT(*) AS total FROM source_of_the_budget")
                  ->fetch_assoc()['total'];
 $totalPages = ceil($total/$limit);
 
 /* ดึงรายการ 1 หน้า */
 $result = $mysqli->query(
-            "SELECT Industry_id, Industry
-               FROM industry_group
-              ORDER BY industry
+            "SELECT Source_budget_id, Source_budge
+               FROM source_of_the_budget
+              ORDER BY Source_budge
               LIMIT $start, $limit");
 ?>
 <!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>ข้อมูลกลุ่มอุตสาหกรรม | PrimeFocus</title>
+  <title>ข้อมูลที่มาของงบประมาณ | PrimeFocus</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="../../dist/css/AdminLTE.min.css">
@@ -110,8 +110,8 @@ $result = $mysqli->query(
         <ul class="treeview-menu">
           <li><a href="../layout/top-nav.php"><i class="fas fa-building"></i> เพิ่มข้อมูลบริษัท</a></li>
             <li><a href="../layout/boxed.php"><i class="fas fa-boxes"></i> เพิ่มข้อมูลกลุ่มสินค้า</a></li>
-            <li class="active"><a href="../layout/fixed.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลอุตสาหกรรม</a></li>
-            <li><a href="../layout/Source_of_the_budget.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลที่มาของงบประมาณ</a></li>
+            <li><a href="../layout/fixed.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลอุตสาหกรรม</a></li>
+            <li class="active"><a href="../layout/Source_of_the_budget.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลที่มาของงบประมาณ</a></li>
             <li><a href="../layout/collapsed-sidebar.php"><i class="fas fa-tasks"></i> ขั้นตอนการขาย</a></li>
             <li><a href="../layout/of_winning.php"><i class="fas fa-trophy"></i> โอกาสการชนะ</a></li>
             <li><a href="../layout/Saleteam.php"><i class="fas fa-users"></i> ทีมขาย</a></li>
@@ -126,24 +126,24 @@ $result = $mysqli->query(
 <div class="content-wrapper">
 <section class="content">
   <div class="container1">
-    <h3>ข้อมูลกลุ่มอุตสาหกรรม</h3>
+    <h3>ข้อมูลที่มาของงบประมาณ</h3>
 
     <table class="table table-bordered">
       <thead>
-        <tr><th>กลุ่มอุตสาหกรรม</th><th>Actions</th></tr>
+        <tr><th>ที่มา งบประมาณ</th><th>Actions</th></tr>
       </thead>
       <tbody>
       <?php while ($row = $result->fetch_assoc()): ?>
         <tr>
-          <td><?= htmlspecialchars($row['Industry']) ?></td>
+          <td><?= htmlspecialchars($row['Source_budge']) ?></td>
           <td>
             <button class="btn btn-sm btn-info btn-edit"
-                    data-id="<?= $row['Industry_id'] ?>"
-                    data-name="<?= htmlspecialchars($row['Industry'],ENT_QUOTES,'UTF-8') ?>"
+                    data-id="<?= $row['Source_budget_id'] ?>"
+                    data-name="<?= htmlspecialchars($row['Source_budge'],ENT_QUOTES,'UTF-8') ?>"
                     data-toggle="modal" data-target="#editModal">
               <i class="fa fa-edit"></i> Edit
             </button>
-            <a href="delete_fixed.php?Industry_id=<?= $row['Industry_id'] ?>"
+            <a href="delete_source_budget.php?Source_budget_id=<?= $row['Source_budget_id'] ?>"
                class="btn btn-sm btn-danger"
                onclick="return confirm('ยืนยันการลบ?')">
               <i class="fa fa-trash"></i> Delete
@@ -179,16 +179,16 @@ $result = $mysqli->query(
   <div class="modal fade" id="addModal">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
-        <form action="add_Industry.php" method="POST">
+        <form action="save_source_of_the_budget.php" method="POST">
           <input type="hidden" name="action" value="add">
           <div class="modal-header">
-            <h4 class="modal-title">เพิ่มกลุ่มอุตสาหกรรม</h4>
+            <h4 class="modal-title">เพิ่มที่มาของงบประมาณ</h4>
             <button type="button" class="close" data-dismiss="modal">&times;</button>
           </div>
           <div class="modal-body">
             <div class="form-group">
-              <label>กลุ่มอุตสาหกรรม:</label>
-              <input type="text" name="Industry" class="form-control" required>
+              <label>ชื่อที่มา:</label>
+              <input type="text" name="Source_budge" class="form-control" required>
             </div>
           </div>
           <div class="modal-footer"><button class="btn btn-primary btn-block">บันทึกข้อมูล</button></div>
@@ -200,19 +200,19 @@ $result = $mysqli->query(
   <!-- Edit Modal -->
   <div class="modal fade" id="editModal">
     <div class="modal-dialog modal-dialog-centered">
-      <form action="add_Industry.php" method="POST">
+      <form action="save_source_of_the_budget.php" method="POST">
         <input type="hidden" name="action" value="edit">
         <!-- ***** ไม่มีช่องว่าง ***** -->
-        <input type="hidden" name="Industry_id" id="edit_id">
+        <input type="hidden" name="Source_budget_id" id="edit_id">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">แก้ไขกลุ่มอุสาหกรรม</h5>
+            <h5 class="modal-title">แก้ไขที่มาของงบประมาณ</h5>
             <button type="button" class="close" data-dismiss="modal">&times;</button>
           </div>
           <div class="modal-body">
             <div class="form-group">
-              <label>กลุ่มอุตสาหกรรม:</label>
-              <input type="text" name="Industry" id="edit_name" class="form-control" required>
+              <label>ชื่อที่มา:</label>
+              <input type="text" name="Source_budge" id="edit_name" class="form-control" required>
             </div>
           </div>
           <div class="modal-footer"><button class="btn btn-primary">บันทึก</button></div>

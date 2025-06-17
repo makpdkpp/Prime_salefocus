@@ -2,7 +2,7 @@
 session_start();
 
 // โหลดฟังก์ชัน
-include __DIR__ . '/../../functions.php';
+require_once '../../functions.php';      // ← ปรับ path ให้ถูกกับโปรเจ็กต์
 $mysqli = connectDb();
 
 // ตรวจสอบว่าเป็น POST

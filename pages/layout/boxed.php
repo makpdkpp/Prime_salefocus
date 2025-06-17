@@ -1,7 +1,6 @@
 <?php
 session_start();
-include("../../connect.php");
-include("../../functions.php");
+require_once '../../functions.php';      // ← ปรับ path ให้ถูกกับโปรเจ็กต์
 $mysqli = connectDb();
 
 $limit = 5;
@@ -104,6 +103,7 @@ $products = $mysqli->query("SELECT product_id, Product FROM product_group LIMIT 
           <li><a href="../layout/top-nav.php"><i class="fas fa-building"></i> เพิ่มข้อมูลบริษัท</a></li>
             <li class="active"><a href="../layout/boxed.php"><i class="fas fa-boxes"></i> เพิ่มข้อมูลกลุ่มสินค้า</a></li>
             <li><a href="../layout/fixed.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลอุตสาหกรรม</a></li>
+            <li><a href="../layout/Source_of_the_budget.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลที่มาของงบประมาณ</a></li>
             <li><a href="../layout/collapsed-sidebar.php"><i class="fas fa-tasks"></i> ขั้นตอนการขาย</a></li>
             <li><a href="../layout/of_winning.php"><i class="fas fa-trophy"></i> โอกาสการชนะ</a></li>
             <li><a href="../layout/Saleteam.php"><i class="fas fa-users"></i> ทีมขาย</a></li>
