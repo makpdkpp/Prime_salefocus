@@ -27,16 +27,19 @@ $productOpts  = loadOptions($mysqli, 'product_group',   'product_id',  'product'
 $teamOpts     = loadOptions($mysqli, 'team_catalog',    'team_id',     'team');
 $companyOpts  = loadOptions($mysqli, 'company_catalog', 'company_id',  'company');
 $priorityOpts = loadOptions($mysqli, 'priority_level',  'priority_id', 'priority');
+$Source_budgeOpts = loadOptions($mysqli, 'source_of_the_budget',  'Source_budget_id', 'Source_budge');
 
 /* map ชื่อ field สถานะตามตาราง */
+/* ====== Process + วันที่ ====== */
 $steps = [
-    'present'  => 'Present',
-    'budgeted' => 'Budget',
-    'tor'      => 'TOR',
-    'bidding'  => 'Bidding',
-    'win'      => 'WIN',
-    'lost'     => 'LOST'
+    'present'  => ['label'=>'Present',  'date'=>null],
+    'budgeted' => ['label'=>'Budget',  'date'=>null],
+    'tor'      => ['label'=>'TOR',     'date'=>'tor_date'],
+    'bidding'  => ['label'=>'Bidding', 'date'=>'bidding_date'],
+    'win'      => ['label'=>'WIN',     'date'=>'win_date'],
+    'lost'     => ['label'=>'LOST',    'date'=>'lost_date']
 ];
+
 ?>
 <!doctype html>
 <html lang="th">
@@ -50,6 +53,9 @@ $steps = [
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+  
 
 <style>
     .sales-card{max-width:750px;margin:40px auto;background:#fff;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,.08);padding:32px 40px}
@@ -60,6 +66,32 @@ $steps = [
     .btn-back:hover{background:#6e6e6e}
     .btn-save{background:#c82333;color:#fff;border:none}
     .btn-save:hover{background:#a51e29}
+    .process-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px; /* ระยะห่างระหว่างกล่อง */
+  align-items: center;
+}
+
+.process-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f9f9f9;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.process-item input[type="checkbox"] {
+  margin: 0;
+}
+
+.process-item input[type="date"] {
+  height: 32px;
+  font-size: 14px;
+}
+
 </style>
 </head>
 <body class="hold-transition skin-red sidebar-mini">
@@ -139,7 +171,7 @@ $steps = [
     <!-- ====== Row 1 : โครงการ / บริษัท / มูลค่า ====== -->
     <div class="row">
       <div class="col-sm-12 form-group">
-        <label for="Product_detail">ชื่อโครงการ (Product_detail)</label>
+        <label for="Product_detail">ชื่อโครงการ</label>
         <input type="text" name="Product_detail" id="Product_detail" class="form-control" required>
       </div>
     </div>
@@ -161,6 +193,24 @@ $steps = [
 
     <!-- ====== Row 2 : กลุ่มสินค้า / ทีม / Priority ====== -->
     <div class="row">
+      <div class="col-sm-6 form-group">
+        <label for="Source_budget_id ">เเหล่งที่มาของงบประมาณ</label>
+        <select name="Source_budget_id " id="Source_budget_id " class="form-control" required>
+          <option value="">-- เลือกเเหล่งที่มาของงบประมาณ --</option>
+          <?php foreach($Source_budgeOpts as $o): ?>
+            <option value="<?= $o['Source_budget_id'] ?>"><?= htmlspecialchars($o['Source_budge']) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+
+      <div class="row">
+      <div class="col-sm-6 form-group">
+        <label for="Product_detail">ปีงบประมาณ</label>
+        <input type="text" name="Product_detail" placeholder="เช่น 1 ตุลาคม 2568" id="Product_detail" class="form-control" required>
+      </div>
+    </div>
+
+
       <div class="col-sm-4 form-group">
         <label for="Product_id">กลุ่มสินค้า</label>
         <select name="Product_id" id="Product_id" class="form-control" required>
@@ -180,7 +230,7 @@ $steps = [
         </select>
       </div>
       <div class="col-sm-4 form-group">
-        <label for="priority_id">ระดับความสำคัญ</label>
+        <label for="priority_id">โอกาสชนะ</label>
         <select name="priority_id" id="priority_id" class="form-control">
           <option value="">-- เลือกระดับ --</option>
           <?php foreach($priorityOpts as $o): ?>
@@ -193,66 +243,94 @@ $steps = [
     <!-- ====== Row 3 : วันที่ ====== -->
     <div class="row">
       <div class="col-sm-4 form-group">
-        <label for="contact_start_date">Contact Start Date</label>
+        <label for="contact_start_date">วันที่เริ่มโครงการ</label>
         <input type="date" name="contact_start_date" id="contact_start_date" class="form-control" required>
       </div>
       <div class="col-sm-4 form-group">
-        <label for="date_of_closing_of_sale">Predict Close Date</label>
+        <label for="date_of_closing_of_sale">วันที่คาดจะยืนBidding</label>
         <input type="date" name="date_of_closing_of_sale" id="date_of_closing_of_sale" class="form-control">
       </div>
       <div class="col-sm-4 form-group">
-        <label for="sales_can_be_close">Deal Closing Date</label>
+        <label for="sales_can_be_close">วันที่คาดจะเซ็นสัญญา</label>
         <input type="date" name="sales_can_be_close" id="sales_can_be_close" class="form-control">
       </div>
     </div>
 
-    <!-- ====== Process (checkbox) ====== -->
-    <div class="form-group">
-      <label>สถานะ (Process)</label><br>
-      <?php foreach($steps as $field=>$label): ?>
-        <label style="margin-right:1rem;">
-          <input type="hidden" name="<?= $field ?>" value="0">
-          <input type="checkbox" name="<?= $field ?>" value="1"> <?= $label ?>
-        </label>
-      <?php endforeach; ?>
-    </div>
+<div class="form-group">
+  <label>สถานะ</label>
+  <div class="process-group">
+    <?php foreach ($steps as $field => $cfg): 
+          $checked = !empty($row[$field]);
+          $dateVal = $row[$cfg['date']] ?? '';
+    ?>
+      <div class="process-item">
+        <!-- hidden เพื่อส่งค่า 0 ถ้าไม่ติ๊ก -->
+        <input type="hidden" name="<?= $field ?>" value="0">
+
+        <!-- checkbox -->
+        <input type="checkbox"
+               id="<?= $field ?>_cb"
+               name="<?= $field ?>"
+               value="1"
+               <?= $checked ? 'checked' : '' ?>
+               onchange="toggleDate('<?= $field ?>')">
+
+        <label for="<?= $field ?>_cb" style="margin-bottom: 0;"><?= $cfg['label'] ?></label>
+
+        <?php if ($cfg['date']): ?>
+          <input type="date"
+                 id="<?= $field ?>_date"
+                 name="<?= $cfg['date'] ?>"
+                 value="<?= htmlspecialchars($dateVal) ?>"
+                 <?= $checked ? '' : 'disabled' ?>>
+        <?php endif; ?>
+      </div>
+    <?php endforeach; ?>
+  </div>
+</div>
+
 
     <!-- ====== หมายเหตุ ====== -->
     <div class="row"><div class="col-sm-12 form-group"><label for="remark">หมายเหตุ</label><textarea name="remark" id="remark" rows="2" class="form-control"></textarea></div></div>
 
     <!-- ====== ปุ่ม ====== -->
     <div class="text-right mt-4">
-      <a href="../home_user.php" class="btn btn-back">Back</a>
-      <button type="submit" class="btn btn-save">Save</button>
+      <a href="../home_user.php" class="btn btn-back">กลับหน้าหลัก</a>
+      <button type="submit" class="btn btn-save">บันทึก</button>
     </div>
   </form>
 </div>
 </section></div><!-- /.content-wrapper -->
 </div><!-- /.wrapper -->
 
-<script src="../plugins/jQuery/jQuery-2.1.3.min.js"></script>
-<script src="../bootstrap/js/bootstrap.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../dist/js/app.min.js"></script>
 <script>
-/* ---------- ฟอร์แมต product_value เป็นตัวเลขมีคอมมา ---------- */
-(function(){
-  const input = document.getElementById('product_value');
-  const form  = document.getElementById('salesForm');
-  const fmt = v => {
-    v = v.replace(/[^0-9.]/g,'');
-    if(!v) return '';
-    const [intPart,decPart] = v.split('.');
-    return (+intPart).toLocaleString('en-US') + (decPart?'.'+decPart.slice(0,2):'');
-  };
-  input.addEventListener('input',()=>{
-    const pos = input.selectionStart;
-    const oldLen = input.value.length;
-    input.value = fmt(input.value);
-    input.setSelectionRange(pos + (input.value.length-oldLen), pos + (input.value.length-oldLen));
-  });
-  form.addEventListener('submit',()=>{
-    input.value = input.value.replace(/,/g,''); // ส่งเลขล้วนเข้า DB
-  });
-})();
+  $(function () { $('.sidebar-menu').tree(); });
 </script>
-</body>
-</html>
+
+<script>
+/* มูลค่า -> คอมมา */
+(()=>{const f=document.getElementById('product_value');
+const fmt=v=>{v=v.replace(/[^0-9.]/g,'');if(!v)return '';const[x,y]=v.split('.');return(+x).toLocaleString('en-US')+(y?'.'+y.slice(0,2):'');};
+f.addEventListener('input',()=>{const p=f.selectionStart,l=f.value.length;f.value=fmt(f.value);f.setSelectionRange(p+(f.value.length-l),p+(f.value.length-l));});
+$('#salesForm').on('submit',()=>f.value=f.value.replace(/,/g,''));})();
+</script>
+<script>
+function toggleDate(field) {
+    const checkbox = document.getElementById(field + '_cb');
+    const dateInput = document.getElementById(field + '_date');
+
+    if (!dateInput) return; // บางสถานะไม่มี date
+
+    if (checkbox.checked) {
+        dateInput.removeAttribute('disabled');
+    } else {
+        dateInput.setAttribute('disabled', 'disabled');
+        dateInput.value = ''; // ล้างค่าถ้ายกเลิก
+    }
+}
+</script>
+</body></html>
