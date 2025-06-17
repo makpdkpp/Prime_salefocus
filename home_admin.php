@@ -109,6 +109,7 @@ $email = htmlspecialchars($_SESSION['email']);
             <li><a href="pages/layout/top-nav.php"><i class="fa fa-circle-o"></i> เพิ่มข้อมูลบริษัท</a></li>
                 <li><a href="pages/layout/boxed.php"><i class="fa fa-circle-o"></i> เพิ่มข้อมูลกลุ่มสินค้า</a></li>
                 <li ><a href="pages/layout/fixed.php"><i class="fa fa-circle-o"></i> เพิ่มข้อมูลอุตสาหกรรม</a></li>
+                <li><a href="pages/layout/Source_of_the_budget.php"><i class="fa fa-circle-o"></i> เพิ่มข้อมูลที่มาของงบประมาณ</a></li>
                 <li><a href="pages/layout/collapsed-sidebar.php"><i class="fa fa-circle-o"></i>ขั้นตอนการขาย</a></li>
                 <li><a href="pages/layout/of_winning.php"><i class="fa fa-circle-o"></i>โอกาสสการชนะ</a></li>
                 <li><a href="pages/layout/Saleteam.php"><i class="fa fa-circle-o"></i>ทีมขาย</a></li>
