@@ -278,9 +278,10 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
   const labels = ['Forecast', 'Target', 'Win'];
   const data   = [ +Forecast, +Target, +Win ];
   const colors = [
-    'rgba(75,192,192,0.7)',    // เขียว สำหรับ Win
-    'rgba(54,162,235,0.7)',    // ฟ้า สำหรับ Forecast
-    'rgba(153,102,255,0.7)'    // ม่วง สำหรับ Target
+    
+  'rgba(54,162,235,0.7)',    // ฟ้า สำหรับ Forecast   
+  'rgba(153,102,255,0.7)',    // ม่วง สำหรับ Target
+  'rgba(75,192,192,0.7)'    // เขียว สำหรับ Win
   ];
 
   // 4) หา context และสร้างกราฟ
