@@ -27,6 +27,10 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ===== chartjs-plugin-datalabels ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.0.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
 
     <style>
         .box   { margin-bottom: 1.5rem; }
@@ -131,7 +135,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
                 <!-- Step Chart -------------------------------------------------->
                 <div class="col-md-6">
                     <div class="box box-success">
-                        <div class="box-header"><h3 class="box-title">สถานะการขายในแต่ละขั้นตอน</h3></div>
+                        <div class="box-header"><h3 class="box-title">สถานะโครงการในแต่ละขั้นตอน</h3></div>
                         <div class="box-body"><canvas id="stepChart"></canvas></div>
                     </div>
                 </div>
@@ -139,15 +143,32 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
                 <!-- Win vs Forecast Chart -------------------------------------->
                 <div class="col-md-6">
                     <div class="box box-success">
-                        <div class="box-header"><h3 class="box-title">Cumulative Win vs Forecast</h3></div>
+                        <div class="box-header"><h3 class="box-title">กราฟเปรียบเทียบยอดขาย/เป้าหมาย/Forecast</h3></div>
                         <div class="box-body"><canvas id="winForecastChart"></canvas></div>
+                      
                     </div>
                 </div>
             </div>
         </section>
     </div><!-- /.content-wrapper -->
-</div><!-- /.wrapper -->
 
+
+ <div class="content-wrapper">
+        <section class="content">
+            <div class="row">
+                <!-- Step Chart -------------------------------------------------->
+                <div class="col-md-6">
+                    <div class="box box-success">
+                        <div class="box-header"><h3 class="box-title">sumValuePercentChart</h3></div>
+                        <div class="box-body"><canvas id="sumValuePercentChart" height="180"></canvas></div>
+                    </div>
+                </div>
+
+            
+            </div>
+        </section>
+    </div><!-- /.content-wrapper -->
+</div><!-- /.wrapper -->
 <!-- =====================================================
      JS Dependencies (Load once at the bottom)
 ====================================================== -->
@@ -163,7 +184,9 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 <!-- =====================================================
      Page‑Specific JS (charts & data fetch)
 ====================================================== -->
+
 <script>
+ 
 (async () => {
     const userId = <?= $userId ?>;
 
@@ -174,6 +197,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 
         drawStepChart(data.salestep);
         drawWinForecastChart(data.winforecast);
+        drawSumValuePercentChart(data.sumvaluepercent);
     } catch (err) {
         console.error(err);
         alert('ไม่สามารถโหลดข้อมูลกราฟได้');
@@ -215,18 +239,18 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
             options: {
                 responsive: true,
                 plugins: {
-                    title: { display: true, text: 'Sales Status per Month' },
+                    title: { display: true, text: 'Project Status per Month' },
                     legend: { position: 'top' }
                 },
                 scales: {
                     x: {
                         stacked: false,
-                        title: { display: true, text: 'เดือน (YYYY-MM)' }
+                        title: { display: true, text: 'เดือน' }
                     },
                     y: {
                         stacked: false,
                         beginAtZero: true,
-                        title: { display: true, text: 'จำนวนครั้ง' }
+                        title: { display: true, text: 'มูลค่าโครงการ' }
                     }
                 }
             }
@@ -235,74 +259,148 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 }
 
     /* -------------- Cumulative Win vs Forecast Chart -------------- */
-    function drawWinForecastChart(rows) {
-        if (!Array.isArray(rows) || rows.length === 0) {
-            document.getElementById('winForecastChart').replaceWith(
-                document.createTextNode('ไม่มีข้อมูลแสดงกราฟ Forecast')
-            );
-            return;
+   function drawWinForecastChart(rows) {
+  // 1) ตรวจสอบข้อมูลก่อน
+  if (!Array.isArray(rows) || rows.length === 0) {
+    const canvas = document.getElementById('winForecastChart');
+    canvas.parentNode.replaceChild(
+      document.createTextNode('ไม่มีข้อมูลแสดงกราฟ Forecast'),
+      canvas
+    );
+    return;
+  }
+
+  // 2) ดึงค่าจาก row แรก (เพราะ user คนเดียว)
+  const { Target, Forecast, Win } = rows[0];
+
+  // 3) เตรียม labels, data และสี ตามลำดับ Win, Forecast, Target
+  
+  const labels = ['Forecast', 'Target', 'Win'];
+  const data   = [ +Forecast, +Target, +Win ];
+  const colors = [
+    'rgba(75,192,192,0.7)',    // เขียว สำหรับ Win
+    'rgba(54,162,235,0.7)',    // ฟ้า สำหรับ Forecast
+    'rgba(153,102,255,0.7)'    // ม่วง สำหรับ Target
+  ];
+
+  // 4) หา context และสร้างกราฟ
+  const ctx = document.getElementById('winForecastChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'หน่วย: จำนวนเงิน',
+        data: data,
+        backgroundColor: colors
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Actual vs Forecast'
+        },
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.label}: ${ctx.parsed.y.toLocaleString()}`
+          }
         }
-
-        const labels   = rows.map(r => r.month);
-        const forecast = rows.map(r => +r.forecast);
-        const cumWin   = rows.reduce((arr, r, i) => {
-            arr[i] = (arr[i - 1] || 0) + +r.win_value;
-            return arr;
-        }, []);
-
-        new Chart(
-            document.getElementById('winForecastChart').getContext('2d'),
-            {
-                data: {
-                    labels,
-                    datasets: [
-                        {
-                            type: 'bar',
-                            label: 'ยอดสะสม',
-                            data: cumWin,
-                            backgroundColor: 'rgba(153,102,255,0.7)',
-                            stack: 'stack0'
-                        },
-                        {
-                            type: 'bar',
-                            label: 'Forecast',
-                            data: forecast,
-                            backgroundColor: 'rgba(54,162,235,0.3)',
-                            borderColor: 'rgba(54,162,235,0.9)',
-                            yAxisID: 'y'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        title: { display: true, text: 'Cumulative Win vs Forecast per Month' },
-                        legend: { position: 'top' }
-                    },
-                    scales: {
-                        x: {
-                            stacked: true,
-                            title: { display: true, text: 'เดือน (YYYY-MM)' }
-                        },
-                        y: {
-                            stacked: true,
-                            beginAtZero: true,
-                            title: { display: true, text: 'มูลค่า (บาท)' },
-                            ticks: {
-                                callback: v => Number(v).toLocaleString('th-TH')
-                            }
-                        }
-                    }
-                }
-            }
-        );
-
-        // Celebrate when reaching/exceeding forecast
-        if (cumWin[cumWin.length - 1] >= forecast[forecast.length - 1]) {
-            confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 } });
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'ประเภท'
+          }
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'จำนวนเงิน'
+          }
         }
+      }
     }
+  });
+}
+
+    /* ------------------ Sum Value Percent Chart ------------------ */
+function drawSumValuePercentChart(rows) {
+  // ถ้าไม่มีข้อมูล ให้แสดงข้อความแทนกราฟ
+  if (!Array.isArray(rows) || rows.length === 0) {
+    const canvas = document.getElementById('sumValuePercentChart');
+    canvas.parentNode.replaceChild(
+      document.createTextNode('ไม่มีข้อมูลสำหรับแสดงกราฟวงกลม'),
+      canvas
+    );
+    return;
+  }
+
+  // เตรียม labels และ values
+  const labels = rows.map(r => r.product);
+  const values = rows.map(r => +r.sum_value);
+
+  // คำนวณผลรวมทั้งหมด เพื่อใช้คำนวณเปอร์เซ็นต์ใน tooltip
+  const total = values.reduce((acc, v) => acc + v, 0);
+
+  // สร้าง backgroundColor แบบวนลูปจาก palette ที่กำหนดล่วงหน้า
+  const palette = [
+    'rgba(255,99,132,0.7)',   // แดง
+    'rgba(54,162,235,0.7)',   // ฟ้า
+    'rgba(255,206,86,0.7)',   // เหลือง
+    'rgba(75,192,192,0.7)',   // เขียว
+    'rgba(153,102,255,0.7)',  // ม่วง
+    'rgba(255,159,64,0.7)'    // ส้ม
+  ];
+  const backgroundColors = values.map((_, i) => palette[i % palette.length]);
+
+  // วาดกราฟวงกลม (pie chart)
+  const ctx = document.getElementById('sumValuePercentChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: backgroundColors
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          text: 'สัดส่วนมูลค่าตามสินค้า (เปอร์เซ็นต์)'
+        },
+        legend: {
+          position: 'right'
+        },
+        tooltip: {
+          callbacks: {
+            label: context => {
+              const value = context.parsed;
+              const percent = total > 0
+                ? (value / total * 100).toFixed(2)
+                : '0.00';
+              return `${context.label}: ${value.toLocaleString()} (${percent}%)`;
+            }
+          }
+        }
+      }
+    }
+    
+  });
+}
 })();
+
+ 
 </script>
+
 </body>
 </html>
