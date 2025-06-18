@@ -109,7 +109,7 @@ if (!$stmt) {
    s remark
 */
 $stmt->bind_param(
-    "iiisisisisisisisissidis",
+    "iiisisisisisisisisssids",
     $user_id,
     $company_id,
     $product_id,
