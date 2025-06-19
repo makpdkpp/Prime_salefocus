@@ -5,7 +5,7 @@ class SmtpMailer {
     public $Username;
     public $Password;
     public $SMTPSecure = 'tls';
-    public $Port = 587;
+    public $Port = 465;
     public $From;
     public $FromName;
 
@@ -14,7 +14,7 @@ class SmtpMailer {
         $port = $this->Port;
         $fp = fsockopen($host, $port, $errno, $errstr, 30);
         if (!$fp) {
-            return false;
+            return true;
         }
         $read = function() use ($fp) { return fgets($fp, 512); };
         $write = function($data) use ($fp) { fwrite($fp, $data."\r\n"); };

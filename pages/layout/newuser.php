@@ -1,6 +1,11 @@
 <?php
 session_start();
 require_once '../../functions.php';
+ require_once '../../PHPMailer/src/Exception.php';
+        require_once '../../PHPMailer/src/PHPMailer.php';
+        require_once '../../PHPMailer/src/SMTP.php';
+      use PHPMailer\PHPMailer\PHPMailer;
+      use PHPMailer\PHPMailer\Exception; 
 
 $db = connectDb();
 $message = '';
@@ -10,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
     if (!empty($email)) {
         $token = bin2hex(random_bytes(32));
         $expiry = date('Y-m-d H:i:s', strtotime('+1 day'));
-        $stmt = $db->prepare('SELECT id FROM user WHERE email=?');
+        $stmt = $db->prepare('SELECT user_id FROM user WHERE email=?');
         if ($stmt) {
             $stmt->bind_param('s', $email);
             $stmt->execute();
@@ -19,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
                 $stmt->bind_result($uid);
                 $stmt->fetch();
                 $stmt->close();
-                $stmt = $db->prepare('UPDATE user SET reset_token=?, token_expiry=?, is_active=0 WHERE id=?');
+                $stmt = $db->prepare('UPDATE user SET reset_token=?, token_expiry=?, is_active=0 WHERE user_id=?');
                 if ($stmt) {
                     $stmt->bind_param('ssi', $token, $expiry, $uid);
                     $stmt->execute();
@@ -38,24 +43,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
             $message = 'Database error: ' . $db->error;
         }
 
+     
+
+
+
+
         $link = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']) . '/set-password.php?token=' . $token;
         $subject = 'User Invitation';
         $body = "Please set your password using this link: $link";
 
-        require_once '../../lib/SmtpMailer.php';
-        $mailer = new SmtpMailer();
-        $mailer->Host = 'smtp.example.com';
-        $mailer->SMTPAuth = true;
-        $mailer->Username = 'your@email.com';
-        $mailer->Password = 'yourpassword';
-        $mailer->FromName = 'PrimeFocus';
-        $mailer->send($email, $subject, $body);
+        
+         $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'immsendermail@gmail.com';
+        $mail->Password = 'npou efln pgpf bhxd';
+        // $mail->SMTPSecure = 'tls'; // Use 'ssl' for port 465
+        $mail->Port = 465; // Use 465 for 'ssl'
+       
+        $mail->FromName = 'PrimeFocus';
+        $mail->send($email, $subject, $body);
 
         $message = 'Invitation sent to ' . htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
     }
 }
 
-$query = $db->query('SELECT id, email, is_active FROM user ORDER BY id DESC');
+$query = $db->query('SELECT user_id, email, is_active FROM user ORDER BY user_id DESC');
 $userRows = $query ? $query->fetch_all(MYSQLI_ASSOC) : [];
 if ($query) {
     $query->free();
