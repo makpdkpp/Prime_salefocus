@@ -200,7 +200,7 @@ $steps = [
           <?php foreach($Source_budgeOpts as $o): ?>
             <option value="<?= $o['Source_budget_id'] ?>"><?= htmlspecialchars($o['Source_budge']) ?></option>
           <?php endforeach; ?>
-        </select>>
+        </select>
       </div>
 
       <div class="row">
