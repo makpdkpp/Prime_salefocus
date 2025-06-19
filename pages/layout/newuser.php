@@ -12,23 +12,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
         $expiry = date('Y-m-d H:i:s', strtotime('+1 day'));
 
         $stmt = $db->prepare('SELECT id FROM users WHERE email=?');
-        $stmt->bind_param('s', $email);
-        $stmt->execute();
-        $stmt->store_result();
-        if ($stmt->num_rows > 0) {
-            $stmt->bind_result($uid);
-            $stmt->fetch();
-            $stmt->close();
-            $stmt = $db->prepare('UPDATE users SET reset_token=?, token_expiry=?, is_active=0 WHERE id=?');
-            $stmt->bind_param('ssi', $token, $expiry, $uid);
+        if ($stmt) {
+            $stmt->bind_param('s', $email);
             $stmt->execute();
+            $stmt->store_result();
+            if ($stmt->num_rows > 0) {
+                $stmt->bind_result($uid);
+                $stmt->fetch();
+                $stmt->close();
+                $stmt = $db->prepare('UPDATE users SET reset_token=?, token_expiry=?, is_active=0 WHERE id=?');
+                if ($stmt) {
+                    $stmt->bind_param('ssi', $token, $expiry, $uid);
+                    $stmt->execute();
+                    $stmt->close();
+                }
+            } else {
+                $stmt->close();
+                $stmt = $db->prepare('INSERT INTO users (email, reset_token, token_expiry) VALUES (?, ?, ?)');
+                if ($stmt) {
+                    $stmt->bind_param('sss', $email, $token, $expiry);
+                    $stmt->execute();
+                    $stmt->close();
+                }
+            }
         } else {
-            $stmt->close();
-            $stmt = $db->prepare('INSERT INTO users (email, reset_token, token_expiry) VALUES (?, ?, ?)');
-            $stmt->bind_param('sss', $email, $token, $expiry);
-            $stmt->execute();
+            $message = 'Database error: ' . $db->error;
         }
-        $stmt->close();
 
         $link = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']) . '/set-password.php?token=' . $token;
         $subject = 'User Invitation';
