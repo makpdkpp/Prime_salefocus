@@ -12,14 +12,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($password !== $confirm) {
         $error = 'Passwords do not match';
     } else {
-        $stmt = $db->prepare('SELECT id FROM users WHERE reset_token=? AND token_expiry > NOW()');
+        $stmt = $db->prepare('SELECT id FROM user WHERE reset_token=? AND token_expiry > NOW()');
         $stmt->bind_param('s', $token);
         $stmt->execute();
         $stmt->bind_result($uid);
         if ($stmt->fetch()) {
             $stmt->close();
             $hashed = md5($password);
-            $stmt = $db->prepare('UPDATE users SET password=?, is_active=1, reset_token=NULL, token_expiry=NULL WHERE id=?');
+            $stmt = $db->prepare('UPDATE user SET password=?, is_active=1, reset_token=NULL, token_expiry=NULL WHERE id=?');
             $stmt->bind_param('si', $hashed, $uid);
             $stmt->execute();
             $stmt->close();

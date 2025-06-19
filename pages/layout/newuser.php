@@ -10,8 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
     if (!empty($email)) {
         $token = bin2hex(random_bytes(32));
         $expiry = date('Y-m-d H:i:s', strtotime('+1 day'));
-
-        $stmt = $db->prepare('SELECT user_id FROM user WHERE email=?');
+        $stmt = $db->prepare('SELECT id FROM user WHERE email=?');
         if ($stmt) {
             $stmt->bind_param('s', $email);
             $stmt->execute();
@@ -42,13 +41,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
         $link = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']) . '/set-password.php?token=' . $token;
         $subject = 'User Invitation';
         $body = "Please set your password using this link: $link";
-        @mail($email, $subject, $body);
+
+        require_once '../../lib/SmtpMailer.php';
+        $mailer = new SmtpMailer();
+        $mailer->Host = 'smtp.example.com';
+        $mailer->SMTPAuth = true;
+        $mailer->Username = 'your@email.com';
+        $mailer->Password = 'yourpassword';
+        $mailer->FromName = 'PrimeFocus';
+        $mailer->send($email, $subject, $body);
 
         $message = 'Invitation sent to ' . htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
     }
 }
 
-$query = $db->query('SELECT user_id, email, is_active FROM user ORDER BY user_id DESC');
+$query = $db->query('SELECT id, email, is_active FROM user ORDER BY id DESC');
 $userRows = $query ? $query->fetch_all(MYSQLI_ASSOC) : [];
 if ($query) {
     $query->free();
