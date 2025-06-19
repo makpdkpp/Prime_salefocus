@@ -164,7 +164,7 @@ if ($rs && $rs->num_rows):
         <td><?= $r['company'] ?></td>
         <td><?= number_format($r['product_value']) ?></td>
         <td><?= $r['Source_budge'] ?></td>
-          <td><?= $r['Product_detail'] ?></td>
+          <td><?= $r['fiscalyear'] ?></td>
           <td><?= $r['product'] ?></td>
           <td><?= $r['team'] ?></td>
           <td><?= $r['priority'] ?></td>

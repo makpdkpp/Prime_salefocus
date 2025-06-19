@@ -28,6 +28,8 @@ $product_id           = (int)($_POST['Product_id']         ?? 0);
 $product_detail       = trim($_POST['Product_detail']      ?? '');
 $team_id              = (int)($_POST['team_id']            ?? 0);
 $priority_id          = $_POST['priority_id']              !== '' ? (int)$_POST['priority_id'] : null;
+$Source_budget_id     = (int)($_POST['Source_budget_id'] ?? 0);
+$fiscalyear           = $_POST['fiscalyear'] ?? null; // fiscalyear is not a flag, it's a year value
 
 // ค่าตัวเลข – ตัดคอมมาออก, แปลงเป็น float
 $product_value        = str_replace(',', '', $_POST['product_value'] ?? '0');
@@ -41,6 +43,7 @@ $deal_close_date          = $_POST['sales_can_be_close']        ?: null;
 // Process flags & dates (default 0/null)
 $flag = fn(string $k) => isset($_POST[$k]) && $_POST[$k] === '1' ? 1 : 0;
 $date = fn(string $k) => ($_POST[$k] ?? '') ?: null;
+
 
 $present         = $flag('present');
 $present_date    = $date('present_date');
@@ -68,13 +71,13 @@ if (!$user_id || !$company_id || !$product_id || !$team_id || !$contact_start_da
    3) เตรียม SQL – ใช้ prepared statement ปลอดภัยจาก SQLi
    ------------------------------------------------------------------ */
 $sql = "INSERT INTO transactional (
-            user_id, company_id, Product_id, Product_detail,
+            user_id, company_id, Product_id, Product_detail,Source_budget_id,fiscalyear,
             present, present_date, budgeted, budgeted_date, tor, tor_date,
             bidding, bidding_date, win, win_date, lost, lost_date,
             team_id, contact_start_date, date_of_closing_of_sale, sales_can_be_close,
             priority_id, product_value, remark, timestamp
         ) VALUES (
-            ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, current_timestamp()
+            ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, current_timestamp()
         )";
 
 $stmt = $mysqli->prepare($sql);
@@ -109,11 +112,13 @@ if (!$stmt) {
    s remark
 */
 $stmt->bind_param(
-    "iiisisisisisisisisssids",
+    "iiisiiisisisisisisisssids",
     $user_id,
     $company_id,
     $product_id,
     $product_detail,
+    $Source_budget_id,
+    $fiscalyear,
     $present,
     $present_date,
     $budgeted,
