@@ -24,8 +24,8 @@ $positions = $mysqli->query("SELECT position_id, position FROM position LIMIT $s
   <link rel="stylesheet" href="../../dist/css/skins/_all-skins.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
   <style>
-    body { background: #b3d6e4; }
-    .container1 { background: #fff; border-radius: 10px; padding: 25px; margin: 40px auto; box-shadow: 0 2px 6px rgba(0,0,0,0.1); max-width: 1100px; }
+    body { background: #e9f2f9; }
+    .container1 { max-width: 800px; margin: 40px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
     .table thead { background: #0056b3; color: #fff; }
     .btn-add { position: fixed; bottom: 30px; right: 30px; background: #0056b3; color: #fff; border-radius: 50%; width: 56px; height: 56px; font-size: 24px; border: none; z-index: 999; }
     .modal-content { border-radius: 10px; }

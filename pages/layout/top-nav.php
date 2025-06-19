@@ -19,12 +19,11 @@ $mysqli = connectDb();
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="../../dist/js/app.min.js"></script>
   <style>
-    body { background: #b3d6e4; }
-    .card-custom { background: #fff; border-radius: 10px; padding: 25px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
+    body { background: #e9f2f9; }
+    .container1 { max-width: 800px; margin: 40px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
     .table thead { background: #0056b3; color: #fff; }
-    .container1 { background: #fff; border-radius: 10px; padding: 25px; margin: 40px auto; box-shadow: 0 2px 6px rgba(0,0,0,0.1); max-width: 1100px; }
     .btn-add { position: fixed; bottom: 30px; right: 30px; background: #0056b3; color: #fff; border-radius: 50%; width: 56px; height: 56px; font-size: 24px; border: none; z-index: 999; }
-    .modal-content { border-radius: 10px; padding: 20px; }
+    .modal-content { border-radius: 10px; }
   </style>
 </head>
 <body class="hold-transition skin-blue sidebar-mini fixed">

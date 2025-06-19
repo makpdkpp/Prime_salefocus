@@ -7,16 +7,6 @@ require_once '../../lib/PHPMailer/src/Exception.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-        $mailer = new PHPMailer(true);
-        $mailer->isSMTP();
-        $mailer->SMTPSecure = 'tls';
-        $mailer->Port = 587;
-        $mailer->setFrom('no-reply@example.com', 'PrimeFocus');
-        $mailer->addAddress($email);
-        $mailer->Subject = $subject;
-        $mailer->Body = $body;
-        $mailer->send();
-      use PHPMailer\PHPMailer\Exception; 
 
 $db = connectDb();
 $message = '';
@@ -54,29 +44,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
             $message = 'Database error: ' . $db->error;
         }
 
-     
-
-
-
-
         $link = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']) . '/set-password.php?token=' . $token;
         $subject = 'User Invitation';
         $body = "Please set your password using this link: $link";
 
-        
-         $mail = new PHPMailer(true);
-        $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com';
-        $mail->SMTPAuth = true;
-        $mail->Username = 'immsendermail@gmail.com';
-        $mail->Password = 'npou efln pgpf bhxd';
-        // $mail->SMTPSecure = 'tls'; // Use 'ssl' for port 465
-        $mail->Port = 465; // Use 465 for 'ssl'
-       
-        $mail->FromName = 'PrimeFocus';
-        $mail->send($email, $subject, $body);
-
-        $message = 'Invitation sent to ' . htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
+        // PHPMailer: send email
+        try {
+            $mail = new PHPMailer(true);
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = 'immsendermail@gmail.com';
+            $mail->Password = 'npou efln pgpf bhxd';
+            $mail->SMTPSecure = 'ssl'; // Use 'ssl' for port 465
+            $mail->Port = 465;
+            $mail->setFrom('no-reply@example.com', 'PrimeFocus');
+            $mail->addAddress($email);
+            $mail->Subject = $subject;
+            $mail->Body = $body;
+            $mail->send();
+            $message = 'Invitation sent to ' . htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
+        } catch (Exception $e) {
+            $message = 'Mailer Error: ' . $mail->ErrorInfo;
+        }
     }
 }
 

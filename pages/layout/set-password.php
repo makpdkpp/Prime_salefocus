@@ -12,20 +12,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($password !== $confirm) {
         $error = 'Passwords do not match';
     } else {
-        $stmt = $db->prepare('SELECT id FROM user WHERE reset_token=? AND token_expiry > NOW()');
-        $stmt->bind_param('s', $token);
-        $stmt->execute();
-        $stmt->bind_result($uid);
-        if ($stmt->fetch()) {
-            $stmt->close();
-            $hashed = md5($password);
-            $stmt = $db->prepare('UPDATE user SET password=?, is_active=1, reset_token=NULL, token_expiry=NULL WHERE id=?');
-            $stmt->bind_param('si', $hashed, $uid);
+        $stmt = $db->prepare('SELECT user_id FROM user WHERE reset_token=? AND token_expiry > NOW()');
+        if ($stmt) {
+            $stmt->bind_param('s', $token);
             $stmt->execute();
-            $stmt->close();
-            $message = 'Password set successfully.';
+            $stmt->bind_result($uid);
+            if ($stmt->fetch()) {
+                $stmt->close();
+                $hashed = md5($password);
+                $stmt = $db->prepare('UPDATE user SET password=?, is_active=1, reset_token=NULL, token_expiry=NULL, role_id=2 WHERE user_id=?');
+                if ($stmt) {
+                    $stmt->bind_param('si', $hashed, $uid);
+                    $stmt->execute();
+                    $stmt->close();
+                    header('Location: ../../index.php');
+                    exit;
+                } else {
+                    $error = 'Database error (update)';
+                }
+            } else {
+                $error = 'Invalid or expired token';
+            }
         } else {
-            $error = 'Invalid or expired token';
+            $error = 'Database error (select)';
         }
     }
 }
