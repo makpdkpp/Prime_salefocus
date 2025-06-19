@@ -204,39 +204,58 @@ $email = htmlspecialchars($_SESSION['email']);
   
 
 <script>
-const chartEstimate = new Chart(document.getElementById('chartEstimate'), {
-  type: 'bar',
-  data: {
-    labels: <?php echo json_encode($estimateLabels); ?>,
-    datasets: [{
-      label: 'ยอดขายทั้งหมด (บาท)',
-      data: <?php echo json_encode($estimateValues); ?>,
-      backgroundColor: 'rgba(54, 162, 235, 0.7)'
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: { y: { beginAtZero: true, title: { display: true, text: 'บาท' } } }
-  }
-});
+// กราฟ chartEstimate (ไม่ได้ใช้งาน)
+// const chartEstimate = new Chart(document.getElementById('chartEstimate'), {
+//   type: 'bar',
+//   data: {
+//     labels: <?php echo json_encode($estimateLabels); ?>,
+//     datasets: [{
+//       label: 'ยอดขายทั้งหมด (บาท)',
+//       data: <?php echo json_encode($estimateValues); ?>,
+//       backgroundColor: 'rgba(54, 162, 235, 0.7)'
+//     }]
+//   },
+//   options: {
+//     responsive: true,
+//     maintainAspectRatio: false,
+//     scales: { y: { beginAtZero: true, title: { display: true, text: 'บาท' } } }
+//   }
+// });
 
-const chartWin = new Chart(document.getElementById('3'), {
-  type: 'bar',
-  data: {
-    labels: <?php echo json_encode($estimateLabels); ?>,
-    datasets: [{
-      label: 'รายได้จริงจาก Win (บาท)',
-      data: <?php echo json_encode($winvalue); ?>,
-      backgroundColor: 'rgba(75, 192, 192, 0.7)'
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: { y: { beginAtZero: true, title: { display: true, text: 'บาท' } } }
-  }
-});
+// กราฟ chartWin (ไม่ได้ใช้งาน)
+// const chartWin = new Chart(document.getElementById('3'), {
+//   type: 'bar',
+//   data: {
+//     labels: <?php echo json_encode($estimateLabels); ?>,
+//     datasets: [{
+//       label: 'รายได้จริงจาก Win (บาท)',
+//       data: <?php echo json_encode($winvalue); ?>,
+//       backgroundColor: 'rgba(75, 192, 192, 0.7)'
+//     }]
+//   },
+//   options: {
+//     responsive: true,
+//     maintainAspectRatio: false,
+//     scales: { y: { beginAtZero: true, title: { display: true, text: 'บาท' } } }
+//   }
+// });
+
+// กราฟ myChart (ไม่ได้ใช้งาน)
+// new Chart(document.getElementById('myChart'), {
+//         type: 'bar',
+//         data: {
+//           labels: step,
+//           datasets: [{
+//             label: 'บาท',
+//             data: sumstep
+//           }]
+//         },
+//         options: {
+//           scales: {
+//             y: { beginAtZero: true }
+//           }
+//         }
+//       });
 </script>
 <script>
     fetch('admin_data.php')
