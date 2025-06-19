@@ -21,8 +21,23 @@ $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
     <link rel="stylesheet" href="dist/css/AdminLTE.min.css">
     <link rel="stylesheet" href="dist/css/skins/_all-skins.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <style>
+      /* ปรับหัวตาราง DataTables ให้กลมกลืนกับธีม */
+      table.dataTable thead th {
+        background: #a40000 !important;
+        color: #fff !important;
+      }
+      .dataTables_filter input {
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        padding: 4px 8px;
+      }
+    </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="dist/js/app.min.js"></script>
 
 <style>
   body        {background:#f4f6f9;}          /* พื้นหลังจอ */
@@ -191,13 +206,25 @@ if ($rs && $rs->num_rows):
 </div><!-- /.content-wrapper -->
 </div><!-- /.wrapper -->
 <!-- ========== JS (วางก่อน </body>) ========== -->
-<script src="plugins/jQuery/jquery-2.2.4.min.js"></script>            <!-- jQuery one-and-only -->
-<script src="bootstrap/js/bootstrap.min.js"></script>                 <!-- Bootstrap 3 -->
+<!-- ลบ jQuery 2.2.4 และ Bootstrap 3 ที่ซ้ำออก ใช้เฉพาะ jQuery 3.x และ Bootstrap 4 จาก <head> -->
 <script src="dist/js/app.min.js"></script>                            <!-- AdminLTE 2 -->
 <script>
   $(function () {
-      /* เปิด/ปิดเมนูย่อย & sidebar */
-      $('.sidebar-menu').tree();            // AdminLTE
+      // $('.sidebar-menu').tree(); // ปิดการใช้งาน เพราะ AdminLTE 2 ไม่รองรับ jQuery 3.x
+      // เปิดใช้งาน DataTables
+      $('.deal-table').DataTable({
+        language: {
+          url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/th.json'
+        },
+        order: [], // ไม่ sort อัตโนมัติ
+        pageLength: 10,
+        dom: 'lfrtip' // แสดงเมนู filter/sort/page
+      });
+      // Fix: ให้ sidebar-toggle ทำงานกับ AdminLTE 2 + jQuery 3.x
+      $('[data-toggle="offcanvas"]').on('click', function (e) {
+        e.preventDefault();
+        $('body').toggleClass('sidebar-collapse');
+      });
   });
 </script>
 </body>
