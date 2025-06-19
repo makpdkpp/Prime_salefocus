@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
         $token = bin2hex(random_bytes(32));
         $expiry = date('Y-m-d H:i:s', strtotime('+1 day'));
 
-        $stmt = $db->prepare('SELECT id FROM users WHERE email=?');
+        $stmt = $db->prepare('SELECT user_id FROM user WHERE email=?');
         if ($stmt) {
             $stmt->bind_param('s', $email);
             $stmt->execute();
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
                 $stmt->bind_result($uid);
                 $stmt->fetch();
                 $stmt->close();
-                $stmt = $db->prepare('UPDATE users SET reset_token=?, token_expiry=?, is_active=0 WHERE id=?');
+                $stmt = $db->prepare('UPDATE user SET reset_token=?, token_expiry=?, is_active=0 WHERE id=?');
                 if ($stmt) {
                     $stmt->bind_param('ssi', $token, $expiry, $uid);
                     $stmt->execute();
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
                 }
             } else {
                 $stmt->close();
-                $stmt = $db->prepare('INSERT INTO users (email, reset_token, token_expiry) VALUES (?, ?, ?)');
+                $stmt = $db->prepare('INSERT INTO user (email, reset_token, token_expiry) VALUES (?, ?, ?)');
                 if ($stmt) {
                     $stmt->bind_param('sss', $email, $token, $expiry);
                     $stmt->execute();
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
     }
 }
 
-$query = $db->query('SELECT id, email, is_active FROM users ORDER BY id DESC');
+$query = $db->query('SELECT user_id, email, is_active FROM user ORDER BY user_id DESC');
 $userRows = $query ? $query->fetch_all(MYSQLI_ASSOC) : [];
 if ($query) {
     $query->free();
