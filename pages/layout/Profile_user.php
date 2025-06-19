@@ -6,15 +6,17 @@ $mysqli = connectDb();
 // Update forecast if submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['updateForecast'])) {
   $forecast = str_replace(',', '', $_POST['forecast'] ?? '');
-  $userId = $_POST['user_id'] ?? '';
+  $userId   = $_POST['user_id'] ?? '';
 
   if ($forecast !== '' && is_numeric($userId) && is_numeric($forecast)) {
     $stmt = $mysqli->prepare("UPDATE user SET forecast = ? WHERE user_id = ?");
-    $stmt->bind_param("si", $forecast, $userId);
-    $stmt->execute();
-    $stmt->close();
-    header("Location: Profile_user.php");
-    exit;
+    if ($stmt) {
+      $stmt->bind_param("si", $forecast, $userId);
+      $stmt->execute();
+      $stmt->close();
+      header("Location: Profile_user.php");
+      exit;
+    }
   } else {
     $error = "กรุณากรอกเฉพาะตัวเลขเท่านั้น (บาท)";
   }
@@ -122,6 +124,7 @@ $result = $mysqli->query($sql);
             <li><a href="../layout/Saleteam.php"><i class="fas fa-users"></i> ทีมขาย</a></li>
             <li><a href="../layout/position_u.php"><i class="fas fa-user-tag"></i> ตำแหน่ง</a></li>
             <li class="active"><a href="../layout/Profile_user.php"><i class="fas fa-id-card"></i> รายละเอียดผู้ใช้งาน</a></li>
+            <li><a href="../layout/newuser.php"><i class="fas fa-user-plus"></i> เพิ่มผู้ใช้งาน</a></li>
         </ul>
       </li>
     </ul>
