@@ -39,7 +39,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
     }
 }
 
-$users = $db->query('SELECT id, email, is_active FROM users ORDER BY id DESC');
+$query = $db->query('SELECT id, email, is_active FROM users ORDER BY id DESC');
+$userRows = $query ? $query->fetch_all(MYSQLI_ASSOC) : [];
+if ($query) {
+    $query->free();
+}
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -137,12 +141,12 @@ $users = $db->query('SELECT id, email, is_active FROM users ORDER BY id DESC');
         <tr><th>Email</th><th>Status</th></tr>
       </thead>
       <tbody>
-        <?php while($u = $users->fetch_assoc()): ?>
+        <?php foreach($userRows as $u): ?>
         <tr>
           <td><?= htmlspecialchars($u['email']) ?></td>
           <td><?= $u['is_active'] ? 'Active' : 'Pending' ?></td>
         </tr>
-        <?php endwhile; ?>
+        <?php endforeach; ?>
       </tbody>
     </table>
   </div>
