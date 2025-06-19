@@ -195,8 +195,8 @@ $steps = [
     <div class="row">
       <div class="col-sm-6 form-group">
         <label for="Source_budget_id ">เเหล่งที่มาของงบประมาณ</label>
-        <select name="Source_budget_id " id="Source_budget_id " class="form-control" required>
-          <option value="">-- เลือกเเหล่งที่มาของงบประมาณ --</option>
+        <select name="Source_budget_id" id="Source_budget_id" class="form-control" required>
+          <option value="">-- เลือกแหล่งที่มาของงบประมาณ --</option>
           <?php foreach($Source_budgeOpts as $o): ?>
             <option value="<?= $o['Source_budget_id'] ?>"><?= htmlspecialchars($o['Source_budge']) ?></option>
           <?php endforeach; ?>
@@ -205,8 +205,13 @@ $steps = [
 
       <div class="row">
       <div class="col-sm-6 form-group">
-        <label for="Product_detail">ปีงบประมาณ</label>
-        <input type="text" name="Product_detail" placeholder="เช่น 1 ตุลาคม 2568" id="Product_detail" class="form-control" required>
+        <label for="fiscalyear">ปีงบประมาณ:</label>  
+          <select name="fiscalyear" id="fiscalyear" class="form-control" required>
+              <option value="2568">2568</option>
+              <option value="2569">2569</option>
+              <option value="2570">2570</option>
+              <option value="2571">2571</option>
+</select>
       </div>
     </div>
 

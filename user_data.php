@@ -111,21 +111,19 @@ $stmt->close();
 // 2. personforecast: actual vs forecast for current user where win = 1
 $sql = "
 SELECT
-  DATE_FORMAT(t.win_date, '%Y-%m') AS month,
-  SUM(t.product_value)               AS win_value,
-  u.forecast                         AS forecast
-FROM transactional AS t
-JOIN `user` AS u
-  ON u.user_id = t.user_id
-WHERE
-  t.win = 1
-  AND t.win_date IS NOT NULL
-  AND t.user_id = ?
-GROUP BY
-  month,
-  u.forecast
-ORDER BY
-  month
+	SUM(t.product_value) AS Forecast,
+ u.forecast AS Target,
+  SUM(
+    CASE WHEN t.win = 1
+         THEN t.product_value
+         ELSE 0
+    END
+  ) AS Win
+   
+  
+FROM transactional t
+JOIN `user` u ON u.user_id = t.user_id
+WHERE t.user_id = ?
 ";
 
 $stmt = $mysqli->prepare($sql);
@@ -138,6 +136,33 @@ if (!$stmt->execute()) {
 }
 $result = $stmt->get_result();
 $output['winforecast'] = $result->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+// 3. sumvaluepercent by person: 
+$sql = "
+SELECT
+  transactional.Product_id,
+  product_group.product,
+  SUM(product_value) AS sum_value
+FROM
+  transactional
+  JOIN product_group on transactional.Product_id = product_group.product_id
+  WHERE transactional.user_id = ?
+GROUP BY
+  transactional.Product_id
+
+";
+
+$stmt = $mysqli->prepare($sql);
+if (!$stmt) {
+    sendJsonError($mysqli->error);
+}
+$stmt->bind_param('i', $userId);
+if (!$stmt->execute()) {
+    sendJsonError($stmt->error);
+}
+$result = $stmt->get_result();
+$output['sumvaluepercent'] = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
 // ปิดการเชื่อมต่อ

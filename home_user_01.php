@@ -131,7 +131,7 @@ $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
 <section class="content">
 
 <?php
-$q = "SELECT t.*, pg.product, cc.company, pl.priority, tc.team, s.level, u.nname
+$q = "SELECT t.*, pg.product, cc.company, pl.priority, tc.team, s.level, u.nname, so.Source_budge
         FROM transactional t
         LEFT JOIN product_group   pg ON t.Product_id = pg.product_id
         LEFT JOIN company_catalog cc ON t.company_id = cc.company_id
@@ -139,6 +139,8 @@ $q = "SELECT t.*, pg.product, cc.company, pl.priority, tc.team, s.level, u.nname
         LEFT JOIN team_catalog    tc ON t.team_id     = tc.team_id
         LEFT JOIN step            s  ON t.Step_id     = s.level_id
         LEFT JOIN user            u  ON t.user_id     = u.user_id
+		LEFT JOIN source_of_the_budget so  ON so.Source_budget_id = t.Source_budget_id
+		
        WHERE t.user_id = $userId";
 $rs = $mysqli->query($q);
 
@@ -161,8 +163,8 @@ if ($rs && $rs->num_rows):
         <td><?= $r['Product_detail'] ?></td>
         <td><?= $r['company'] ?></td>
         <td><?= number_format($r['product_value']) ?></td>
-        <td><?= $r['Source_budget_id'] ?></td>
-          <td><?= $r['Product_detail'] ?></td>
+        <td><?= $r['Source_budge'] ?></td>
+          <td><?= $r['fiscalyear'] ?></td>
           <td><?= $r['product'] ?></td>
           <td><?= $r['team'] ?></td>
           <td><?= $r['priority'] ?></td>
