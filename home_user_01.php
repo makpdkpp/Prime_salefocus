@@ -21,8 +21,36 @@ $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
     <link rel="stylesheet" href="dist/css/AdminLTE.min.css">
     <link rel="stylesheet" href="dist/css/skins/_all-skins.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <style>
+      /* ปรับหัวตาราง DataTables ให้กลมกลืนกับธีม */
+      table.dataTable thead th {
+        background: #a40000 !important;
+        color: #fff !important;
+      }
+      .dataTables_filter input {
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        padding: 4px 8px;
+      }
+    </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="dist/js/app.min.js"></script>
+    <script>
+      $(function () {
+          // $('.sidebar-menu').tree(); // AdminLTE: คอมเมนต์ออกเพราะใช้ jQuery 3.x
+          $('.deal-table').DataTable({
+            language: {
+              url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/th.json'
+            },
+            order: [],
+            pageLength: 10,
+            dom: 'lfrtip'
+          });
+      });
+    </script>
 
 <style>
   body        {background:#f4f6f9;}          /* พื้นหลังจอ */
@@ -196,8 +224,16 @@ if ($rs && $rs->num_rows):
 <script src="dist/js/app.min.js"></script>                            <!-- AdminLTE 2 -->
 <script>
   $(function () {
-      /* เปิด/ปิดเมนูย่อย & sidebar */
-      $('.sidebar-menu').tree();            // AdminLTE
+      $('.sidebar-menu').tree(); // AdminLTE
+      // เปิดใช้งาน DataTables
+      $('.deal-table').DataTable({
+        language: {
+          url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/th.json'
+        },
+        order: [], // ไม่ sort อัตโนมัติ
+        pageLength: 10,
+        dom: 'lfrtip' // แสดงเมนู filter/sort/page
+      });
   });
 </script>
 </body>

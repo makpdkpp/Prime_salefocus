@@ -21,7 +21,7 @@ $email = htmlspecialchars($_SESSION['email']);
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="images/logo.png" href="images/logo.png">
   <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
   <link href="http://code.ionicframework.com/ionicons/2.0.0/css/ionicons.min.css" rel="stylesheet" />
   <link href="dist/css/AdminLTE.min.css" rel="stylesheet" />
   <link href="dist/css/skins/_all-skins.min.css" rel="stylesheet" />
@@ -102,20 +102,25 @@ $email = htmlspecialchars($_SESSION['email']);
     </div>
     <ul class="sidebar-menu">
       <li class="header">MAIN NAVIGATION</li>
-      <li class="active"><a href="home_admin.php"><i class="fa fa-dashboard"></i> Dashboard</a></li>
+      <li><a href="home_admin.php"><i class="fa fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
       <li class="treeview active">
-            <a href="#"><i class="fa fa-files-o"></i> <span>เพิ่มข้อมูล....</span></a>
-            <ul class="treeview-menu">
-            <li><a href="pages/layout/top-nav.php"><i class="fa fa-circle-o"></i> เพิ่มข้อมูลบริษัท</a></li>
-                <li><a href="pages/layout/boxed.php"><i class="fa fa-circle-o"></i> เพิ่มข้อมูลกลุ่มสินค้า</a></li>
-                <li ><a href="pages/layout/fixed.php"><i class="fa fa-circle-o"></i> เพิ่มข้อมูลอุตสาหกรรม</a></li>
-                <li><a href="pages/layout/Source_of_the_budget.php"><i class="fa fa-circle-o"></i> เพิ่มข้อมูลที่มาของงบประมาณ</a></li>
-                <li><a href="pages/layout/collapsed-sidebar.php"><i class="fa fa-circle-o"></i>ขั้นตอนการขาย</a></li>
-                <li><a href="pages/layout/of_winning.php"><i class="fa fa-circle-o"></i>โอกาสสการชนะ</a></li>
-                <li><a href="pages/layout/Saleteam.php"><i class="fa fa-circle-o"></i>ทีมขาย</a></li>
-                <li><a href="pages/layout/position_u.php"><i class="fa fa-circle-o"></i>ตำแหน่ง</a></li>
-                <li><a href="pages/layout/Profile_user.php"><i class="fa fa-circle-o"></i>รายละเอียดผู้ใช้งาน</a></li>
-            </ul>
+        <a href="#">
+          <i class="fa fa-folder-open"></i> <span>เพิ่มข้อมูล....</span>
+          <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
+        </a>
+        <ul class="treeview-menu">
+          <li><a href="pages/layout/top-nav.php"><i class="fas fa-building"></i> เพิ่มข้อมูลบริษัท</a></li>
+          <li><a href="pages/layout/boxed.php"><i class="fas fa-boxes"></i> เพิ่มข้อมูลกลุ่มสินค้า</a></li>
+          <li><a href="pages/layout/fixed.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลอุตสาหกรรม</a></li>
+          <li><a href="pages/layout/Source_of_the_budget.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลที่มาของงบประมาณ</a></li>
+          <li><a href="pages/layout/collapsed-sidebar.php"><i class="fas fa-tasks"></i> ขั้นตอนการขาย</a></li>
+          <li><a href="pages/layout/of_winning.php"><i class="fas fa-trophy"></i> โอกาสการชนะ</a></li>
+          <li><a href="pages/layout/Saleteam.php"><i class="fas fa-users"></i> ทีมขาย</a></li>
+          <li><a href="pages/layout/position_u.php"><i class="fas fa-user-tag"></i> ตำแหน่ง</a></li>
+          <li><a href="pages/layout/Profile_user.php"><i class="fas fa-id-card"></i> รายละเอียดผู้ใช้งาน</a></li>
+          <li><a href="pages/layout/newuser.php"><i class="fas fa-user-plus"></i> เพิ่มผู้ใช้งาน</a></li>
+        </ul>
+      </li>
     </ul>
   </section>
 </aside>
