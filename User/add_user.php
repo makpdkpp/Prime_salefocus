@@ -141,39 +141,6 @@ $stmt->bind_param(
 );
 
 if ($stmt->execute()) {
-    // PHPMailer section: send notification email
-    require_once '../PHPMailer/src/PHPMailer.php';
-    require_once '../PHPMailer/src/SMTP.php';
-    require_once '../PHPMailer/src/Exception.php';
-    
-    use PHPMailer\PHPMailer\PHPMailer;
-    use PHPMailer\PHPMailer\Exception;
-    
-    $mail = new PHPMailer(true);
-    try {
-        //Server settings
-        $mail->isSMTP();
-        $mail->Host = 'smtp.example.com'; // เปลี่ยนเป็น SMTP server ของคุณ
-        $mail->SMTPAuth = true;
-        $mail->Username = 'your@email.com'; // เปลี่ยนเป็นอีเมลของคุณ
-        $mail->Password = 'yourpassword'; // เปลี่ยนเป็นรหัสผ่าน
-        $mail->SMTPSecure = 'tls';
-        $mail->Port = 587;
-
-        //Recipients
-        $mail->setFrom('your@email.com', 'Your Name');
-        $mail->addAddress('recipient@example.com', 'Recipient Name'); // เปลี่ยนเป็นอีเมลผู้รับ
-
-        //Content
-        $mail->isHTML(true);
-        $mail->Subject = 'New User Added';
-        $mail->Body    = 'มีการเพิ่มข้อมูลใหม่ในระบบ';
-
-        $mail->send();
-        // ส่งอีเมลสำเร็จ (ไม่ต้องแสดงผล)
-    } catch (Exception $e) {
-        // ส่งอีเมลไม่สำเร็จ (สามารถบันทึก log ได้)
-    }
     header('Location: adduser01.php?success=1');
     exit;
 }
