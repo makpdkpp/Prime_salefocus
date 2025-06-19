@@ -1,10 +1,21 @@
 <?php
 session_start();
 require_once '../../functions.php';
- require_once '../../PHPMailer/src/Exception.php';
-        require_once '../../PHPMailer/src/PHPMailer.php';
-        require_once '../../PHPMailer/src/SMTP.php';
-      use PHPMailer\PHPMailer\PHPMailer;
+require_once '../../lib/PHPMailer/src/PHPMailer.php';
+require_once '../../lib/PHPMailer/src/SMTP.php';
+require_once '../../lib/PHPMailer/src/Exception.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+        $mailer = new PHPMailer(true);
+        $mailer->isSMTP();
+        $mailer->SMTPSecure = 'tls';
+        $mailer->Port = 587;
+        $mailer->setFrom('no-reply@example.com', 'PrimeFocus');
+        $mailer->addAddress($email);
+        $mailer->Subject = $subject;
+        $mailer->Body = $body;
+        $mailer->send();
       use PHPMailer\PHPMailer\Exception; 
 
 $db = connectDb();
