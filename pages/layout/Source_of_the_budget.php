@@ -1,6 +1,5 @@
 <?php
 session_start();
-include("../../connect.php");       // <— ถ้า connect.php ใช้ $mysqli ให้ลบบรรทัดนี้
 include("../../functions.php");
 $mysqli = connectDb();
 
