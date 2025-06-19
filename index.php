@@ -133,17 +133,17 @@ ob_end_flush();
           <label>รหัสผ่าน</label>
           <input type="password" name="password" class="form-control" placeholder="Password" required>
         </div>
-
         <div class="d-flex justify-content-end mb-3">
-          <a href="#" class="text-link">ลืมรหัสผ่าน?</a>
+          <a href="#" class="text-link" data-toggle="modal" data-target="#resetPasswordModal">ลืมรหัสผ่าน?</a>
         </div>
-
         <button type="submit" name="signIn" class="btn btn-login">เข้าสู่ระบบ</button>
-
         <div class="bottom-text mt-4">
-          ยังไม่มีบัญชี? <a href="register.php">สมัครสมาชิก</a>
+          <!-- ยังไม่มีบัญชี? <a href="register.php">สมัครสมาชิก</a> -->
         </div>
       </form>
+      <?php include 'pages/layout/resetpassword-modal.php'; ?>
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
     </div>
   </div>
 </div>
