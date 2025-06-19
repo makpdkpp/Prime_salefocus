@@ -87,11 +87,18 @@ if ($query) {
   <link rel="stylesheet" href="../../dist/css/skins/_all-skins.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
   <style>
-    body { background: #e9f2f9; }
-    .container1 { max-width: 800px; margin: 40px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
-    th { background: #0056b3; color: #fff; }
+      body { background: #e9f2f9; }
+      .container1 { max-width: 800px; margin: 40px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+      table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+      th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+      th { background: #0056b3; color: #fff; }
+      .btn-add {
+        position: fixed; bottom: 30px; right: 30px; background: #0056b3;
+        color: #fff; border-radius: 50%; width: 56px; height: 56px;
+        font-size: 24px; border: none; z-index: 999;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      }
+      .modal-content { border-radius: 10px; padding: 20px; }
   </style>
 </head>
 <body class="hold-transition skin-blue sidebar-mini fixed">
@@ -166,7 +173,6 @@ if ($query) {
     <?php if(!empty($message)): ?>
       <div class="alert alert-success"><?= $message ?></div>
     <?php endif; ?>
-    <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#inviteModal">Invite User</button>
     <table class="table table-bordered">
       <thead>
         <tr><th>Email</th><th>Status</th></tr>
@@ -181,10 +187,12 @@ if ($query) {
       </tbody>
     </table>
   </div>
+  <!-- ปุ่ม invite แบบ floating -->
+  <button class="btn-add" data-toggle="modal" data-target="#inviteModal"><i class="fa fa-user-plus"></i></button>
 </section>
 </div>
 <div class="modal fade" id="inviteModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
+  <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
       <form method="POST">
         <div class="modal-header">
@@ -198,7 +206,7 @@ if ($query) {
           </div>
         </div>
         <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Send</button>
+          <button type="submit" class="btn btn-primary btn-block">Send</button>
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
         </div>
       </form>
