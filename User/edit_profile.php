@@ -203,14 +203,54 @@ $roleName  = $roles[$roleId] ?? 'Unknown';
                         <div><?= $userEmail ?></div>
                     </div>
                 </div>
+                    <!-- ปุ่ม Edit -->
+<div class="text-right mt-4">
+    <button class="btn btn-primary" data-toggle="modal" data-target="#editModal">
+        <i class="fa fa-pencil"></i> Edit
+    </button>
+</div>
 
             
 
                 <!-- input สำหรับเลือกไฟล์รูปโปรไฟล์ซ่อน -->
                 <input type="file" id="fileInputMain" accept="image/*" style="display:none;" aria-label="เลือกไฟล์รูปโปรไฟล์" />
             </div>
+            
         </section>
     </div><!-- /.content-wrapper -->
+
+
+<!-- Modal สำหรับแก้ไขชื่อและนามสกุล -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel">
+  <div class="modal-dialog" role="document">
+    <form method="POST" action="update.php">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" id="editModalLabel">Edit Profile</h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" name="user_id" value="<?= $userId ?>">
+            <div class="form-group">
+                <label for="nname">Name</label>
+                <input type="text" class="form-control" name="nname" value="<?= $nname ?>" required>
+            </div>
+            <div class="form-group">
+                <label for="surname">Surname</label>
+                <input type="text" class="form-control" name="surname" value="<?= $surname ?>" required>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Save</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 
 <
 
