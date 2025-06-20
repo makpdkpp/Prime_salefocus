@@ -127,7 +127,7 @@ ob_end_flush();
       <form method="post" action="index.php">
         <div class="form-group">
           <label>Email</label>
-          <input type="email" name="email" class="form-control" placeholder="JohnDoe@gmail.com" required>
+          <input type="email" name="email" class="form-control" placeholder="JohnDoe@primes.co.th" required>
         </div>
         <div class="form-group">
           <label>รหัสผ่าน</label>
