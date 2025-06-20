@@ -97,7 +97,7 @@ $steps = [
 <body class="hold-transition skin-red sidebar-mini">
 <div class="wrapper">
 <header class="main-header">
-  <a href="../home_user.php" class="logo"><b>Prime</b>Focus</a>
+  <a href="../home_user.php" class="logo"><b>Prime</b>Forecast</a>
   <nav class="navbar navbar-static-top" role="navigation">
     <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button"><span class="sr-only">Toggle</span></a>
     <div class="navbar-custom-menu">
