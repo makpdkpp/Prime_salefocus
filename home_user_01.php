@@ -13,7 +13,7 @@ $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
 <html lang="th">
 <head>
     <meta charset="utf-8">
-    <title>Prime Focus 25 • User Dashboard</title>
+    <title>Prime Forecast 25 • User Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- ===== CSS Dependencies ===== -->
@@ -58,7 +58,7 @@ $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
          Header
     ====================================================== -->
     <header class="main-header">
-        <a href="home_user.php" class="logo"><b>Prime</b>Focus</a>
+        <a href="home_user.php" class="logo"><b>Prime</b>Forecast</a>
 
         <nav class="navbar navbar-static-top" role="navigation">
             <!-- Sidebar toggle button -->

@@ -29,7 +29,7 @@ $result = $mysqli->query($sql);
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>ผู้ใช้งาน | PrimeFocus</title>
+  <title>ผู้ใช้งาน | PrimeForecast</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -67,7 +67,7 @@ $result = $mysqli->query($sql);
 <body class="hold-transition skin-blue sidebar-mini fixed">
 <div class="wrapper">
 <header class="main-header">
-  <a href="../../home_admin.php" class="logo"><b>Prime</b>Focus</a>
+  <a href="../../home_admin.php" class="logo"><b>Prime</b>Forecast</a>
   <nav class="navbar navbar-static-top">
     <div class="navbar-custom-menu ml-auto d-flex justify-content-end w-100">
       <ul class="nav navbar-nav">
