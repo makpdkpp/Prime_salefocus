@@ -151,13 +151,13 @@ $email = htmlspecialchars($_SESSION['email']);
     <div class="row">
       <div class="col-md-6">
         <div class="box box-success">
-          <div class="box-header with-border"><h3 class="box-title">ยอดรวมสะสมทุกคนที่ WIN</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดขายรวม(บาท)</h3></div>
       <div class="box-body"><canvas id="winstatusValueChart" height="180"></canvas></div>
         </div>
       </div>
       <div class="col-md-6">
         <div class="box box-info">
-          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายทีม(มูลค่า)</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายทีม(บาท)</h3></div>
       <div class="box-body"><canvas id="teamSumChart" height="180"></canvas></div>
         </div>
       </div>
@@ -165,7 +165,7 @@ $email = htmlspecialchars($_SESSION['email']);
     <div class="row">
       <div class="col-md-6">
         <div class="box box-success">
-          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(มูลค่า)</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(บาท)</h3></div>
       <div class="box-body"><canvas id="personSumChart" height="180"></canvas></div>
         </div>
       </div>
@@ -186,7 +186,7 @@ $email = htmlspecialchars($_SESSION['email']);
   </div>
   <div class="col-md-6">
     <div class="box box-info">
-      <div class="box-header with-border"><h3 class="box-title">มูลค่า Forecast ทั้งหมด</h3></div>
+      <div class="box-header with-border"><h3 class="box-title">กราฟเปรียบเทียบ Target/Forecast/Win</h3></div>
           <div class="box-body"><canvas id="saleForecastChart" height="180"></canvas></div>
     </div>
   </div>
@@ -292,7 +292,7 @@ $email = htmlspecialchars($_SESSION['email']);
     datasets: [{
       label: 'รายได้จริงจาก Win (บาท)',
       data: [winvalue] ,
-      backgroundColor: 'rgba(75, 192, 192, 0.7)'
+      backgroundColor: 'rgba(34, 139, 34, 1)'
     }]
   },
   options: {
@@ -348,32 +348,32 @@ $email = htmlspecialchars($_SESSION['email']);
               {
     label: 'Present',
     data: present,
-    backgroundColor: 'rgba(153,102,255,0.7)'  // ม่วง
+    backgroundColor: 'rgba(128, 81, 255, 1)'  // ม่วง
   },
   {
-    label: 'Budgeted',
+    label: 'Budget',
     data: budgeted,
-    backgroundColor: 'rgba(54,162,235,0.7)'   // <– ยังไม่ได้กำหนด อยากได้สีอะไรครับ?
+    backgroundColor: 'rgba(255, 0, 144, 1)'   // <– ยังไม่ได้กำหนด อยากได้สีอะไรครับ?
   },
   {
     label: 'TOR',
     data: tor,
-    backgroundColor: 'rgba(255,206,86,0.7)'   // เหลือง
+    backgroundColor: 'rgba(230, 180, 40, 1)'   // เหลือง
   },
   {
     label: 'Bidding',
     data: bidding,
-    backgroundColor: 'rgba(255,159,64,0.7)'   // ส้ม
+    backgroundColor: 'rgba(230, 120, 40, 1)'   // ส้ม
   },
   {
     label: 'Win',
     data: win,
-    backgroundColor: 'rgba(75,192,192,0.7)'   // เขียว
+    backgroundColor: 'rgba(34, 139, 34, 1)'   // เขียว
   },
   {
     label: 'Lost',
     data: lost,
-    backgroundColor: 'rgba(255,99,132,0.7)'   // แดง
+    backgroundColor: 'rgba(178, 34, 34, 1)'   // แดง
   }
             ]
           },
@@ -549,32 +549,32 @@ $email = htmlspecialchars($_SESSION['email']);
                {
     label: 'Present',
     data: present,
-    backgroundColor: 'rgba(153,102,255,0.7)'  // ม่วง
+    backgroundColor: 'rgba(128, 81, 255, 1)'  // ม่วง
   },
   {
-    label: 'Budgeted',
+    label: 'Budget',
     data: budgeted,
-    backgroundColor: 'rgba(54,162,235,0.7)'   // <– ยังไม่ได้กำหนด อยากได้สีอะไรครับ?
+    backgroundColor: 'rgba(255, 0, 144, 1)'   // <– ยังไม่ได้กำหนด อยากได้สีอะไรครับ?
   },
   {
     label: 'TOR',
     data: tor,
-    backgroundColor: 'rgba(255,206,86,0.7)'   // เหลือง
+    backgroundColor: 'rgba(230, 180, 40, 1)'   // เหลือง
   },
   {
     label: 'Bidding',
     data: bidding,
-    backgroundColor: 'rgba(255,159,64,0.7)'   // ส้ม
+    backgroundColor: 'rgba(230, 120, 40, 1)'   // ส้ม
   },
   {
     label: 'Win',
     data: win,
-    backgroundColor: 'rgba(75,192,192,0.7)'   // เขียว
+    backgroundColor: 'rgba(34, 139, 34, 1)'   // เขียว
   },
   {
     label: 'Lost',
     data: lost,
-    backgroundColor: 'rgba(255,99,132,0.7)'   // แดง
+    backgroundColor: 'rgba(178, 34, 34, 1)'   // แดง
   }
             ]
           },
@@ -632,7 +632,7 @@ $email = htmlspecialchars($_SESSION['email']);
             labels: labels,
             datasets: [
              
-              { label: 'Win',       data: win,       backgroundColor: 'rgba(75,192,192,0.7)' }            
+              { label: 'Win',       data: win,       backgroundColor: 'rgba(34, 139, 34, 1)' }            
             ]
           },
           options: {
@@ -703,17 +703,17 @@ $email = htmlspecialchars($_SESSION['email']);
               {
                 label: 'Target',
                 data: targets,
-                backgroundColor: 'rgba(54,162,235,0.7)'
+                backgroundColor: 'rgba(153,102,255,0.7)'
               },
               {
                 label: 'Forecast',
                 data: forecasts,
-                backgroundColor: 'rgba(255,206,86,0.7)'
+                backgroundColor: 'rgba(54,162,235,0.7)'
               },
               {
                 label: 'Win',
                 data: wins,
-                backgroundColor: 'rgba(75,192,192,0.7)'
+                backgroundColor: 'rgba(34, 139, 34, 1)'
               }
             ]
           },
