@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modal_reset'])) {
             $stmt->bind_param('ssi', $token, $expiry, $uid);
             $stmt->execute();
             $stmt->close();
-            $resetLink = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']) . "/set-password.php?token=$token";
+            $resetLink = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . '/pages/layout/set-password.php?token=' . $token;
             $subject = 'Reset your password';
             $body = "<p>กรุณาคลิกลิงก์นี้เพื่อรีเซ็ตรหัสผ่านของคุณ:<br><a href='$resetLink'>$resetLink</a></p>";
             try {
