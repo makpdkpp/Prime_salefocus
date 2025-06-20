@@ -36,6 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $body = "<p>กรุณาคลิกลิงก์นี้เพื่อรีเซ็ตรหัสผ่านของคุณ:<br><a href='$resetLink'>$resetLink</a></p>";
             try {
                 $mail = new PHPMailer(true);
+                $mail->CharSet = 'UTF-8';
+                $mail->Encoding = 'base64';
                 $mail->isSMTP();
                 $mail->Host = 'smtp.gmail.com';
                 $mail->SMTPAuth = true;
