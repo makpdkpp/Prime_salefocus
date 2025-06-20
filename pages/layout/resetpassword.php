@@ -31,8 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute();
             $stmt->close();
             // ส่งอีเมลด้วย PHPMailer
-            $basePath = rtrim(dirname($_SERVER['REQUEST_URI']), '/');
-            $resetLink = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . $basePath . "/set-password.php?token=$token";
+            $resetLink = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . '/pages/layout/set-password.php?token=' . $token;
             $subject = 'Reset your password';
             $body = "<p>กรุณาคลิกลิงก์นี้เพื่อรีเซ็ตรหัสผ่านของคุณ:<br><a href='$resetLink'>$resetLink</a></p>";
             try {
