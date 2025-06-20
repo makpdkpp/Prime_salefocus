@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modal_reset'])) {
                 $mail->Password = 'npou efln pgpf bhxd';
                 $mail->SMTPSecure = 'ssl';
                 $mail->Port = 465;
-                $mail->setFrom('no-reply@example.com', 'PrimeFocus');
+                $mail->setFrom('no-reply@example.com', 'PrimeForecast');
                 $mail->addAddress($email);
                 $mail->isHTML(true);
                 $mail->Subject = $subject;
