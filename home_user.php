@@ -149,7 +149,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
                 <!-- Win vs Forecast Chart -------------------------------------->
                 <div class="col-md-6">
                     <div class="box box-success">
-                        <div class="box-header"><h3 class="box-title">กราฟเปรียบเทียบยอดขาย/เป้าหมาย/Forecast</h3></div>
+                        <div class="box-header"><h3 class="box-title">กราฟเปรียบเทียบTarget/Forecast/Win</h3></div>
                         <div class="box-body"><canvas id="winForecastChart"></canvas></div>
                       
                     </div>
@@ -285,7 +285,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
   const colors = [
   'rgba(153,102,255,0.7)', 
   'rgba(54,162,235,0.7)',    // ฟ้า สำหรับ Forecast      // ม่วง สำหรับ Target
-  'rgba(75,192,192,0.7)'    // เขียว สำหรับ Win
+  'rgba(34, 139, 34, 1)'    // เขียว สำหรับ Win
   ];
 
   // 4) หา context และสร้างกราฟ
