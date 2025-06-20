@@ -11,7 +11,7 @@ ob_end_flush();
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>Login | Prime Focus</title>
+  <title>Login | Prime Forecast</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -116,7 +116,7 @@ ob_end_flush();
     <div class="form-section">
       <div class="logo-title mb-2">
         <img src="images/logo.png" alt="Logo">
-        <span><span style="color: #6a42f1;">Prime</span> Focus</span>
+        <span><span style="color: #6a42f1;">Prime</span> Forecast</span>
       </div>
       <h3>เข้าสู่ระบบ</h3>
 
