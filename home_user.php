@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 require_once 'functions.php';
 session_start();
 
@@ -81,18 +84,21 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
     <!-- =====================================================
          Sidebar
     ====================================================== -->
-    <aside class="main-sidebar">
-        <section class="sidebar">
-            <!-- User panel -->
-            <div class="user-panel">
-                <div class="pull-left image">
-                    <img src="dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
-                </div>
-                <div class="pull-left info">
-                    <p><?= $email ?> (User)</p>
-                    <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
-                </div>
-            </div>
+        <aside class="main-sidebar">
+            <section class="sidebar">
+                <!-- User panel -->
+                <div class="user-panel">
+    <div class="pull-left image">
+        <a href="User/edit_profile.php" style="display: inline-block;">
+            <img src="dist/img/user2-160x160.jpg" class="img-circle" alt="User Image" style="width: 45px; height: 45px;">
+        </a>
+    </div>
+    <div class="pull-left info">
+        <p><?= $email ?> (User)</p>
+        <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
+    </div>
+</div>
+
 
             <!-- Sidebar Menu -->
             <ul class="sidebar-menu" data-widget="tree">

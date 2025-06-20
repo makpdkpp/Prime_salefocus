@@ -7,10 +7,10 @@
  */
 function connectDb(): mysqli
 {
-    $host = '127.0.0.1';
-    $db   = 'sale';
-    $user = 'root';
-    $pass = '';
+        $host = '127.0.0.1';
+        $db   = 'sale';
+        $user = 'root';
+        $pass = '';
 
     $mysqli = new mysqli($host, $user, $pass, $db);
     if ($mysqli->connect_error) {
