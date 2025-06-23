@@ -165,7 +165,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
                 <!-- Step Chart -------------------------------------------------->
                 <div class="col-md-6">
                     <div class="box box-success">
-                        <div class="box-header"><h3 class="box-title">sumValuePercentChart</h3></div>
+                        <div class="box-header"><h3 class="box-title">กราฟเปรียบเทียบสัดส่วนของกลุ่มสินค้า</h3></div>
                         <div class="box-body"><canvas id="sumValuePercentChart" height="180"></canvas></div>
                     </div>
                 </div>
@@ -230,7 +230,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
     // สร้าง datasets โดยไม่กำหนด stack และกำหนดสีใหม่
     const datasets = [
     { label: 'Present',   data: rows.map(r => +r.present_value),  backgroundColor: 'rgba(128, 81, 255, 1)', stack: 'stack1' },
-    { label: 'Budgeted',  data: rows.map(r => +r.budgeted_value), backgroundColor: 'rgba(38, 128, 218, 1)', stack: 'stack1' },
+    { label: 'Budget',  data: rows.map(r => +r.budgeted_value), backgroundColor: 'rgba(255, 0, 144, 1)' , stack: 'stack1' },
     { label: 'TOR',       data: rows.map(r => +r.tor_value),      backgroundColor: 'rgba(230, 180, 40, 1)', stack: 'stack1' },
     { label: 'Bidding',   data: rows.map(r => +r.bidding_value),  backgroundColor: 'rgba(230, 120, 40, 1)', stack: 'stack1' },
     { label: 'Win',       data: rows.map(r => +r.win_value),      backgroundColor: 'rgba(34, 139, 34, 1)', stack: 'stack1' },
@@ -305,7 +305,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
       plugins: {
         title: {
           display: true,
-          text: 'Actual vs Forecast'
+          text: '   '
         },
         legend: {
           display: false
