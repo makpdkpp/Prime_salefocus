@@ -17,17 +17,19 @@ $email = htmlspecialchars($_SESSION['email']);
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>Prime Focus 25 V1 (admin)</title>
+  <title>Prime Forecast 25 V1 (admin)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="images/logo.png" href="images/logo.png">
   <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
   <link href="http://code.ionicframework.com/ionicons/2.0.0/css/ionicons.min.css" rel="stylesheet" />
   <link href="dist/css/AdminLTE.min.css" rel="stylesheet" />
   <link href="dist/css/skins/_all-skins.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
 
 
   <style>
@@ -157,7 +159,7 @@ $email = htmlspecialchars($_SESSION['email']);
       </div>
       <div class="col-md-6">
         <div class="box box-info">
-          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายทีม(มูลค่า)</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายทีม(บาท)</h3></div>
       <div class="box-body"><canvas id="teamSumChart" height="180"></canvas></div>
         </div>
       </div>
@@ -165,7 +167,7 @@ $email = htmlspecialchars($_SESSION['email']);
     <div class="row">
       <div class="col-md-6">
         <div class="box box-success">
-          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(มูลค่า)</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(บาท)</h3></div>
       <div class="box-body"><canvas id="personSumChart" height="180"></canvas></div>
         </div>
       </div>
@@ -1003,6 +1005,6 @@ $email = htmlspecialchars($_SESSION['email']);
   </section>
 </div>
 </div>
-
+<script src="dist/js/app.min.js"></script>
 </body>
 </html>

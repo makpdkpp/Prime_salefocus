@@ -141,7 +141,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
                 <!-- Step Chart -------------------------------------------------->
                 <div class="col-md-6">
                     <div class="box box-success">
-                        <div class="box-header"><h3 class="box-title">สถานะโครงการในแต่ละขั้นตอน</h3></div>
+                        <div class="box-header"><h3 class="box-title">สถานะโครงการในแต่ละขั้นตอน (มูลค่า)</h3></div>
                         <div class="box-body"><canvas id="stepChart"></canvas></div>
                     </div>
                 </div>
@@ -166,7 +166,10 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
                 <div class="col-md-6">
                     <div class="box box-success">
                         <div class="box-header"><h3 class="box-title">กราฟเปรียบเทียบสัดส่วนของกลุ่มสินค้า</h3></div>
+
+
                         <div class="box-body"><canvas id="sumValuePercentChart" height="180"></canvas></div>
+
                     </div>
                 </div>
 
@@ -229,13 +232,17 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 
     // สร้าง datasets โดยไม่กำหนด stack และกำหนดสีใหม่
     const datasets = [
-    { label: 'Present',   data: rows.map(r => +r.present_value),  backgroundColor: 'rgba(128, 81, 255, 1)', stack: 'stack1' },
-    { label: 'Budget',  data: rows.map(r => +r.budgeted_value), backgroundColor: 'rgba(255, 0, 144, 1)' , stack: 'stack1' },
-    { label: 'TOR',       data: rows.map(r => +r.tor_value),      backgroundColor: 'rgba(230, 180, 40, 1)', stack: 'stack1' },
-    { label: 'Bidding',   data: rows.map(r => +r.bidding_value),  backgroundColor: 'rgba(230, 120, 40, 1)', stack: 'stack1' },
-    { label: 'Win',       data: rows.map(r => +r.win_value),      backgroundColor: 'rgba(34, 139, 34, 1)', stack: 'stack1' },
-    { label: 'Lost',      data: rows.map(r => +r.lost_value),     backgroundColor: 'rgba(178, 34, 34, 1)', stack: 'stack1' }
-];
+
+        { label: 'Present',  data: present,   backgroundColor: 'rgba(128, 81, 255, 1)' }, // ม่วง
+        { label: 'Budget', data: budgeted,  backgroundColor: 'rgba(191,6,102,0.8)' },  // ฟ้า
+        { label: 'TOR',      data: tor,       backgroundColor: 'rgba(230, 180, 40, 1)' },  // เหลือง
+        { label: 'Bidding',  data: bidding,   backgroundColor: 'rgba(230, 120, 40, 1)' },  // ส้ม
+        { label: 'Win',      data: win,       backgroundColor: 'rgba(8, 122, 4, 0.8)' },  // เขียว
+        { label: 'Lost',     data: lost,      backgroundColor: 'rgba(196, 0, 0, 1)' }   // แดง
+    ];
+
+
+
     new Chart(
         document.getElementById('stepChart').getContext('2d'),
         {
@@ -279,6 +286,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
   const { Target, Forecast, Win } = rows[0];
 
   // 3) เตรียม labels, data และสี ตามลำดับ Win, Forecast, Target
+
   
   const labels = [ 'Target','Forecast', 'Win'];
   const data   = [ +Target,+Forecast,  +Win ];
@@ -286,6 +294,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
   'rgba(153,102,255,0.7)', 
   'rgba(54,162,235,0.7)',    // ฟ้า สำหรับ Forecast      // ม่วง สำหรับ Target
   'rgba(34, 139, 34, 1)'    // เขียว สำหรับ Win
+
   ];
 
   // 4) หา context และสร้างกราฟ
@@ -381,7 +390,7 @@ function drawSumValuePercentChart(rows) {
       plugins: {
         title: {
           display: true,
-          text: 'สัดส่วนของกลุ่มสินค้า'
+          text: 'สัดส่วนกลุ่มตามสินค้า'
         },
         legend: {
           position: 'right'

@@ -9,12 +9,17 @@ $mysqli = connectDb();
   <meta charset="UTF-8">
   <title>ข้อมูลบริษัท | PrimeForecast</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!-- Bootstrap 4 CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <!-- ✅ Bootstrap 3 -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   <link rel="stylesheet" href="../../dist/css/AdminLTE.min.css">
   <link rel="stylesheet" href="../../dist/css/skins/_all-skins.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="../../dist/js/app.min.js"></script>
 
   <style>
     body { background: #b3d6e4; }
@@ -28,32 +33,46 @@ $mysqli = connectDb();
 <body class="hold-transition skin-blue sidebar-mini fixed">
 <div class="wrapper">
   <header class="main-header">
-    <a href="../../home_admin.php" class="logo"><b>Prime</b>Forecast</a>
-    <nav class="navbar navbar-static-top">
-      <div class="navbar-custom-menu ml-auto d-flex justify-content-end w-100">
-        <ul class="nav navbar-nav">
-          <li class="dropdown user user-menu">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-              <img src="../../dist/img/user2-160x160.jpg" class="user-image img-circle elevation-2">
-              <span class="hidden-xs text-white"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></span>
-            </a>
-            <ul class="dropdown-menu">
-              <li class="user-header">
-                <img src="../../dist/img/user2-160x160.jpg" class="img-circle elevation-2" style="width:60px;height:60px">
-                <p><?php echo $_SESSION['email'] ?? ''; ?> <small>Admin</small></p>
-              </li>
-              <li class="user-footer">
-                <div class="d-flex justify-content-end w-100">
-                  <a href="../../logout.php" class="btn btn-default btn-flat">Sign out</a>
-                </div>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </div>
-    </nav>
-  </header>
 
+  <!-- โลโก้ -->
+  <a href="../../home_admin.php" class="logo">
+    <span class="logo-lg"><b>Prime</b>Forecast</span>
+  </a>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-static-top" role="navigation">
+    <!-- ✅ ปุ่ม 3 ขีด -->
+    <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+      <span class="sr-only">Toggle navigation</span>
+    </a>
+
+
+    <!-- ✅ เมนูโปรไฟล์ด้านขวา -->
+    <div class="navbar-custom-menu">
+      <ul class="nav navbar-nav">
+        <li class="dropdown user user-menu">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            <img src="../../dist/img/user2-160x160.jpg" class="user-image" alt="User Image">
+            <span class="hidden-xs text-white"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></span>
+          </a>
+          <ul class="dropdown-menu">
+            <!-- user image -->
+            <li class="user-header">
+              <img src="../../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
+              <p><?php echo $_SESSION['email'] ?? ''; ?> <small>Admin</small></p>
+            </li>
+            <!-- Menu Footer-->
+            <li class="user-footer">
+              <div class="pull-right">
+                <a href="../../logout.php" class="btn btn-default btn-flat">Sign out</a>
+              </div>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</header>
   <aside class="main-sidebar">
     <section class="sidebar">
       <div class="user-panel mt-3 pb-3 mb-3 d-flex">
