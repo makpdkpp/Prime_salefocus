@@ -58,6 +58,7 @@ $products = $mysqli->query("SELECT product_id, Product FROM product_group LIMIT 
 <body class="hold-transition skin-blue sidebar-mini fixed">
 <div class="wrapper">
 <header class="main-header">
+d
   <!-- โลโก้ -->
   <a href="../../home_admin.php" class="logo">
     <span class="logo-lg"><b>Prime</b>Forecast</span>
@@ -72,6 +73,7 @@ $products = $mysqli->query("SELECT product_id, Product FROM product_group LIMIT 
 
     <!-- ✅ เมนูโปรไฟล์ด้านขวา -->
     <div class="navbar-custom-menu">
+
       <ul class="nav navbar-nav">
         <li class="dropdown user user-menu">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">

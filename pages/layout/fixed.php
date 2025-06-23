@@ -24,12 +24,15 @@ $result = $mysqli->query(
 <html lang="th">
 <head>
   <meta charset="UTF-8">
+
   <title>ข้อมูลกลุ่มอุตสาหกรรม | PrimeFocus</title>
  <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- ✅ Bootstrap 3 -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+=======
+
   <link rel="stylesheet" href="../../dist/css/AdminLTE.min.css">
   <link rel="stylesheet" href="../../dist/css/skins/_all-skins.min.css">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
@@ -65,6 +68,7 @@ $result = $mysqli->query(
 <body class="hold-transition skin-blue sidebar-mini fixed">
 <div class="wrapper">
 <header class="main-header">
+
   <!-- โลโก้ -->
   <a href="../../home_admin.php" class="logo">
     <span class="logo-lg"><b>Prime</b>Forecast</span>
@@ -79,6 +83,7 @@ $result = $mysqli->query(
 
     <!-- ✅ เมนูโปรไฟล์ด้านขวา -->
     <div class="navbar-custom-menu">
+
       <ul class="nav navbar-nav">
         <li class="dropdown user user-menu">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">

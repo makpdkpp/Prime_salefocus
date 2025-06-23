@@ -20,7 +20,7 @@ $result = $conn->query($sql);
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>ขั้นตอนการขาย | PrimeFocus</title>
+  <title>ขั้นตอนการขาย | PrimeForecast</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- ✅ Bootstrap 3 -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -61,6 +61,7 @@ $result = $conn->query($sql);
 <body class="hold-transition skin-blue sidebar-mini fixed">
 <div class="wrapper">
 <header class="main-header">
+
   <!-- โลโก้ -->
   <a href="../../home_admin.php" class="logo">
     <span class="logo-lg"><b>Prime</b>Forecast</span>
@@ -75,6 +76,7 @@ $result = $conn->query($sql);
 
     <!-- ✅ เมนูโปรไฟล์ด้านขวา -->
     <div class="navbar-custom-menu">
+
       <ul class="nav navbar-nav">
         <li class="dropdown user user-menu">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">

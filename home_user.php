@@ -166,7 +166,10 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
                 <div class="col-md-6">
                     <div class="box box-success">
                         <div class="box-header"><h3 class="box-title">กราฟเปรียบเทียบสัดส่วนของกลุ่มสินค้า</h3></div>
-                        <div class="box-body" ><canvas id="sumValuePercentChart"></canvas></div>
+
+
+                        <div class="box-body"><canvas id="sumValuePercentChart" height="180"></canvas></div>
+
                     </div>
                 </div>
 
@@ -229,6 +232,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 
     // สร้าง datasets โดยไม่กำหนด stack และกำหนดสีใหม่
     const datasets = [
+
         { label: 'Present',  data: present,   backgroundColor: 'rgba(128, 81, 255, 1)' }, // ม่วง
         { label: 'Budget', data: budgeted,  backgroundColor: 'rgba(191,6,102,0.8)' },  // ฟ้า
         { label: 'TOR',      data: tor,       backgroundColor: 'rgba(230, 180, 40, 1)' },  // เหลือง
@@ -236,6 +240,8 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
         { label: 'Win',      data: win,       backgroundColor: 'rgba(8, 122, 4, 0.8)' },  // เขียว
         { label: 'Lost',     data: lost,      backgroundColor: 'rgba(196, 0, 0, 1)' }   // แดง
     ];
+
+
 
     new Chart(
         document.getElementById('stepChart').getContext('2d'),
@@ -280,13 +286,15 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
   const { Target, Forecast, Win } = rows[0];
 
   // 3) เตรียม labels, data และสี ตามลำดับ Win, Forecast, Target
-  const labels = ['Target', 'Forecast', 'Win'];
-  const data   = [ +Target,  +Forecast, +Win ];
+
+  
+  const labels = [ 'Target','Forecast', 'Win'];
+  const data   = [ +Target,+Forecast,  +Win ];
   const colors = [
-    
-  'rgba(0, 62, 104, 0.7)',    // ฟ้า สำหรับ Forecast   
-  'rgba(128, 81, 255, 1)',    // ม่วง สำหรับ Target
-  'rgba(8, 122, 4, 0.8)'    // เขียว สำหรับ Win
+  'rgba(153,102,255,0.7)', 
+  'rgba(54,162,235,0.7)',    // ฟ้า สำหรับ Forecast      // ม่วง สำหรับ Target
+  'rgba(34, 139, 34, 1)'    // เขียว สำหรับ Win
+
   ];
 
   // 4) หา context และสร้างกราฟ
@@ -306,6 +314,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
       plugins: {
         title: {
           display: true,
+          text: '   '
         },
         legend: {
           display: false
