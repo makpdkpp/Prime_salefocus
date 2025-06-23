@@ -151,13 +151,13 @@ $email = htmlspecialchars($_SESSION['email']);
     <div class="row">
       <div class="col-md-6">
         <div class="box box-success">
-          <div class="box-header with-border"><h3 class="box-title">ยอดขายรวม(บาท)</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดขายรวม(มูลค่า)</h3></div>
       <div class="box-body"><canvas id="winstatusValueChart" height="180"></canvas></div>
         </div>
       </div>
       <div class="col-md-6">
         <div class="box box-info">
-          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายทีม(บาท)</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายทีม(มูลค่า)</h3></div>
       <div class="box-body"><canvas id="teamSumChart" height="180"></canvas></div>
         </div>
       </div>
@@ -165,7 +165,7 @@ $email = htmlspecialchars($_SESSION['email']);
     <div class="row">
       <div class="col-md-6">
         <div class="box box-success">
-          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(บาท)</h3></div>
+          <div class="box-header with-border"><h3 class="box-title">ยอดขายรายคน(มูลค่า)</h3></div>
       <div class="box-body"><canvas id="personSumChart" height="180"></canvas></div>
         </div>
       </div>
@@ -180,7 +180,7 @@ $email = htmlspecialchars($_SESSION['email']);
     <div class="row">
   <div class="col-md-6">
     <div class="box box-success">
-      <div class="box-header with-border"><h3 class="box-title">ประมาณการรายได้ในแต่ละขั้นตอนการขาย</h3></div>
+      <div class="box-header with-border"><h3 class="box-title">ประมาณการมูลค่าในแต่ละขั้นตอนการขาย</h3></div>
           <div class="box-body"><canvas id="statusValueChart" height="180"></canvas></div>
     </div>
   </div>
@@ -429,7 +429,7 @@ $email = htmlspecialchars($_SESSION['email']);
           data: {
             labels: labels,
             datasets: [{
-              label: 'ยอดรวม (บาท)',
+              label: 'ยอดรวม (มูลค่า)',
               data: values,
               backgroundColor: 'rgba(54, 162, 235, 0.7)'
             }]
@@ -448,7 +448,7 @@ $email = htmlspecialchars($_SESSION['email']);
                 beginAtZero: true,
                 title: {
                   display: true,
-                  text: 'ยอดรวม (บาท)'
+                  text: 'ยอดรวม (มูลค่า)'
                 },
                 ticks: {
                   // แสดงคั่นหลักพัน
@@ -464,64 +464,73 @@ $email = htmlspecialchars($_SESSION['email']);
       });
   </script>
    <script>
-    fetch('admin_data.php')
-      .then(res => {
-        if (!res.ok) throw new Error('HTTP error ' + res.status);
-        return res.json();
-      })
-      .then(json => {
-        // raw array จากคีย์ sumbyperteam
-        const raw = json.sumbyperteam || [];
+  fetch('admin_data.php')
+  .then(res => {
+    if (!res.ok) throw new Error('HTTP error ' + res.status);
+    return res.json();
+  })
+  .then(json => {
+    const raw = json.sumbyperteam || [];
 
-        // สร้าง labels (ชื่อทีม) และ values (ยอดรวม)
-        const labels = raw.map(item => item.team);
-        const values = raw.map(item => Number(item.sumvalue));
+    const labels = raw.map(item => item.team);
+    const values = raw.map(item => Number(item.sumvalue));
 
-        // วาดกราฟแท่ง
-        const ctx = document.getElementById('teamSumChart').getContext('2d');
-        new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'ยอดรวม (บาท)',
-              data: values,
-              backgroundColor: 'rgba(54, 162, 235, 0.7)'
-            }]
+    // ฟังก์ชันสุ่มสี
+    const getRandomColor = () => {
+      const r = Math.floor(Math.random() * 256);
+      const g = Math.floor(Math.random() * 256);
+      const b = Math.floor(Math.random() * 256);
+      return `rgba(${r}, ${g}, ${b}, 1)`;
+    };
+
+    // สร้าง array สีสุ่มให้แต่ละแท่ง
+    const colors = raw.map(() => getRandomColor());
+
+    // วาดกราฟแท่ง
+    const ctx = document.getElementById('teamSumChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'ยอดรวม (มูลค่า)',
+          data: values,
+          backgroundColor: colors
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: false,
+            text: 'สรุปยอดรวม product_value ต่อทีม'
           },
-          options: {
-            responsive: true,
-            plugins: {
-              title: {
-                display: false,
-                text: 'สรุปยอดรวม product_value ต่อทีม'
-              },
-              legend: { display: false }
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'ยอดรวม (มูลค่า)'
             },
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: {
-                  display: true,
-                  text: 'ยอดรวม (บาท)'
-                },
-                ticks: {
-                  callback: v => v.toLocaleString('th-TH')
-                }
-              },
-              x: {
-                title: {
-                  display: true,
-                  text: 'ทีม'
-                }
-              }
+            ticks: {
+              callback: v => v.toLocaleString('th-TH')
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'ทีม'
             }
           }
-        });
-      })
-      .catch(err => {
-        console.error('Error fetching data:', err);
-      });
+        }
+      }
+    });
+  })
+  .catch(err => {
+    console.error('Error fetching data:', err);
+  });
   </script>
   <script>
     fetch('admin_data.php')
@@ -595,7 +604,7 @@ $email = htmlspecialchars($_SESSION['email']);
               },
               y: {
                 beginAtZero: true,
-                title: { display: true, text: 'มูลค่า (บาท)' },
+                title: { display: true, text: 'มูลค่า (มูลค่า)' },
                 ticks: { callback: v => v.toLocaleString('th-TH') }
               }
             }
@@ -897,7 +906,7 @@ $email = htmlspecialchars($_SESSION['email']);
       data: {
         labels,
         datasets: [{
-          label: 'ยอดรวม (บาท)',
+          label: 'ยอดรวม (มูลค่า)',
           data,
           backgroundColor: backgroundColors
         }]
@@ -915,7 +924,7 @@ $email = htmlspecialchars($_SESSION['email']);
         scales: {
           x: {
             beginAtZero: true,
-            title: { display: true, text: 'ยอดรวม (บาท)' }
+            title: { display: true, text: 'ยอดรวม (มูลค่า)' }
           },
           y: {
             title: { display: true, text: 'สินค้า' },
@@ -961,7 +970,7 @@ $email = htmlspecialchars($_SESSION['email']);
       data: {
         labels,
         datasets: [{
-          label: 'ยอดรวม (บาท)',
+          label: 'ยอดรวม (มูลค่า)',
           data,
           backgroundColor: backgroundColors
         }]
@@ -979,7 +988,7 @@ $email = htmlspecialchars($_SESSION['email']);
         scales: {
           x: {
             beginAtZero: true,
-            title: { display: true, text: 'ยอดรวม (บาท)' }
+            title: { display: true, text: 'ยอดรวม (มูลค่า)' }
           },
           y: {
             title: { display: true, text: 'บริษัท/ลูกค้า' },
