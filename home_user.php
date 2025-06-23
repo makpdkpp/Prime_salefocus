@@ -20,7 +20,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 <html lang="th">
 <head>
     <meta charset="utf-8">
-    <title>Prime Focus 25 • User Dashboard</title>
+    <title>Prime Forecast 25 • User Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- ===== CSS Dependencies ===== -->
@@ -47,7 +47,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
          Header
     ====================================================== -->
     <header class="main-header">
-        <a href="home_user.php" class="logo"><b>Prime</b>Focus</a>
+        <a href="home_user.php" class="logo"><b>Prime</b>Forecast</a>
 
         <nav class="navbar navbar-static-top" role="navigation">
             <!-- Sidebar toggle button -->
@@ -149,7 +149,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
                 <!-- Win vs Forecast Chart -------------------------------------->
                 <div class="col-md-6">
                     <div class="box box-success">
-                        <div class="box-header"><h3 class="box-title">กราฟเปรียบเทียบยอดขาย/เป้าหมาย/Forecast</h3></div>
+                        <div class="box-header"><h3 class="box-title">กราฟเปรียบเทียบTarget/Forecast/Win</h3></div>
                         <div class="box-body"><canvas id="winForecastChart"></canvas></div>
                       
                     </div>
@@ -165,7 +165,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
                 <!-- Step Chart -------------------------------------------------->
                 <div class="col-md-6">
                     <div class="box box-success">
-                        <div class="box-header"><h3 class="box-title">sumValuePercentChart</h3></div>
+                        <div class="box-header"><h3 class="box-title">กราฟเปรียบเทียบสัดส่วนของกลุ่มสินค้า</h3></div>
                         <div class="box-body"><canvas id="sumValuePercentChart" height="180"></canvas></div>
                     </div>
                 </div>
@@ -229,14 +229,13 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 
     // สร้าง datasets โดยไม่กำหนด stack และกำหนดสีใหม่
     const datasets = [
-        { label: 'Present',  data: present,   backgroundColor: 'rgba(153,102,255,0.7)' }, // ม่วง
-        { label: 'Budgeted', data: budgeted,  backgroundColor: 'rgba(54,162,235,0.7)' },  // ฟ้า
-        { label: 'TOR',      data: tor,       backgroundColor: 'rgba(255,206,86,0.7)' },  // เหลือง
-        { label: 'Bidding',  data: bidding,   backgroundColor: 'rgba(255,159,64,0.7)' },  // ส้ม
-        { label: 'Win',      data: win,       backgroundColor: 'rgba(75,192,192,0.7)' },  // เขียว
-        { label: 'Lost',     data: lost,      backgroundColor: 'rgba(255,99,132,0.7)' }   // แดง
-    ];
-
+    { label: 'Present',   data: rows.map(r => +r.present_value),  backgroundColor: 'rgba(128, 81, 255, 1)', stack: 'stack1' },
+    { label: 'Budget',  data: rows.map(r => +r.budgeted_value), backgroundColor: 'rgba(255, 0, 144, 1)' , stack: 'stack1' },
+    { label: 'TOR',       data: rows.map(r => +r.tor_value),      backgroundColor: 'rgba(230, 180, 40, 1)', stack: 'stack1' },
+    { label: 'Bidding',   data: rows.map(r => +r.bidding_value),  backgroundColor: 'rgba(230, 120, 40, 1)', stack: 'stack1' },
+    { label: 'Win',       data: rows.map(r => +r.win_value),      backgroundColor: 'rgba(34, 139, 34, 1)', stack: 'stack1' },
+    { label: 'Lost',      data: rows.map(r => +r.lost_value),     backgroundColor: 'rgba(178, 34, 34, 1)', stack: 'stack1' }
+];
     new Chart(
         document.getElementById('stepChart').getContext('2d'),
         {
@@ -281,13 +280,12 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 
   // 3) เตรียม labels, data และสี ตามลำดับ Win, Forecast, Target
   
-  const labels = ['Forecast', 'Target', 'Win'];
-  const data   = [ +Forecast, +Target, +Win ];
+  const labels = [ 'Target','Forecast', 'Win'];
+  const data   = [ +Target,+Forecast,  +Win ];
   const colors = [
-    
-  'rgba(54,162,235,0.7)',    // ฟ้า สำหรับ Forecast   
-  'rgba(153,102,255,0.7)',    // ม่วง สำหรับ Target
-  'rgba(75,192,192,0.7)'    // เขียว สำหรับ Win
+  'rgba(153,102,255,0.7)', 
+  'rgba(54,162,235,0.7)',    // ฟ้า สำหรับ Forecast      // ม่วง สำหรับ Target
+  'rgba(34, 139, 34, 1)'    // เขียว สำหรับ Win
   ];
 
   // 4) หา context และสร้างกราฟ
@@ -307,7 +305,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
       plugins: {
         title: {
           display: true,
-          text: 'Actual vs Forecast'
+          text: '   '
         },
         legend: {
           display: false
@@ -383,7 +381,7 @@ function drawSumValuePercentChart(rows) {
       plugins: {
         title: {
           display: true,
-          text: 'สัดส่วนมูลค่าตามสินค้า (เปอร์เซ็นต์)'
+          text: 'สัดส่วนของกลุ่มสินค้า'
         },
         legend: {
           position: 'right'

@@ -7,7 +7,7 @@ $mysqli = connectDb();
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>ข้อมูลบริษัท | PrimeFocus</title>
+  <title>ข้อมูลบริษัท | PrimeForecast</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Bootstrap 4 CSS -->
@@ -15,21 +15,20 @@ $mysqli = connectDb();
   <link rel="stylesheet" href="../../dist/css/AdminLTE.min.css">
   <link rel="stylesheet" href="../../dist/css/skins/_all-skins.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-	<script src="../../dist/js/app.min.js"></script>
+
   <style>
-    body { background: #e9f2f9; }
-    .container1 { max-width: 800px; margin: 40px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    body { background: #b3d6e4; }
+    .card-custom { background: #fff; border-radius: 10px; padding: 25px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
     .table thead { background: #0056b3; color: #fff; }
+    .container1 { background: #fff; border-radius: 10px; padding: 25px; margin: 40px auto; box-shadow: 0 2px 6px rgba(0,0,0,0.1); max-width: 1100px; }
     .btn-add { position: fixed; bottom: 30px; right: 30px; background: #0056b3; color: #fff; border-radius: 50%; width: 56px; height: 56px; font-size: 24px; border: none; z-index: 999; }
-    .modal-content { border-radius: 10px; }
+    .modal-content { border-radius: 10px; padding: 20px; }
   </style>
 </head>
 <body class="hold-transition skin-blue sidebar-mini fixed">
 <div class="wrapper">
   <header class="main-header">
-    <a href="../../home_admin.php" class="logo"><b>Prime</b>Focus</a>
+    <a href="../../home_admin.php" class="logo"><b>Prime</b>Forecast</a>
     <nav class="navbar navbar-static-top">
       <div class="navbar-custom-menu ml-auto d-flex justify-content-end w-100">
         <ul class="nav navbar-nav">
@@ -83,13 +82,11 @@ $mysqli = connectDb();
             <li class="active"><a href="../layout/top-nav.php"><i class="fas fa-building"></i> เพิ่มข้อมูลบริษัท</a></li>
             <li><a href="../layout/boxed.php"><i class="fas fa-boxes"></i> เพิ่มข้อมูลกลุ่มสินค้า</a></li>
             <li><a href="../layout/fixed.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลอุตสาหกรรม</a></li>
-            <li><a href="../layout/Source_of_the_budget.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลที่มาของงบประมาณ</a></li>
             <li><a href="../layout/collapsed-sidebar.php"><i class="fas fa-tasks"></i> ขั้นตอนการขาย</a></li>
             <li><a href="../layout/of_winning.php"><i class="fas fa-trophy"></i> โอกาสการชนะ</a></li>
             <li><a href="../layout/Saleteam.php"><i class="fas fa-users"></i> ทีมขาย</a></li>
             <li><a href="../layout/position_u.php"><i class="fas fa-user-tag"></i> ตำแหน่ง</a></li>
             <li><a href="../layout/Profile_user.php"><i class="fas fa-id-card"></i> รายละเอียดผู้ใช้งาน</a></li>
-            <li><a href="../layout/newuser.php"><i class="fas fa-user-plus"></i> เพิ่มผู้ใช้งาน</a></li>
           </ul>
         </li>
       </ul>
@@ -191,9 +188,9 @@ $companies = $mysqli->query("
                   <select name="industry" class="form-control" required>
                     <option value="">-- เลือกกลุ่มอุตสาหกรรม --</option>
                     <?php
-                    $result = $mysqli->query("SELECT Industry_id, Industry FROM industry_group");
+                    $result = $mysqli->query("SELECT industry_id, Industry FROM Industry_group");
                     while ($row = $result->fetch_assoc()) {
-                      echo "<option value='{$row['Industry_id']}'>{$row['Industry']}</option>";
+                      echo "<option value='{$row['industry_id']}'>{$row['Industry']}</option>";
                     }
                     ?>
                   </select>
@@ -204,7 +201,6 @@ $companies = $mysqli->query("
           </div>
         </div>
       </div>
-
 
       <!-- Edit Modal -->
       <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
@@ -228,9 +224,9 @@ $companies = $mysqli->query("
                   <select name="industry" id="edit_industry" class="form-control" required>
                     <option value="">-- เลือกกลุ่มอุตสาหกรรม --</option>
                     <?php
-                    $result = $mysqli->query("SELECT Industry_id, Industry FROM industry_group");
+                    $result = $mysqli->query("SELECT industry_id, Industry FROM Industry_group");
                     while ($row = $result->fetch_assoc()) {
-                      echo "<option value='{$row['Industry_id']}'>{$row['Industry']}</option>";
+                      echo "<option value='{$row['industry_id']}'>{$row['Industry']}</option>";
                     }
                     ?>
                   </select>
@@ -244,23 +240,9 @@ $companies = $mysqli->query("
     </section>
   </div>
 </div>
-
-<script>
-  document.getElementById('searchInput').addEventListener('keyup', function () {
-    const filter = this.value.trim().toLowerCase();
-    const rows = document.querySelectorAll('#companyTable tr');
-
-    rows.forEach(row => {
-      const cells = row.querySelectorAll('td');
-      const match = Array.from(cells).some(cell => 
-        cell.textContent.toLowerCase().includes(filter)
-      );
-      row.style.display = match ? '' : 'none';
-    });
-  });
-</script>
-
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../dist/js/app.min.js"></script>
 <script>
   document.querySelectorAll('.btn-edit').forEach(btn => {
     btn.addEventListener('click', function () {
@@ -277,18 +259,5 @@ $companies = $mysqli->query("
     });
   });
 </script>
-<script>
-  document.getElementById('searchInput').addEventListener('keyup', function () {
-    const filter = this.value.trim().toLowerCase();
-    const rows = document.querySelectorAll('#companyTable tr');
-
-    rows.forEach(row => {
-      const companyCell = row.cells[0]; // คอลัมน์แรก: ชื่อบริษัท
-      const companyText = companyCell.textContent.toLowerCase();
-      row.style.display = companyText.includes(filter) ? '' : 'none';
-    });
-  });
-</script>
-
 </body>
 </html>
