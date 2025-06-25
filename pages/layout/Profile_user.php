@@ -3,7 +3,7 @@ session_start();
 require_once '../../functions.php';
 $mysqli = connectDb();
 
-// Update forecast if submitted
+// ส่วน PHP สำหรับอัปเดตข้อมูล จะคงไว้เหมือนเดิม
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['updateForecast'])) {
   $forecast = str_replace(',', '', $_POST['forecast'] ?? '');
   $userId   = $_POST['user_id'] ?? '';
@@ -28,218 +28,224 @@ $result = $mysqli->query($sql);
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>ผู้ใช้งาน | PrimeForecast</title>
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- ✅ Bootstrap 3 -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-  <link rel="stylesheet" href="../../dist/css/AdminLTE.min.css">
-  <link rel="stylesheet" href="../../dist/css/skins/_all-skins.min.css">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-	<script src="../../dist/js/app.min.js"></script>
+  <title>รายละเอียดผู้ใช้งาน | PrimeForecast</title>
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <link rel="stylesheet" href="../../plugins_v3/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="../../dist_v3/css/adminlte.min.css">
+
   <style>
-    body { background: #e9f2f9; }
+    /* CSS หลักสำหรับทุกหน้า */
+    .content-wrapper { background-color: #b3d6e4; }
     .container1 {
       max-width: 1100px;
-      margin: 40px auto;
+      margin: 20px auto;
       background: #fff;
       padding: 25px;
       border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
-    input {
-      width: 100%; padding: 10px; margin-bottom: 20px;
-      border: 1px solid #ccc; border-radius: 5px; font-size: 16px;
-    }
-    .btn-add {
-      position: fixed; bottom: 30px; right: 30px; background: #0056b3;
-      color: #fff; border-radius: 50%; width: 56px; height: 56px;
-      font-size: 24px; border: none; z-index: 999;
-    }
     .modal-content { border-radius: 10px; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
-    th { background: #0056b3; color: white; }
-    tr:hover { background-color: #f5f5f5; }
+    .table thead { background: #0056b3; color: white; }
+    .pagination .page-item.active .page-link { background-color: #0056b3; border-color: #0056b3; }
   </style>
 </head>
-<body class="hold-transition skin-blue sidebar-mini fixed">
+<body class="hold-transition sidebar-mini">
 <div class="wrapper">
-<header class="main-header">
-
-  <!-- โลโก้ -->
-  <a href="../../home_admin.php" class="logo">
-    <span class="logo-lg"><b>Prime</b>Forecast</span>
-  </a>
-
-  <!-- Navbar -->
-  <nav class="navbar navbar-static-top" role="navigation">
-    <!-- ✅ ปุ่ม 3 ขีด -->
-    <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
-      <span class="sr-only">Toggle navigation</span>
-    </a>
-
-    <!-- ✅ เมนูโปรไฟล์ด้านขวา -->
-    <div class="navbar-custom-menu">
-
-      <ul class="nav navbar-nav">
-        <li class="dropdown user user-menu">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-            <img src="../../dist/img/user2-160x160.jpg" class="user-image" alt="User Image">
-            <span class="hidden-xs text-white"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></span>
-          </a>
-          <ul class="dropdown-menu">
-            <!-- user image -->
-            <li class="user-header">
-              <img src="../../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
-              <p><?php echo $_SESSION['email'] ?? ''; ?> <small>Admin</small></p>
-            </li>
-            <!-- Menu Footer-->
-            <li class="user-footer">
-              <div class="pull-right">
-                <a href="../../logout.php" class="btn btn-default btn-flat">Sign out</a>
-              </div>
-            </li>
-          </ul>
-        </li>
-      </ul>
-    </div>
-  </nav>
-</header>
-
-
-<aside class="main-sidebar">
-  <section class="sidebar">
-    <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-      <div class="image">
-        <img src="../../dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
-      </div>
-      <div class="info pl-2">
-        <p class="mb-0 text-white font-weight-bold" style="font-size:14px;">
-          <?php echo $_SESSION['email'] ?? ''; ?> <span class="text-muted" style="font-size:12px;">(Admin)</span>
-        </p>
-        <a href="#" class="d-block text-success"><i class="fa fa-circle"></i> Online</a>
-      </div>
-    </div>
-    <ul class="sidebar-menu" data-widget="tree">
-      <li class="header">MAIN NAVIGATION</li>
-      <li><a href="../../home_admin.php"><i class="fa fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
-      <li class="treeview active">
-        <a href="#">
-          <i class="fa fa-folder-open"></i> <span>เพิ่มข้อมูล....</span>
-          <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
+  
+  <nav class="main-header navbar navbar-expand navbar-white navbar-light" style="background-color: #0056b3;">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link text-white" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+      </li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item dropdown user-menu">
+        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+          <img src="../../dist/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
+          <span class="d-none d-md-inline text-white"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></span>
         </a>
-        <ul class="treeview-menu">
-          <li><a href="../layout/top-nav.php"><i class="fas fa-building"></i> เพิ่มข้อมูลบริษัท</a></li>
-            <li><a href="../layout/boxed.php"><i class="fas fa-boxes"></i> เพิ่มข้อมูลกลุ่มสินค้า</a></li>
-            <li><a href="../layout/fixed.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลอุตสาหกรรม</a></li>
-            <li><a href="../layout/Source_of_the_budget.php"><i class="fas fa-industry"></i> เพิ่มข้อมูลที่มาของงบประมาณ</a></li>
-            <li><a href="../layout/collapsed-sidebar.php"><i class="fas fa-tasks"></i> ขั้นตอนการขาย</a></li>
-            <li><a href="../layout/of_winning.php"><i class="fas fa-trophy"></i> โอกาสการชนะ</a></li>
-            <li><a href="../layout/Saleteam.php"><i class="fas fa-users"></i> ทีมขาย</a></li>
-            <li><a href="../layout/position_u.php"><i class="fas fa-user-tag"></i> ตำแหน่ง</a></li>
-            <li class="active"><a href="../layout/Profile_user.php"><i class="fas fa-id-card"></i> รายละเอียดผู้ใช้งาน</a></li>
-            <li><a href="../layout/newuser.php"><i class="fas fa-user-plus"></i> เพิ่มผู้ใช้งาน</a></li>
+        <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <li class="user-header" style="background-color: #0056b3; color: #fff;">
+            <img src="../../dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+            <p><?php echo $_SESSION['email'] ?? ''; ?> <small>Admin</small></p>
+          </li>
+          <li class="user-footer">
+            <a href="../../logout.php" class="btn btn-default btn-flat float-right">Sign out</a>
+          </li>
         </ul>
       </li>
     </ul>
-  </section>
-</aside>
-<div class="content-wrapper">
-  <section class="content">
-    <div class="container1">
-      <h3>ข้อมูลผู้ใช้งาน</h3>
-      <?php if (!empty($error)): ?>
-        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-      <?php endif; ?>
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>ชื่อ</th>
-            <th>นามสกุล</th>
-            <th>Email</th>
-            <th>Target</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php while ($row = $result->fetch_assoc()): ?>
-            <tr>
-              <td><?= htmlspecialchars($row['nname']) ?></td>
-              <td><?= htmlspecialchars($row['surename']) ?></td>
-              <td><?= htmlspecialchars($row['email']) ?></td>
-              <td><?= number_format((float)$row['forecast']) ?></td>
-              <td>
-                <button class='btn btn-sm btn-warning' data-toggle="modal" data-target="#editModal" data-id="<?= $row['user_id'] ?>" data-forecast="<?= $row['forecast'] ?>">
-                  <i class='fa fa-edit'></i> Edit
-                </button>
-                <a href='delete_Pro.php?user_id=<?= $row['user_id'] ?>' onclick="return confirm('คุณต้องการลบหรือไม่?')" class='btn btn-sm btn-danger'>
-                  <i class='fa fa-trash'></i> Delete
-                </a>
-              </td>
-            </tr>
-          <?php endwhile; ?>
-          <?php if ($result->num_rows === 0): ?>
-            <tr><td colspan='5' class='text-center'>-- ไม่พบข้อมูลในระบบ --</td></tr>
-          <?php endif; ?>
-        </tbody>
-      </table>
-    </div>
-  </section>
-</div>
+  </nav>
 
-<!-- Modal -->
-<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <form method="POST" onsubmit="return validateForecast()">
-        <div class="modal-header">
-          <h5 class="modal-title" id="editModalLabel">แก้ไข Forecast</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <a href="../../home_admin.php" class="brand-link" style="background-color: #0056b3; text-align: center;">
+        <span class="brand-text font-weight-light"><b>Prime</b>Forecast</span>
+    </a>
+    <div class="sidebar">
+      <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
+        <div class="image">
+          <img src="../../dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
         </div>
-        <div class="modal-body">
-          <input type="hidden" name="user_id" id="editUserId">
-          <div class="form-group">
-            <label for="forecast">Forecast (บาท)</label>
-            <input type="int" name="forecast" id="editForecast" class="form-control" required pattern="^[0-9,]+$" title="กรุณากรอกเฉพาะตัวเลขหรือจุลภาค (,) เท่านั้น">
-            <div class="error-message d-none" id="forecastError">กรุณากรอกเฉพาะตัวเลขจำนวนเงินบาท เช่น 100,000</div>
+        <div class="info">
+          <a href="#" class="d-block"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></a>
+          <span class="d-block" style="color: #c2c7d0; font-size: 0.9em;">(Admin)</span>
+          <a href="#" class="d-block"><i class="fa fa-circle text-success"></i> Online</a>
+        </div>
+      </div>
+      
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          <li class="nav-header">MAIN NAVIGATION</li>
+          <li class="nav-item">
+            <a href="../../home_admin.php" class="nav-link">
+              <i class="nav-icon fas fa-tachometer-alt"></i><p>Dashboard</p>
+            </a>
+          </li>
+          <li class="nav-item menu-is-opening menu-open">
+            <a href="#" class="nav-link active">
+              <i class="nav-icon fas fa-folder-open"></i><p>เพิ่มข้อมูล....<i class="right fas fa-angle-left"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item"><a href="../layout/top-nav.php" class="nav-link"><i class="fas fa-building nav-icon"></i><p>เพิ่มข้อมูลบริษัท</p></a></li>
+              <li class="nav-item"><a href="../layout/boxed.php" class="nav-link"><i class="fas fa-boxes nav-icon"></i><p>เพิ่มข้อมูลกลุ่มสินค้า</p></a></li>
+              <li class="nav-item"><a href="../layout/fixed.php" class="nav-link"><i class="fas fa-industry nav-icon"></i><p>เพิ่มข้อมูลอุตสาหกรรม</p></a></li>
+              <li class="nav-item"><a href="../layout/Source_of_the_budget.php" class="nav-link"><i class="fas fa-file-invoice-dollar nav-icon"></i><p>เพิ่มข้อมูลที่มาของงบประมาณ</p></a></li>
+              <li class="nav-item"><a href="../layout/collapsed-sidebar.php" class="nav-link"><i class="fas fa-tasks nav-icon"></i><p>ขั้นตอนการขาย</p></a></li>
+              <li class="nav-item"><a href="../layout/of_winning.php" class="nav-link"><i class="fas fa-trophy nav-icon"></i><p>โอกาสการชนะ</p></a></li>
+              <li class="nav-item"><a href="../layout/Saleteam.php" class="nav-link"><i class="fas fa-users nav-icon"></i><p>ทีมขาย</p></a></li>
+              <li class="nav-item"><a href="../layout/position_u.php" class="nav-link"><i class="fas fa-user-tag nav-icon"></i><p>ตำแหน่ง</p></a></li>
+              <li class="nav-item"><a href="../layout/Profile_user.php" class="nav-link active"><i class="fas fa-id-card nav-icon"></i><p>รายละเอียดผู้ใช้งาน</p></a></li>
+              <li class="nav-item"><a href="../layout/newuser.php" class="nav-link"><i class="fas fa-user-plus nav-icon"></i><p>เพิ่มผู้ใช้งาน</p></a></li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+  <div class="content-wrapper">
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1></h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="../../home_admin.php">หน้าหลัก</a></li>
+              <li class="breadcrumb-item active">ข้อมูลผู้ใช้งาน</li>
+            </ol>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">ยกเลิก</button>
-          <button type="submit" name="updateForecast" class="btn btn-primary">บันทึก</button>
-        </div>
-      </form>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="container1">
+        <h3>ข้อมูลผู้ใช้งาน</h3>
+        <?php if (!empty($error)): ?>
+          <div class="alert alert-danger alert-dismissible">
+              <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+              <h5><i class="icon fas fa-ban"></i> Error!</h5>
+              <?= htmlspecialchars($error) ?>
+          </div>
+        <?php endif; ?>
+        <table class="table table-bordered table-hover">
+          <thead>
+            <tr>
+              <th>ชื่อ</th>
+              <th>นามสกุล</th>
+              <th>Email</th>
+              <th>Target</th>
+              <th style="width: 160px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php while ($row = $result->fetch_assoc()): ?>
+              <tr>
+                <td><?= htmlspecialchars($row['nname']) ?></td>
+                <td><?= htmlspecialchars($row['surename']) ?></td>
+                <td><?= htmlspecialchars($row['email']) ?></td>
+                <td><?= number_format((float)$row['forecast'], 2) ?></td>
+                <td>
+                  <button class='btn btn-sm btn-warning btn-edit' data-toggle="modal" data-target="#editModal" data-id="<?= $row['user_id'] ?>" data-forecast="<?= $row['forecast'] ?>">
+                    <i class='fas fa-edit'></i> Edit
+                  </button>
+                  <a href='delete_Pro.php?user_id=<?= $row['user_id'] ?>' onclick="return confirm('คุณต้องการลบหรือไม่?')" class='btn btn-sm btn-danger'>
+                    <i class='fas fa-trash'></i> Delete
+                  </a>
+                </td>
+              </tr>
+            <?php endwhile; ?>
+            <?php if ($result->num_rows === 0): ?>
+              <tr><td colspan='5' class='text-center'>-- ไม่พบข้อมูลในระบบ --</td></tr>
+            <?php endif; ?>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form method="POST" onsubmit="return validateForecast()">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editModalLabel">แก้ไข Forecast</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" name="user_id" id="editUserId">
+            <div class="form-group">
+              <label for="forecast">Forecast (บาท)</label>
+              <input type="text" name="forecast" id="editForecast" class="form-control" required>
+              <small id="forecastError" class="form-text text-danger d-none">กรุณากรอกเฉพาะตัวเลขเท่านั้น</small>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">ยกเลิก</button>
+            <button type="submit" name="updateForecast" class="btn btn-primary">บันทึก</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </div>
 
-<script>
-  $('#editModal').on('show.bs.modal', function (event) {
-    var button = $(event.relatedTarget);
-    var userId = button.data('id');
-    var forecast = button.data('forecast');
+<script src="../../plugins_v3/jquery/jquery.min.js"></script>
+<script src="../../plugins_v3/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../dist_v3/js/adminlte.min.js"></script>
 
-    var modal = $(this);
-    modal.find('#editUserId').val(userId);
-    modal.find('#editForecast').val(forecast);
-    $('#forecastError').addClass('d-none');
+<script>
+  $(document).ready(function () {
+    $('#editModal').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget);
+      var userId = button.data('id');
+      // แปลง forecast เป็นตัวเลขที่ไม่มี comma
+      var forecast = String(button.data('forecast')).replace(/,/g, '');
+
+      var modal = $(this);
+      modal.find('#editUserId').val(userId);
+      modal.find('#editForecast').val(forecast);
+      $('#forecastError').addClass('d-none');
+    });
   });
 
   function validateForecast() {
     const input = document.getElementById('editForecast');
-    const value = input.value;
-    const regex = /^[0-9,]+$/;
-    if (!regex.test(value)) {
-      document.getElementById('forecastError').classList.remove('d-none');
+    const errorDiv = document.getElementById('forecastError');
+    const value = input.value.replace(/,/g, ''); // เอา comma ออกก่อนเช็ค
+
+    if (isNaN(value) || value.trim() === '') {
+      errorDiv.classList.remove('d-none');
       return false;
     }
+    errorDiv.classList.add('d-none');
     return true;
   }
 </script>
