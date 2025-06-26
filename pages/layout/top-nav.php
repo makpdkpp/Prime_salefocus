@@ -153,7 +153,7 @@ $mysqli = connectDb();
                 $companies = $mysqli->query("
                   SELECT cc.company_id, cc.company, ig.Industry
                   FROM company_catalog cc
-                  LEFT JOIN industry_group ig ON cc.Industry_id = ig.industry_id
+                  LEFT JOIN industry_group ig ON cc.Industry_id = ig.Industry_id
                   LIMIT $start, $limit
                 ");
                 while ($c = $companies->fetch_assoc()) {
@@ -217,9 +217,9 @@ $mysqli = connectDb();
                                 <select name="industry" class="form-control" required>
                                     <option value="">-- เลือกกลุ่มอุตสาหกรรม --</option>
                                     <?php
-                                    $result = $mysqli->query("SELECT industry_id, Industry FROM Industry_group");
+                                    $result = $mysqli->query("SELECT Industry_id, Industry FROM industry_group");
                                     while ($row = $result->fetch_assoc()) {
-                                    echo "<option value='{$row['industry_id']}'>" . htmlspecialchars($row['Industry']) . "</option>";
+                                    echo "<option value='{$row['Industry_id']}'>" . htmlspecialchars($row['Industry']) . "</option>";
                                     }
                                     ?>
                                 </select>
@@ -252,9 +252,9 @@ $mysqli = connectDb();
                                 <select name="industry" id="edit_industry" class="form-control" required>
                                     <option value="">-- เลือกกลุ่มอุตสาหกรรม --</option>
                                     <?php
-                                    $result = $mysqli->query("SELECT industry_id, Industry FROM Industry_group");
+                                    $result = $mysqli->query("SELECT Industry_id, Industry FROM industry_group");
                                     while ($row = $result->fetch_assoc()) {
-                                    echo "<option value='{$row['industry_id']}'>" . htmlspecialchars($row['Industry']) . "</option>";
+                                    echo "<option value='{$row['Industry_id']}'>" . htmlspecialchars($row['Industry']) . "</option>";
                                     }
                                     ?>
                                 </select>
