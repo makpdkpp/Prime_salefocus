@@ -53,7 +53,7 @@ $industries = $mysqli->query("SELECT Industry_id, Industry FROM industry_group O
     .pagination .page-item.active .page-link { background-color: #0056b3; border-color: #0056b3; }
     .main-header.navbar { border-bottom: none; }
     .sidebar {
-    padding-bottom: 50px; /* เพิ่มพื้นที่ว่างด้านล่างของ Sidebar */
+    padding-bottom: 30px; /* เพิ่มพื้นที่ว่างด้านล่างของ Sidebar */
   }
 </style>
   </style>
