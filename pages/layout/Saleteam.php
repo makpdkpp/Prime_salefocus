@@ -44,6 +44,7 @@ $result = $mysqli->query($sql);
     .modal-content { border-radius: 10px; padding: 20px; }
     .table thead { background: #0056b3; color: white; }
     .pagination .page-item.active .page-link { background-color: #0056b3; border-color: #0056b3; }
+    .sidebar {padding-bottom: 30px; }
   </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
