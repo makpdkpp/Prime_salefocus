@@ -50,6 +50,17 @@ $result = $mysqli->query($sql);
     .modal-content { border-radius: 10px; padding: 20px; }
     .table thead { background: #0056b3; color: white; }
     .pagination .page-item.active .page-link { background-color: #0056b3; border-color: #0056b3; }
+    .btn-custom-edit {
+        background-color: #17a2b8; /* สี Info หรือสีฟ้าอมเขียว */
+        border-color: #17a2b8;
+        color: #fff; /* สีตัวอักษร */
+    }
+
+    .btn-custom-edit:hover {
+        background-color: #138496; /* สีเข้มขึ้นเมื่อเมาส์ชี้ */
+        border-color: #117a8b;
+        color: #fff;
+    }
     .sidebar {padding-bottom: 30px; }
   </style>
 </head>
@@ -190,13 +201,13 @@ $result = $mysqli->query($sql);
                 <td><?= htmlspecialchars($row['email']) ?></td>
                 <td><?= number_format((float)$row['forecast'], 2) ?></td>
                 <td>
-                  <button class='btn btn-sm btn-warning btn-edit' data-toggle="modal" data-target="#editModal" data-id="<?= $row['user_id'] ?>" data-forecast="<?= $row['forecast'] ?>">
-                    <i class='fas fa-edit'></i> Edit
-                  </button>
-                  <a href='delete_Pro.php?user_id=<?= $row['user_id'] ?>' onclick="return confirm('คุณต้องการลบหรือไม่?')" class='btn btn-sm btn-danger'>
-                    <i class='fas fa-trash'></i> Delete
-                  </a>
-                </td>
+  <button class='btn btn-sm btn-custom-edit btn-edit' data-toggle="modal" data-target="#editModal" data-id="<?= $row['user_id'] ?>" data-forecast="<?= $row['forecast'] ?>">
+    <i class='fas fa-edit'></i> Edit
+  </button>
+  <a href='delete_Pro.php?user_id=<?= $row['user_id'] ?>' onclick="return confirm('คุณต้องการลบหรือไม่?')" class='btn btn-sm btn-danger'>
+    <i class='fas fa-trash'></i> Delete
+  </a>
+</td>
               </tr>
             <?php endwhile; ?>
             <?php if ($result->num_rows === 0): ?>
