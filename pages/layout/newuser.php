@@ -123,6 +123,7 @@ $db->close();
     .btn-add { position: fixed; bottom: 30px; right: 30px; background: #0056b3; color: #fff; border-radius: 50%; width: 56px; height: 56px; font-size: 24px; border: none; z-index: 1040; }
     .modal-content { border-radius: 10px; padding: 20px; }
     .table thead { background: #0056b3; color: white; }
+    .sidebar {padding-bottom: 30px; }
   </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
