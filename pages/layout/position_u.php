@@ -171,10 +171,10 @@ $positions = $mysqli->query("SELECT position_id, position FROM position LIMIT $s
                 <td><?= htmlspecialchars($row['position']) ?></td>
                 <td>
                   <button class='btn btn-sm btn-info btn-edit' data-id='<?= $row['position_id'] ?>' data-name='<?= htmlspecialchars($row['position'], ENT_QUOTES) ?>'>
-                    <i class='fas fa-edit'></i> แก้ไข
+                    <i class='fas fa-edit'></i> Edit
                   </button>
                   <a href='delete_position.php?position_id=<?= $row['position_id'] ?>' onclick="return confirm('คุณต้องการลบหรือไม่?')" class='btn btn-sm btn-danger'>
-                    <i class='fas fa-trash'></i> ลบ
+                    <i class='fas fa-trash'></i> Delete
                   </a>
                 </td>
               </tr>
