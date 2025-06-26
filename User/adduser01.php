@@ -30,7 +30,6 @@ $priorityOpts = loadOptions($mysqli, 'priority_level',  'priority_id', 'priority
 $Source_budgeOpts = loadOptions($mysqli, 'source_of_the_budget',  'Source_budget_id', 'Source_budge');
 
 /* map ชื่อ field สถานะตามตาราง */
-/* ====== Process + วันที่ ====== */
 $steps = [
     'present'  => ['label'=>'Present',  'date'=>null],
     'budgeted' => ['label'=>'Budget',  'date'=>null],
@@ -40,8 +39,7 @@ $steps = [
     'lost'     => ['label'=>'LOST',    'date'=>'lost_date']
 ];
 
-// สมมติว่า $row ไม่มีข้อมูลในหน้า add
-$row = [];
+$row = []; // หน้า add ให้เป็น array ว่าง
 
 ?>
 <!doctype html>
@@ -55,34 +53,26 @@ $row = [];
 <link rel="stylesheet" href="../dist_v3/css/adminlte.min.css">
 
 <style>
-    /* ใช้ CSS เดิมของ card และ form ได้ */
     .sales-card{max-width:750px;margin:20px auto;background:#fff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1);padding:32px 40px}
     .sales-card h2{font-weight:600;margin-bottom:30px}
-    label{font-weight:500 !important} /* เพิ่ม !important เพื่อ override AdminLTE */
+    label{font-weight:500 !important}
     #product_value{text-align:right}
     .btn-back{background:#6c757d;color:#fff;border:none}
     .btn-back:hover{background:#5a6268}
-    .btn-save{background:#dc3545;color:#fff;border:none} /* สีแดงเดียวกับ navbar */
+    .btn-save{background:#dc3545;color:#fff;border:none}
     .btn-save:hover{background:#c82333}
-    .process-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      align-items: center;
-    }
     .process-item {
       display: flex;
       align-items: center;
       gap: 8px;
-      background: #f9f9f9;
-      padding: 6px 12px;
+      background: #f8f9fa;
+      padding: 8px 12px;
       border-radius: 6px;
-      border: 1px solid #ddd;
+      border: 1px solid #dee2e6;
+      width: 100%;
     }
     .process-item input[type="checkbox"] { margin: 0; }
     .process-item input[type="date"] { height: 32px; font-size: 14px; }
-
-    /* ปรับ content-wrapper ให้มี padding */
     .content-wrapper { padding-top: 20px; }
 </style>
 </head>
@@ -95,7 +85,6 @@ $row = [];
             <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
         </li>
     </ul>
-
     <ul class="navbar-nav ml-auto">
         <li class="nav-item dropdown user-menu">
             <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
@@ -121,7 +110,6 @@ $row = [];
     <a href="../home_user.php" class="brand-link">
         <span class="brand-text font-weight-light"><b>Prime</b>Forecast</span>
     </a>
-
     <div class="sidebar">
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
             <div class="image">
@@ -131,7 +119,6 @@ $row = [];
                 <a href="#" class="d-block"><?= $email ?></a>
             </div>
         </div>
-
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                 <li class="nav-header">MAIN NAVIGATION</li>
@@ -206,10 +193,15 @@ $row = [];
                       <div class="col-md-6 form-group">
                         <label for="fiscalyear">ปีงบประมาณ</label>
                           <select name="fiscalyear" id="fiscalyear" class="form-control" required>
-                              <option value="2568">2568</option>
-                              <option value="2569">2569</option>
-                              <option value="2570">2570</option>
-                              <option value="2571">2571</option>
+                              <option value="">-- เลือกปีงบประมาณ --</option>
+                              <?php
+                                  $currentBuddhistYear = date('Y') + 543;
+                                  // แสดงปีปัจจุบัน และล่วงหน้าไปอีก 4 ปี (รวมเป็น 5 ปี)
+                                  for ($i = 0; $i < 5; $i++) {
+                                      $year = $currentBuddhistYear + $i;
+                                      echo "<option value=\"$year\">$year</option>";
+                                  }
+                              ?>
                         </select>
                       </div>
                     </div>
@@ -244,7 +236,6 @@ $row = [];
                         </div>
                     </div>
 
-
                     <div class="row">
                       <div class="col-md-4 form-group">
                         <label for="contact_start_date">วันที่เริ่มโครงการ</label>
@@ -262,32 +253,23 @@ $row = [];
 
                     <div class="form-group">
                       <label>สถานะ</label>
-                      <div class="process-group">
+                      <div class="row">
                         <?php foreach ($steps as $field => $cfg):
                               $checked = !empty($row[$field]);
                               $dateVal = $row[$cfg['date']] ?? '';
                         ?>
-                          <div class="process-item">
-                            <input type="hidden" name="<?= $field ?>" value="0">
-                            <div class="icheck-primary d-inline">
-                                <input type="checkbox"
-                                       id="<?= $field ?>_cb"
-                                       name="<?= $field ?>"
-                                       value="1"
-                                       <?= $checked ? 'checked' : '' ?>
-                                       onchange="toggleDate('<?= $field ?>')">
-                                <label for="<?= $field ?>_cb" style="margin-bottom: 0; font-weight: normal !important;"><?= $cfg['label'] ?></label>
-                            </div>
+                          <div class="col-12 col-lg-6 mb-2">
+                            <div class="process-item">
+                              <input type="hidden" name="<?= $field ?>" value="0">
+                              <div class="icheck-primary d-inline">
+                                  <input type="checkbox" id="<?= $field ?>_cb" name="<?= $field ?>" value="1" <?= $checked ? 'checked' : '' ?> onchange="toggleDate('<?= $field ?>')">
+                                  <label for="<?= $field ?>_cb" style="margin-bottom: 0; font-weight: normal !important;"><?= $cfg['label'] ?></label>
+                              </div>
 
-                            <?php if ($cfg['date']): ?>
-                              <input type="date"
-                                     class="form-control form-control-sm ml-2"
-                                     id="<?= $field ?>_date"
-                                     name="<?= $cfg['date'] ?>"
-                                     value="<?= htmlspecialchars($dateVal) ?>"
-                                     style="width: auto;"
-                                     <?= $checked ? '' : 'disabled' ?>>
-                            <?php endif; ?>
+                              <?php if ($cfg['date']): ?>
+                                <input type="date" class="form-control form-control-sm ml-2" id="<?= $field ?>_date" name="<?= $cfg['date'] ?>" value="<?= htmlspecialchars($dateVal) ?>" style="width: auto;" <?= $checked ? '' : 'disabled' ?>>
+                              <?php endif; ?>
+                            </div>
                           </div>
                         <?php endforeach; ?>
                       </div>
@@ -305,10 +287,11 @@ $row = [];
             </div>
         </div>
     </section>
-</div></div><script src="../plugins_v3/jquery/jquery.min.js"></script>
+</div>
+</div>
+<script src="../plugins_v3/jquery/jquery.min.js"></script>
 <script src="../plugins_v3/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="../dist_v3/js/adminlte.min.js"></script>
-
 <script>
 /* จัดรูปแบบตัวเลขใส่ comma */
 (()=>{const f=document.getElementById('product_value');
@@ -321,17 +304,13 @@ function toggleDate(field) {
     const checkbox = document.getElementById(field + '_cb');
     const dateInput = document.getElementById(field + '_date');
 
-    if (!dateInput) return; // บางสถานะไม่มี date
+    if (!dateInput) return;
 
     if (checkbox.checked) {
         dateInput.removeAttribute('disabled');
-        // Optional: set current date
-        // if (!dateInput.value) {
-        //     dateInput.valueAsDate = new Date();
-        // }
     } else {
         dateInput.setAttribute('disabled', 'disabled');
-        dateInput.value = ''; // ล้างค่าถ้ายกเลิก
+        dateInput.value = '';
     }
 }
 </script>
