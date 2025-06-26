@@ -1,7 +1,10 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 /* ------------------------------------------------------------------
    add_user.php  –  รับข้อมูลจากฟอร์ม adduser01.php แล้วบันทึกลงตาราง transactional
-   ฟิลด์ตรงกับภาพโครงสร้างฐานข้อมูลที่ส่งมา
    ------------------------------------------------------------------ */
 require_once '../functions.php';
 session_start();
@@ -20,30 +23,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 /* ------------------------------------------------------------------
-   1) รับค่าจากฟอร์ม (ใช้ชื่อ field ตาม adduser01.php)
+   รับค่าจากฟอร์ม
    ------------------------------------------------------------------ */
-$user_id              = (int)($_POST['user_id']            ?? 0);
-$company_id           = (int)($_POST['company_id']         ?? 0);
-$product_id           = (int)($_POST['Product_id']         ?? 0);
-$product_detail       = trim($_POST['Product_detail']      ?? '');
-$team_id              = (int)($_POST['team_id']            ?? 0);
-$priority_id          = $_POST['priority_id']              !== '' ? (int)$_POST['priority_id'] : null;
-$Source_budget_id     = (int)($_POST['Source_budget_id'] ?? 0);
-$fiscalyear           = $_POST['fiscalyear'] ?? null; // fiscalyear is not a flag, it's a year value
+$user_id            = (int)($_POST['user_id'] ?? 0);
+$company_id         = (int)($_POST['company_id'] ?? 0);
+$product_id         = (int)($_POST['Product_id'] ?? 0);
+$product_detail     = trim($_POST['Product_detail'] ?? '');
+$Step_id            = (int)($_POST['Step_id'] ?? 0);
+$Source_budget_id   = (int)($_POST['Source_budget_id'] ?? 0);
+$fiscalyear         = $_POST['fiscalyear'] ?? null;
 
-// ค่าตัวเลข – ตัดคอมมาออก, แปลงเป็น float
-$product_value        = str_replace(',', '', $_POST['product_value'] ?? '0');
-$product_value        = (float)$product_value;
-
-// วันที่
-$contact_start_date       = $_POST['contact_start_date']        ?: null;
-$predict_close_date       = $_POST['date_of_closing_of_sale']   ?: null;
-$deal_close_date          = $_POST['sales_can_be_close']        ?: null;
-
-// Process flags & dates (default 0/null)
-$flag = fn(string $k) => isset($_POST[$k]) && $_POST[$k] === '1' ? 1 : 0;
-$date = fn(string $k) => ($_POST[$k] ?? '') ?: null;
-
+$flag = fn($k) => isset($_POST[$k]) && $_POST[$k] === '1' ? 1 : 0;
+$date = fn($k) => ($_POST[$k] ?? '') ?: null;
 
 $present         = $flag('present');
 $present_date    = $date('present_date');
@@ -58,67 +49,56 @@ $win_date        = $date('win_date');
 $lost            = $flag('lost');
 $lost_date       = $date('lost_date');
 
-$remark              = trim($_POST['remark'] ?? '');
+$team_id              = (int)($_POST['team_id'] ?? 0);
+$contact_start_date   = $date('contact_start_date');
+$predict_close_date   = $date('date_of_closing_of_sale');
+$deal_close_date      = $date('sales_can_be_close');
+$priority_id          = $_POST['priority_id'] !== '' ? (int)$_POST['priority_id'] : null;
+$product_value        = (float)str_replace(',', '', $_POST['product_value'] ?? '0');
+$remark               = trim($_POST['remark'] ?? '');
 
 /* ------------------------------------------------------------------
-   2) Validate ขั้นต่ำ
+   ตรวจสอบค่าบังคับ
    ------------------------------------------------------------------ */
 if (!$user_id || !$company_id || !$product_id || !$team_id || !$contact_start_date) {
     exit('Missing required fields.');
 }
 
 /* ------------------------------------------------------------------
-   3) เตรียม SQL – ใช้ prepared statement ปลอดภัยจาก SQLi
+   SQL Insert
    ------------------------------------------------------------------ */
 $sql = "INSERT INTO transactional (
-            user_id, company_id, Product_id, Product_detail,Source_budget_id,fiscalyear,
-            present, present_date, budgeted, budgeted_date, tor, tor_date,
-            bidding, bidding_date, win, win_date, lost, lost_date,
-            team_id, contact_start_date, date_of_closing_of_sale, sales_can_be_close,
-            priority_id, product_value, remark, timestamp
-        ) VALUES (
-            ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, current_timestamp()
-        )";
+    user_id, company_id, Product_id, Product_detail,
+    Step_id, Source_budget_id, fiscalyear,
+    present, present_date, budgeted, budgeted_date,
+    tor, tor_date, bidding, bidding_date,
+    win, win_date, lost, lost_date,
+    team_id, contact_start_date, date_of_closing_of_sale, sales_can_be_close,
+    priority_id, product_value, remark, timestamp
+) VALUES (
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp()
+)";
 
 $stmt = $mysqli->prepare($sql);
 if (!$stmt) {
-    exit('Prepare failed: '.$mysqli->error);
+    exit('Prepare failed: ' . $mysqli->error);
 }
 
-/*
-   bind_param types:
-   i user_id
-   i company_id
-   i Product_id
-   s Product_detail
-   i present
-   s present_date (nullable)
-   i budgeted
-   s budgeted_date
-   i tor
-   s tor_date
-   i bidding
-   s bidding_date
-   i win
-   s win_date
-   i lost
-   s lost_date
-   i team_id
-   s contact_start_date
-   s predict_close_date
-   s deal_close_date
-   i priority_id (nullable => use null)
-   d product_value
-   s remark
-*/
+/* ------------------------------------------------------------------
+   bind_param – 26 ค่า + timestamp
+   ------------------------------------------------------------------ */
+// Type string = 26 ตัวอักษร
+// i = int, s = string, d = double
 $stmt->bind_param(
-    "iiisiiisisisisisisisssids",
+    "iiisiiisisiisisisisisssids", // ← แก้ให้เป็น 26 ตัวเท่านั้น
     $user_id,
     $company_id,
     $product_id,
     $product_detail,
+    $Step_id,
     $Source_budget_id,
-    $fiscalyear,
+    $fiscalyear, // ถ้า fiscalyear เป็น string ให้ใช้ s
+
     $present,
     $present_date,
     $budgeted,
@@ -131,6 +111,7 @@ $stmt->bind_param(
     $win_date,
     $lost,
     $lost_date,
+
     $team_id,
     $contact_start_date,
     $predict_close_date,
@@ -140,10 +121,13 @@ $stmt->bind_param(
     $remark
 );
 
+/* ------------------------------------------------------------------
+   Execute
+   ------------------------------------------------------------------ */
 if ($stmt->execute()) {
     header('Location: adduser01.php?success=1');
     exit;
 }
 
-exit('DB error: '.$stmt->error);
+exit('DB error: ' . $stmt->error);
 ?>
