@@ -212,7 +212,7 @@ $result = $mysqli->query($sql);
       <div class="modal-content">
         <form method="POST" onsubmit="return validateForecast()">
           <div class="modal-header">
-            <h5 class="modal-title" id="editModalLabel">แก้ไข Forecast</h5>
+            <h5 class="modal-title" id="editModalLabel">แก้ไข Target</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -220,7 +220,7 @@ $result = $mysqli->query($sql);
           <div class="modal-body">
             <input type="hidden" name="user_id" id="editUserId">
             <div class="form-group">
-              <label for="forecast">Forecast (บาท)</label>
+              <label for="forecast">Target (บาท)</label>
               <input type="text" name="forecast" id="editForecast" class="form-control" required>
               <small id="forecastError" class="form-text text-danger d-none">กรุณากรอกเฉพาะตัวเลขเท่านั้น</small>
             </div>
