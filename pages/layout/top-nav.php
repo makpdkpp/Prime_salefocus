@@ -1,7 +1,7 @@
 <?php
 session_start();
 // --- ✅ ส่วนที่ 1: กำหนด Path พื้นฐานของโปรเจกต์ (ค่าที่ถูกต้องจาก URL ของคุณ) ---
-$base_path = '/Prime_saleficus/';
+$base_path = '/Prime_salefocus/';
 
 include("../../functions.php");
 $mysqli = connectDb();
