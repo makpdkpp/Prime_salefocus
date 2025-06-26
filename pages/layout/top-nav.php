@@ -1,19 +1,5 @@
 <?php
 session_start();
-
-// --- ✅ โค้ดอัจฉริยะ: ตรวจสอบ Server และกำหนด Path อัตโนมัติ ---
-$host = $_SERVER['HTTP_HOST'];
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
-
-if ($host == 'localhost') {
-    // สำหรับรันบน XAMPP ของคุณ
-    $base_href = "http://localhost/Prime_saleficus/";
-} else {
-    // สำหรับรันบน Server จริง (demo.primes.co.th)
-    // ใช้ protocol ที่ตรวจจับได้ เพื่อรองรับทั้ง http และ https
-    $base_href = $protocol . $host . "/";
-}
-
 include("../../functions.php");
 $mysqli = connectDb();
 ?>
@@ -22,17 +8,14 @@ $mysqli = connectDb();
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  
-  <base href="<?= htmlspecialchars($base_href, ENT_QUOTES, 'UTF-8') ?>">
-
   <title>ข้อมูลบริษัท | PrimeForecast</title>
 
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-  <link rel="stylesheet" href="plugins_v3/fontawesome-free/css/all.min.css">
-  <link rel="stylesheet" href="dist_v3/css/adminlte.min.css">
+  <link rel="stylesheet" href="../../plugins_v3/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="../../dist_v3/css/adminlte.min.css">
 
   <style>
-    /* สไตล์ของคุณยังคงเหมือนเดิม */
+    /* สไตล์ที่คุณกำหนดเอง */
     body { background-color: #f4f6f9; }
     .content-wrapper { background-color: #b3d6e4; }
     .card-custom { background: #fff; border-radius: 10px; padding: 25px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
@@ -41,7 +24,11 @@ $mysqli = connectDb();
     .btn-add { position: fixed; bottom: 30px; right: 30px; background: #0056b3; color: #fff; border-radius: 50%; width: 56px; height: 56px; font-size: 24px; border: none; z-index: 1040; }
     .modal-content { border-radius: 10px; padding: 20px; }
     .pagination .page-item.active .page-link { background-color: #0056b3; border-color: #0056b3; }
-    .main-header.navbar { border-bottom: none; }
+
+    /* ✅ โค้ดที่แก้ไข: ลบร่องสีขาวใต้ Navbar */
+    .main-header.navbar {
+        border-bottom: none;
+    }
   </style>
 </head>
 <body class="hold-transition sidebar-mini">
@@ -56,33 +43,33 @@ $mysqli = connectDb();
     <ul class="navbar-nav ml-auto">
       <li class="nav-item dropdown user-menu">
         <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-          <img src="dist/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
+          <img src="../../dist/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
           <span class="d-none d-md-inline text-white"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></span>
         </a>
         <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
           <li class="user-header" style="background-color: #0056b3; color: #fff;">
-            <img src="dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+            <img src="../../dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
             <p>
               <?php echo $_SESSION['email'] ?? ''; ?>
               <small>Admin</small>
             </p>
           </li>
           <li class="user-footer">
-            <a href="logout.php" class="btn btn-default btn-flat float-right">Sign out</a>
+            <a href="../../logout.php" class="btn btn-default btn-flat float-right">Sign out</a>
           </li>
         </ul>
       </li>
     </ul>
   </nav>
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
-    <a href="home_admin.php" class="brand-link" style="background-color: #0056b3; text-align: center;">
+    <a href="../../home_admin.php" class="brand-link" style="background-color: #0056b3; text-align: center;">
         <span class="brand-text font-weight-light"><b>Prime</b>Forecast</span>
     </a>
 
     <div class="sidebar">
     <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
   <div class="image">
-    <img src="dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
+    <img src="../../dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
   </div>
   <div class="info">
     <a href="#" class="d-block"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></a>
@@ -95,7 +82,7 @@ $mysqli = connectDb();
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           <li class="nav-header">MAIN NAVIGATION</li>
           <li class="nav-item">
-            <a href="home_admin.php" class="nav-link">
+            <a href="../../home_admin.php" class="nav-link">
               <i class="nav-icon fas fa-tachometer-alt"></i>
               <p>Dashboard</p>
             </a>
@@ -109,16 +96,16 @@ $mysqli = connectDb();
               </p>
             </a>
             <ul class="nav nav-treeview">
-              <li class="nav-item"><a href="pages/layout/top-nav.php" class="nav-link active"><i class="fas fa-building nav-icon"></i><p>เพิ่มข้อมูลบริษัท</p></a></li>
-              <li class="nav-item"><a href="pages/layout/boxed.php" class="nav-link"><i class="fas fa-boxes nav-icon"></i><p>เพิ่มข้อมูลกลุ่มสินค้า</p></a></li>
-              <li class="nav-item"><a href="pages/layout/fixed.php" class="nav-link"><i class="fas fa-industry nav-icon"></i><p>เพิ่มข้อมูลอุตสาหกรรม</p></a></li>
-              <li class="nav-item"><a href="pages/layout/Source_of_the_budget.php" class="nav-link"><i class="fas fa-file-invoice-dollar nav-icon"></i><p>เพิ่มข้อมูลที่มาของงบประมาณ</p></a></li>
-              <li class="nav-item"><a href="pages/layout/collapsed-sidebar.php" class="nav-link"><i class="fas fa-tasks nav-icon"></i><p>ขั้นตอนการขาย</p></a></li>
-              <li class="nav-item"><a href="pages/layout/of_winning.php" class="nav-link"><i class="fas fa-trophy nav-icon"></i><p>โอกาสการชนะ</p></a></li>
-              <li class="nav-item"><a href="pages/layout/Saleteam.php" class="nav-link"><i class="fas fa-users nav-icon"></i><p>ทีมขาย</p></a></li>
-              <li class="nav-item"><a href="pages/layout/position_u.php" class="nav-link"><i class="fas fa-user-tag nav-icon"></i><p>ตำแหน่ง</p></a></li>
-              <li class="nav-item"><a href="pages/layout/Profile_user.php" class="nav-link"><i class="fas fa-id-card nav-icon"></i><p>รายละเอียดผู้ใช้งาน</p></a></li>
-              <li class="nav-item"><a href="pages/layout/newuser.php" class="nav-link"><i class="fas fa-user-plus nav-icon"></i><p>เพิ่มผู้ใช้งาน</p></a></li>
+              <li class="nav-item"><a href="../layout/top-nav.php" class="nav-link active"><i class="fas fa-building nav-icon"></i><p>เพิ่มข้อมูลบริษัท</p></a></li>
+              <li class="nav-item"><a href="../layout/boxed.php" class="nav-link"><i class="fas fa-boxes nav-icon"></i><p>เพิ่มข้อมูลกลุ่มสินค้า</p></a></li>
+              <li class="nav-item"><a href="../layout/fixed.php" class="nav-link"><i class="fas fa-industry nav-icon"></i><p>เพิ่มข้อมูลอุตสาหกรรม</p></a></li>
+              <li class="nav-item"><a href="../layout/Source_of_the_budget.php" class="nav-link"><i class="fas fa-file-invoice-dollar nav-icon"></i><p>เพิ่มข้อมูลที่มาของงบประมาณ</p></a></li>
+              <li class="nav-item"><a href="../layout/collapsed-sidebar.php" class="nav-link"><i class="fas fa-tasks nav-icon"></i><p>ขั้นตอนการขาย</p></a></li>
+              <li class="nav-item"><a href="../layout/of_winning.php" class="nav-link"><i class="fas fa-trophy nav-icon"></i><p>โอกาสการชนะ</p></a></li>
+              <li class="nav-item"><a href="../layout/Saleteam.php" class="nav-link"><i class="fas fa-users nav-icon"></i><p>ทีมขาย</p></a></li>
+              <li class="nav-item"><a href="../layout/position_u.php" class="nav-link"><i class="fas fa-user-tag nav-icon"></i><p>ตำแหน่ง</p></a></li>
+              <li class="nav-item"><a href="../layout/Profile_user.php" class="nav-link"><i class="fas fa-id-card nav-icon"></i><p>รายละเอียดผู้ใช้งาน</p></a></li>
+              <li class="nav-item"><a href="../layout/newuser.php" class="nav-link"><i class="fas fa-user-plus nav-icon"></i><p>เพิ่มผู้ใช้งาน</p></a></li>
             </ul>
           </li>
         </ul>
@@ -135,7 +122,7 @@ $mysqli = connectDb();
       </div>
       <div class="col-sm-6">
         <ol class="breadcrumb float-sm-right">
-          <li class="breadcrumb-item"><a href="home_admin.php">หน้าหลัก</a></li>
+          <li class="breadcrumb-item"><a href="../../home_admin.php">หน้าหลัก</a></li>
           <li class="breadcrumb-item active">ข้อมูลบริษัท</li>
         </ol>
       </div>
@@ -158,13 +145,15 @@ $mysqli = connectDb();
                 $limit = 5;
                 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
                 $start = ($page - 1) * $limit;
+
                 $totalQuery = $mysqli->query("SELECT COUNT(*) as total FROM company_catalog");
                 $totalRow = $totalQuery->fetch_assoc()['total'];
                 $totalPages = ceil($totalRow / $limit);
+
                 $companies = $mysqli->query("
                   SELECT cc.company_id, cc.company, ig.Industry
                   FROM company_catalog cc
-                  LEFT JOIN industry_group ig ON cc.Industry_id = ig.industry_id
+                  LEFT JOIN industry_group ig ON cc.Industry_id = ig.Industry_id
                   LIMIT $start, $limit
                 ");
                 while ($c = $companies->fetch_assoc()) {
@@ -178,7 +167,7 @@ $mysqli = connectDb();
                               data-industry='" . htmlspecialchars($c['Industry'], ENT_QUOTES) . "'>
                               <i class='fas fa-edit'></i> Edit
                             </button>
-                            <a href='pages/layout/delete_Top.php?company_id={$c['company_id']}' class='btn btn-sm btn-danger' onclick=\"return confirm('ยืนยันการลบ?')\">
+                            <a href='delete_Top.php?company_id={$c['company_id']}' class='btn btn-sm btn-danger' onclick=\"return confirm('ยืนยันการลบ?')\">
                               <i class='fas fa-trash'></i> Delete
                             </a>
                           </td>
@@ -218,7 +207,7 @@ $mysqli = connectDb();
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form action="pages/layout/add_company.php" method="POST">
+                        <form action="add_company.php" method="POST">
                             <div class="form-group">
                                 <label>ชื่อบริษัท:</label>
                                 <input type="text" name="company" class="form-control" required>
@@ -228,9 +217,9 @@ $mysqli = connectDb();
                                 <select name="industry" class="form-control" required>
                                     <option value="">-- เลือกกลุ่มอุตสาหกรรม --</option>
                                     <?php
-                                    $result = $mysqli->query("SELECT industry_id, Industry FROM Industry_group");
+                                    $result = $mysqli->query("SELECT Industry_id, Industry FROM industry_group");
                                     while ($row = $result->fetch_assoc()) {
-                                    echo "<option value='{$row['industry_id']}'>" . htmlspecialchars($row['Industry']) . "</option>";
+                                    echo "<option value='{$row['Industry_id']}'>" . htmlspecialchars($row['Industry']) . "</option>";
                                     }
                                     ?>
                                 </select>
@@ -252,7 +241,7 @@ $mysqli = connectDb();
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form id="editForm" action="pages/layout/edit_top.php" method="POST">
+                        <form id="editForm" action="edit_top.php" method="POST">
                             <input type="hidden" name="company_id" id="edit_company_id">
                             <div class="form-group">
                                 <label>ชื่อบริษัท:</label>
@@ -263,9 +252,9 @@ $mysqli = connectDb();
                                 <select name="industry" id="edit_industry" class="form-control" required>
                                     <option value="">-- เลือกกลุ่มอุตสาหกรรม --</option>
                                     <?php
-                                    $result = $mysqli->query("SELECT industry_id, Industry FROM Industry_group");
+                                    $result = $mysqli->query("SELECT Industry_id, Industry FROM industry_group");
                                     while ($row = $result->fetch_assoc()) {
-                                    echo "<option value='{$row['industry_id']}'>" . htmlspecialchars($row['Industry']) . "</option>";
+                                    echo "<option value='{$row['Industry_id']}'>" . htmlspecialchars($row['Industry']) . "</option>";
                                     }
                                     ?>
                                 </select>
@@ -279,9 +268,9 @@ $mysqli = connectDb();
     </section>
   </div>
 </div>
-<script src="plugins_v3/jquery/jquery.min.js"></script>
-<script src="plugins_v3/bootstrap/js/bootstrap.bundle.min.js"></script>
-<script src="dist_v3/js/adminlte.min.js"></script>
+<script src="../../plugins_v3/jquery/jquery.min.js"></script>
+<script src="../../plugins_v3/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../dist_v3/js/adminlte.min.js"></script>
 
 <script>
 $(document).ready(function() {
