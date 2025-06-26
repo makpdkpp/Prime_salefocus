@@ -2,6 +2,37 @@
 session_start();
 include("../../functions.php");
 $mysqli = connectDb();
+
+// กำหนดตัวเลือกจำนวนแถว
+$limitOptions = [10, 25, 50, 100];
+$limit = isset($_GET['limit']) && in_array((int)$_GET['limit'], $limitOptions) ? (int)$_GET['limit'] : 10;
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$start = ($page - 1) * $limit;
+
+// รับค่ากรอง Industry
+$filterIndustry = isset($_GET['industry_filter']) && $_GET['industry_filter'] !== '' ? (int)$_GET['industry_filter'] : '';
+$where = $filterIndustry ? "WHERE cc.Industry_id = {$filterIndustry}" : '';
+
+// คำนวณ pagination
+$totalQuery = $mysqli->query("SELECT COUNT(*) as total FROM company_catalog cc $where");
+$totalRow = $totalQuery->fetch_assoc()['total'];
+$totalPages = ceil($totalRow / $limit);
+
+// จัดเรียง A–Z ก่อน ก–ฮ
+$collationLatin = 'utf8mb4_unicode_ci';
+$orderExpr = "CASE WHEN cc.company REGEXP '^[A-Za-z]' THEN 0 ELSE 1 END, cc.company COLLATE $collationLatin ASC";
+
+// ดึงข้อมูล
+$sql = "SELECT cc.company_id, cc.company, cc.Industry_id, ig.Industry
+        FROM company_catalog cc
+        LEFT JOIN industry_group ig ON cc.Industry_id = ig.Industry_id
+        $where
+        ORDER BY $orderExpr
+        LIMIT $start, $limit";
+$companies = $mysqli->query($sql);
+
+// ดึง list อุตสาหกรรม สำหรับ dropdown กรอง
+$industries = $mysqli->query("SELECT Industry_id, Industry FROM industry_group ORDER BY Industry COLLATE utf8mb4_unicode_ci");
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -9,26 +40,18 @@ $mysqli = connectDb();
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ข้อมูลบริษัท | PrimeForecast</title>
-
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <link rel="stylesheet" href="../../plugins_v3/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="../../dist_v3/css/adminlte.min.css">
-
   <style>
-    /* สไตล์ที่คุณกำหนดเอง */
     body { background-color: #f4f6f9; }
     .content-wrapper { background-color: #b3d6e4; }
-    .card-custom { background: #fff; border-radius: 10px; padding: 25px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
-    .table thead { background: #0056b3; color: #fff; }
     .container1 { background: #fff; border-radius: 10px; padding: 25px; margin: 20px auto; box-shadow: 0 2px 6px rgba(0,0,0,0.1); max-width: 1100px; }
+    .table thead { background: #0056b3; color: #fff; }
     .btn-add { position: fixed; bottom: 30px; right: 30px; background: #0056b3; color: #fff; border-radius: 50%; width: 56px; height: 56px; font-size: 24px; border: none; z-index: 1040; }
     .modal-content { border-radius: 10px; padding: 20px; }
     .pagination .page-item.active .page-link { background-color: #0056b3; border-color: #0056b3; }
-
-    /* ✅ โค้ดที่แก้ไข: ลบร่องสีขาวใต้ Navbar */
-    .main-header.navbar {
-        border-bottom: none;
-    }
+    .main-header.navbar { border-bottom: none; }
   </style>
 </head>
 <body class="hold-transition sidebar-mini">
@@ -114,84 +137,62 @@ $mysqli = connectDb();
     </aside>
 
   <div class="content-wrapper">
-  <section class="content-header">
-  <div class="container-fluid">
-    <div class="row mb-2">
-      <div class="col-sm-6">
-        <h1></h1>
-      </div>
-      <div class="col-sm-6">
-        <ol class="breadcrumb float-sm-right">
-          <li class="breadcrumb-item"><a href="../../home_admin.php">หน้าหลัก</a></li>
-          <li class="breadcrumb-item active">ข้อมูลบริษัท</li>
-        </ol>
-      </div>
-    </div>
-  </div></section>
+    <section class="content-header">
+      <div class="container-fluid"><div class="row mb-2"><div class="col-sm-6"></div><div class="col-sm-6"><ol class="breadcrumb float-sm-right"><li class="breadcrumb-item"><a href="../../home_admin.php">หน้าหลัก</a></li><li class="breadcrumb-item active">ข้อมูลบริษัท</li></ol></div></div></div>
+    </section>
     <section class="content">
-        <div class="container1">
-            <h3>ข้อมูลบริษัท</h3>
-            <input class="form-control mb-3" id="searchInput" type="text" placeholder="ค้นหาบริษัท...">
-            <table class="table table-bordered table-hover">
-              <thead>
-                <tr>
-                  <th>บริษัท</th>
-                  <th>อุตสาหกรรม</th>
-                  <th style="width:160px;">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="companyTable">
-                <?php
-                $limit = 5;
-                $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-                $start = ($page - 1) * $limit;
+      <div class="container1">
+        <h1>ข้อมูลบริษัท</h1>
+        <input id="searchInput" class="form-control mb-3" type="text" placeholder="ค้นหาบริษัท...">
 
-                $totalQuery = $mysqli->query("SELECT COUNT(*) as total FROM company_catalog");
-                $totalRow = $totalQuery->fetch_assoc()['total'];
-                $totalPages = ceil($totalRow / $limit);
+        <!-- ฟอร์มกรองและจำนวนแถว -->
+        <form method="get" class="form-inline mb-3">
+          <label class="mr-2">กรองอุตสาหกรรม:</label>
+          <select name="industry_filter" class="form-control mr-3" onchange="this.form.submit()">
+            <option value="">-- ทุกกลุ่ม --</option>
+            <?php while($rowI = $industries->fetch_assoc()): ?>
+            <option value="<?= $rowI['Industry_id'] ?>" <?= $filterIndustry == $rowI['Industry_id'] ? 'selected' : '' ?>><?= htmlspecialchars($rowI['Industry']) ?></option>
+            <?php endwhile; ?>
+          </select>
 
-                $companies = $mysqli->query("
-                  SELECT cc.company_id, cc.company, ig.Industry
-                  FROM company_catalog cc
-                  LEFT JOIN industry_group ig ON cc.Industry_id = ig.Industry_id
-                  LIMIT $start, $limit
-                ");
-                while ($c = $companies->fetch_assoc()) {
-                  echo "<tr>
-                          <td>" . htmlspecialchars($c['company']) . "</td>
-                          <td>" . htmlspecialchars($c['Industry']) . "</td>
-                          <td>
-                            <button class='btn btn-sm btn-info btn-edit'
-                              data-id='{$c['company_id']}'
-                              data-name='" . htmlspecialchars($c['company'], ENT_QUOTES) . "'
-                              data-industry='" . htmlspecialchars($c['Industry'], ENT_QUOTES) . "'>
-                              <i class='fas fa-edit'></i> Edit
-                            </button>
-                            <a href='delete_Top.php?company_id={$c['company_id']}' class='btn btn-sm btn-danger' onclick=\"return confirm('ยืนยันการลบ?')\">
-                              <i class='fas fa-trash'></i> Delete
-                            </a>
-                          </td>
-                        </tr>";
-                }
-                ?>
-              </tbody>
-            </table>
-            <nav>
-                <ul class="pagination justify-content-center mt-3">
-                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
-                        <a class="page-link" href="?page=<?= $page - 1 ?>">ก่อนหน้า</a>
-                    </li>
-                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                        <li class="page-item <?= $i == $page ? 'active' : '' ?>">
-                        <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
-                        </li>
-                    <?php endfor; ?>
-                    <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
-                        <a class="page-link" href="?page=<?= $page + 1 ?>">ถัดไป</a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
+          <label class="mr-2">จำนวนแถว:</label>
+          <select name="limit" class="form-control mr-2" onchange="this.form.submit()">
+            <?php foreach ($limitOptions as $opt): ?>
+            <option value="<?= $opt ?>" <?= $opt == $limit ? 'selected' : '' ?>><?= $opt ?></option>
+            <?php endforeach; ?>
+          </select>
+          <input type="hidden" name="page" value="<?= $page ?>">
+        </form>
+
+        <!-- ตารางข้อมูลบริษัท -->
+        <table class="table table-bordered table-hover">
+          <thead>
+            <tr><th>บริษัท</th><th>อุตสาหกรรม</th><th style="width:160px;">Actions</th></tr>
+          </thead>
+          <tbody id="companyTable">
+            <?php while ($c = $companies->fetch_assoc()): ?>
+            <tr>
+              <td><?= htmlspecialchars($c['company']) ?></td>
+              <td><?= htmlspecialchars($c['Industry']) ?></td>
+              <td>
+                <button class="btn btn-sm btn-info btn-edit" data-id="<?= $c['company_id'] ?>" data-name="<?= htmlspecialchars($c['company'], ENT_QUOTES) ?>" data-industry-id="<?= $c['Industry_id'] ?>"><i class="fas fa-edit"></i> Edit</button>
+                <a href="delete_Top.php?company_id=<?= $c['company_id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('ยืนยันการลบ?')"><i class="fas fa-trash"></i> Delete</a>
+              </td>
+            </tr>
+            <?php endwhile; ?>
+          </tbody>
+        </table>
+
+        <!-- pagination -->
+        <nav>
+          <ul class="pagination justify-content-center mt-3">
+            <li class="page-item <?= $page<=1?'disabled':'' ?>"><a class="page-link" href="?page=<?= $page-1 ?>&limit=<?= $limit ?>&industry_filter=<?= $filterIndustry ?>">ก่อนหน้า</a></li>
+            <?php for($i=1;$i<=$totalPages;$i++): ?>
+            <li class="page-item <?= $i==$page?'active':'' ?>"><a class="page-link" href="?page=<?= $i ?>&limit=<?= $limit ?>&industry_filter=<?= $filterIndustry ?>"><?= $i ?></a></li>
+            <?php endfor; ?>
+            <li class="page-item <?= $page>=$totalPages?'disabled':'' ?>"><a class="page-link" href="?page=<?= $page+1 ?>&limit=<?= $limit ?>&industry_filter=<?= $filterIndustry ?>">ถัดไป</a></li>
+          </ul>
+        </nav>
 
         <button class="btn-add" data-toggle="modal" data-target="#addModal">
             <i class="fa fa-plus"></i>
@@ -266,37 +267,17 @@ $mysqli = connectDb();
             </div>
         </div>
     </section>
+      </div>
+    </section>
   </div>
 </div>
 <script src="../../plugins_v3/jquery/jquery.min.js"></script>
 <script src="../../plugins_v3/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="../../dist_v3/js/adminlte.min.js"></script>
-
 <script>
-$(document).ready(function() {
-  // Edit button functionality
-  $('#companyTable').on('click', '.btn-edit', function() {
-    const id = $(this).data('id');
-    const name = $(this).data('name');
-    const industry = $(this).data('industry');
-
-    $('#edit_company_id').val(id);
-    $('#edit_company_name').val(name);
-
-    $('#edit_industry option').filter(function() {
-        return $(this).text().trim() == industry.toString().trim();
-    }).prop('selected', true);
-
-    $('#editModal').modal('show');
-  });
-
-  // Search functionality
-  $("#searchInput").on("keyup", function() {
-    var value = $(this).val().toLowerCase();
-    $("#companyTable tr").filter(function() {
-      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-    });
-  });
+$(function(){
+  $('#searchInput').on('keyup',function(){var v=$(this).val().toLowerCase();$('#companyTable tr').filter(function(){$(this).toggle($(this).text().toLowerCase().indexOf(v)>-1);});});
+  $('#companyTable').on('click','.btn-edit',function(){var id=$(this).data('id'),name=$(this).data('name'),indId=$(this).attr('data-industry-id');$('#edit_company_id').val(id);$('#edit_company_name').val(name);$('#edit_industry').val(indId);$('#editModal').modal('show');});
 });
 </script>
 </body>
