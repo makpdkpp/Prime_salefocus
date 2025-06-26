@@ -42,6 +42,7 @@ if ($rs) {
       .main-header.navbar {
           border-bottom: none;
       }
+      .sidebar {padding-bottom: 30px; }
     </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
