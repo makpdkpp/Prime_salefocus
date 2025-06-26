@@ -54,6 +54,7 @@ $email = htmlspecialchars($_SESSION['email']);
       margin: 0;
       color: #333;
     }
+    .sidebar {padding-bottom: 30px; }
   </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
