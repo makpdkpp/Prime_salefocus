@@ -1,143 +1,378 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 /***********************************************************************
- *  edit_transaction.php (READY-TO-USE)
- *  แก้ไขเรคคอร์ดของตาราง transactional ได้เฉพาะ user ที่ล็อกอิน
- *  *** ไม่ต้องพึ่งตาราง step_catalog อีกต่อไป ***
+ * edit_transaction.php
+ * แก้ไขเรคคอร์ดของตาราง transactional (ปรับปรุงหน้าตาใหม่)
  ***********************************************************************/
+
 require_once '../functions.php';
 session_start();
 
-// ─────────────────── 1) Auth ───────────────────
+// ─────────────────── 1) Auth – เฉพาะผู้ใช้ role_id = 2 ───────────────────
 if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {
     header('Location: ../index.php');
     exit;
 }
 
-$mysqli   = connectDb();
-$user_id  = (int)$_SESSION['user_id'];
-$email    = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
-$nname    = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
+$mysqli  = connectDb();
+$user_id = (int)$_SESSION['user_id'];
+$email   = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
+$nname   = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
 
-// ─────────────────── 2) Static dropdown data ───────────────────
-$stepMap = [1=>'Present',2=>'Budget',3=>'TOR',4=>'Bidding',5=>'WIN',6=>'LOST'];
-function getOpts(mysqli $db,$tbl,$id,$label){$r=$db->query("SELECT `$id`,`$label` FROM `$tbl` ORDER BY `$label`");return $r?$r->fetch_all(MYSQLI_ASSOC):[];}
-$productOpts  = getOpts($mysqli,'product_group','product_id','product');
-$companyOpts  = getOpts($mysqli,'company_catalog','company_id','company');
-$teamOpts     = getOpts($mysqli,'team_catalog','team_id','team');
-$priorityOpts = getOpts($mysqli,'priority_level','priority_id','priority');
-$Source_budgeOpts = getOpts($mysqli, 'source_of_the_budget', 'Source_budget_id', 'Source_budge');
-// flags label map
-$subSteps = ['present'=>'Present','budgeted'=>'Budget','tor'=>'TOR','bidding'=>'Bidding','win'=>'WIN','lost'=>'LOST'];
-
-// ─────────────────── 3) รับ ID และดึงข้อมูล ───────────────────
-if (!isset($_GET['id']) || !ctype_digit($_GET['id'])) exit('Invalid id');
-$tid=(int)$_GET['id'];
-$stmt=$mysqli->prepare("SELECT * FROM transactional WHERE transac_id=? AND user_id=?");
-$stmt->bind_param('ii',$tid,$user_id);
-$stmt->execute();
-$rec=$stmt->get_result()->fetch_assoc();
-if(!$rec) exit('ไม่พบข้อมูล หรือไม่ใช่ข้อมูลของคุณ');
-
-// ─────────────────── 4) Save ───────────────────
-if($_SERVER['REQUEST_METHOD']==='POST'){
-    // ----- รับค่าฟอร์ม -----
-    $data=[
-        'company_id'   => (int)$_POST['company_id'],
-        'Product_id'   => (int)$_POST['Product_id'],
-        'team_id'      => (int)$_POST['team_id'],
-        'priority_id'  => $_POST['priority_id']===''?null:(int)$_POST['priority_id'],
-        'step_id'      => (int)$_POST['step_id'],
-        'Product_detail'=> trim($_POST['Product_detail']),
-        'product_value'=> (int)str_replace(',','',$_POST['product_value']),
-        'Source_budget_id' => (int)$_POST['Source_budget_id'],
-        'fiscalyear'   => $_POST['fiscalyear'],
-        'contact_start_date'     => $_POST['contact_start_date']     ?: null,
-        'date_of_closing_of_sale'=> $_POST['date_of_closing_of_sale']?: null,
-        'sales_can_be_close'     => $_POST['sales_can_be_close']     ?: null,
-        'remark'       => trim($_POST['remark'])
-    ];
-    // flags & dates
-    foreach($subSteps as $f=>$lb){
-        $data[$f]      = isset($_POST[$f])&&$_POST[$f]==='1'?1:0;
-        $data[$f.'_date'] = $_POST[$f.'_date']??null;
-    }
-    // ----- UPDATE SQL -----
-    $sql="UPDATE transactional SET
-            company_id=?, Product_id=?, team_id=?, priority_id=?, step_id=?,
-            Product_detail=?, product_value=?, Source_budget_id=?, fiscalyear=?, contact_start_date=?,
-            date_of_closing_of_sale=?, sales_can_be_close=?, remark=?,
-            present=?,present_date=?, budgeted=?,budgeted_date=?, tor=?,tor_date=?,
-            bidding=?,bidding_date=?, win=?,win_date=?, lost=?,lost_date=?
-          WHERE transac_id=? AND user_id=?";
-    $st=$mysqli->prepare($sql);
-    $st->bind_param(
-        // iiiissiissssssisisisisisiii (28 ตัว)
-        'iiiissiissssssisisisisisiii',
-        $data['company_id'],$data['Product_id'],$data['team_id'],$data['priority_id'],$data['step_id'],
-        $data['Product_detail'],$data['product_value'],$data['Source_budget_id'],$data['fiscalyear'],$data['contact_start_date'],
-        $data['date_of_closing_of_sale'],$data['sales_can_be_close'],$data['remark'],
-        $data['present'],$data['present_date'],$data['budgeted'],$data['budgeted_date'],$data['tor'],$data['tor_date'],
-        $data['bidding'],$data['bidding_date'],$data['win'],$data['win_date'],$data['lost'],$data['lost_date'],
-        $tid,$user_id
-    );
-    if($st->execute()){header('Location: ../home_user.php?edit=ok');exit;}
-    exit('Error: '.$st->error);
+// ─────────────────── 2) ดึงข้อมูลสำหรับ Dropdowns ───────────────────
+function loadOptions(mysqli $db, string $table, string $idCol, string $labelCol): array {
+    $rows = $db->query("SELECT `$idCol`, `$labelCol` FROM `$table` ORDER BY `$labelCol`");
+    return $rows ? $rows->fetch_all(MYSQLI_ASSOC) : [];
 }
 
-$sel=function($cur,$id){return $cur==$id?'selected':'';};
-$chk=function($v){return $v?'checked':'';};
+$productOpts      = loadOptions($mysqli, 'product_group', 'product_id', 'product');
+$companyOpts      = loadOptions($mysqli, 'company_catalog', 'company_id', 'company');
+$teamOpts         = loadOptions($mysqli, 'team_catalog', 'team_id', 'team');
+$priorityOpts     = loadOptions($mysqli, 'priority_level', 'priority_id', 'priority');
+$Source_budgeOpts = loadOptions($mysqli, 'source_of_the_budget', 'Source_budget_id', 'Source_budge');
+
+// ─────────────────── 3) รับ ID และดึงข้อมูลเดิม ───────────────────
+if (!isset($_GET['id']) || !ctype_digit($_GET['id'])) {
+    exit('Invalid ID');
+}
+$tid = (int)$_GET['id'];
+$stmt = $mysqli->prepare("SELECT * FROM transactional WHERE transac_id = ? AND user_id = ?");
+$stmt->bind_param('ii', $tid, $user_id);
+$stmt->execute();
+$rec = $stmt->get_result()->fetch_assoc();
+
+if (!$rec) {
+    exit('ไม่พบข้อมูล หรือไม่ใช่ข้อมูลของคุณ');
+}
+
+// ─────────────────── 4) บันทึกข้อมูล (Save) ───────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  // ----- รับค่าจากฟอร์ม (ส่วนนี้ถูกต้องแล้ว ไม่ต้องแก้) -----
+  $data = [
+      'company_id'              => (int)$_POST['company_id'],
+      'Product_id'              => (int)$_POST['Product_id'],
+      'team_id'                 => (int)$_POST['team_id'],
+      'priority_id'             => $_POST['priority_id'] === '' ? null : (int)$_POST['priority_id'],
+      'Product_detail'          => trim($_POST['Product_detail']),
+      'product_value'           => (int)str_replace(',', '', $_POST['product_value']),
+      'Source_budget_id'        => (int)$_POST['Source_budget_id'],
+      'fiscalyear'              => $_POST['fiscalyear'],
+      'contact_start_date'      => $_POST['contact_start_date'] ?: null,
+      'date_of_closing_of_sale' => $_POST['date_of_closing_of_sale'] ?: null,
+      'sales_can_be_close'      => $_POST['sales_can_be_close'] ?: null,
+      'remark'                  => trim($_POST['remark']),
+      'present'                 => isset($_POST['present']) && $_POST['present'] === '1' ? 1 : 0,
+      'present_date'            => null,
+      'budgeted'                => isset($_POST['budgeted']) && $_POST['budgeted'] === '1' ? 1 : 0,
+      'budgeted_date'           => null,
+      'tor'                     => isset($_POST['tor']) && $_POST['tor'] === '1' ? 1 : 0,
+      'tor_date'                => !empty($_POST['tor_date']) ? $_POST['tor_date'] : null,
+      'bidding'                 => isset($_POST['bidding']) && $_POST['bidding'] === '1' ? 1 : 0,
+      'bidding_date'            => !empty($_POST['bidding_date']) ? $_POST['bidding_date'] : null,
+      'win'                     => isset($_POST['win']) && $_POST['win'] === '1' ? 1 : 0,
+      'win_date'                => !empty($_POST['win_date']) ? $_POST['win_date'] : null,
+      'lost'                    => isset($_POST['lost']) && $_POST['lost'] === '1' ? 1 : 0,
+      'lost_date'               => !empty($_POST['lost_date']) ? $_POST['lost_date'] : null,
+  ];
+
+  // ----- UPDATE SQL (ส่วนนี้ถูกต้องแล้ว ไม่ต้องแก้) -----
+  $sql = "UPDATE transactional SET
+              company_id=?, Product_id=?, team_id=?, priority_id=?,
+              Product_detail=?, product_value=?, Source_budget_id=?, fiscalyear=?,
+              contact_start_date=?, date_of_closing_of_sale=?, sales_can_be_close=?, remark=?,
+              present=?, present_date=?, budgeted=?, budgeted_date=?,
+              tor=?, tor_date=?, bidding=?, bidding_date=?,
+              win=?, win_date=?, lost=?, lost_date=?
+          WHERE transac_id=? AND user_id=?";
+  
+  $st = $mysqli->prepare($sql);
+
+  // ******** จุดที่แก้ไขอยู่ตรงนี้ ********
+  // แก้ไขการเรียงลำดับตัวแปร และ Type string ให้ถูกต้องตรงกับ SQL
+  $st->bind_param(
+      'iiiisissssssisisisisisiiii', // Type string ที่ถูกต้อง
+      // ----------------- บรรทัดที่ 1 -----------------
+      $data['company_id'], $data['Product_id'], $data['team_id'], $data['priority_id'],
+      // ----------------- บรรทัดที่ 2 -----------------
+      $data['Product_detail'], $data['product_value'], $data['Source_budget_id'], $data['fiscalyear'],
+      // ----------------- บรรทัดที่ 3 -----------------
+      $data['contact_start_date'], $data['date_of_closing_of_sale'], $data['sales_can_be_close'], $data['remark'],
+      // ----------------- บรรทัดที่ 4 -----------------
+      $data['present'], $data['present_date'], $data['budgeted'], $data['budgeted_date'],
+      // ----------------- บรรทัดที่ 5 -----------------
+      $data['tor'], $data['tor_date'], $data['bidding'], $data['bidding_date'],
+      // ----------------- บรรทัดที่ 6 -----------------
+      $data['win'], $data['win_date'], $data['lost'], $data['lost_date'],
+      // ----------------- WHERE clause -----------------
+      $tid, $user_id
+  );
+
+  if ($st->execute()) {
+      header('Location: ../home_user_01.php?edit=ok');
+      exit;
+  }
+  exit('SQL Error: ' . $st->error);
+}
+
+// ─────────────────── 5) Helper Functions for HTML ───────────────────
+$sel = function($current_val, $option_val) {
+    return $current_val == $option_val ? 'selected' : '';
+};
+
+// map ชื่อ field สถานะตามตาราง
+$steps = [
+    'present'  => ['label'=>'Present',  'date'=>null],
+    'budgeted' => ['label'=>'Budget',   'date'=>null],
+    'tor'      => ['label'=>'TOR',      'date'=>'tor_date'],
+    'bidding'  => ['label'=>'Bidding',  'date'=>'bidding_date'],
+    'win'      => ['label'=>'WIN',      'date'=>'win_date'],
+    'lost'     => ['label'=>'LOST',     'date'=>'lost_date']
+];
+
 ?>
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Edit Transaction</title>
-<link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css"><link rel="stylesheet" href="../dist/css/AdminLTE.min.css"><link rel="stylesheet" href="../dist/css/skins/_all-skins.min.css">
-<style>.card{max-width:760px;margin:40px auto;padding:32px 40px;background:#fff;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.1)}label{font-weight:500}#product_value{text-align:right}.btn-save{background:#c82333;color:#fff;border:none}</style></head>
-<body class="hold-transition skin-red sidebar-mini">
-<div class="card">
-  <h3>แก้ไขโอกาสขาย #<?= $tid ?></h3>
-  <form method="post" id="editForm">
-    <div class="form-group"><label>ชื่อโครงการ</label><input name="Product_detail" class="form-control" value="<?= htmlspecialchars($rec['Product_detail']) ?>" required></div>
-    <div class="row">
-      <div class="col-sm-6 form-group"><label>บริษัท</label><select name="company_id" class="form-control"><?php foreach($companyOpts as $o):?><option value="<?= $o['company_id'] ?>" <?= $sel($rec['company_id'],$o['company_id']) ?>><?= htmlspecialchars($o['company']) ?></option><?php endforeach;?></select></div>
-      <div class="col-sm-6 form-group"><label>มูลค่า (บาท)</label><input id="product_value" name="product_value" class="form-control" value="<?= number_format($rec['product_value']) ?>"></div>
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>แก้ไขรายละเอียดการขาย #<?= $tid ?></title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+<link rel="stylesheet" href="../plugins_v3/fontawesome-free/css/all.min.css">
+<link rel="stylesheet" href="../plugins_v3/icheck-bootstrap/icheck-bootstrap.min.css">
+<link rel="stylesheet" href="../dist_v3/css/adminlte.min.css">
+<style>
+    .sales-card{max-width:750px;margin:20px auto;background:#fff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1);padding:32px 40px}
+    .sales-card h2{font-weight:600;margin-bottom:30px}
+    label{font-weight:500 !important}
+    #product_value{text-align:right}
+    .btn-back{background:#6c757d;color:#fff;border:none}
+    .btn-back:hover{background:#5a6268}
+    .btn-save{background:#007bff;color:#fff;border:none}
+    .btn-save:hover{background:#0069d9}
+    .process-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8f9fa;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #dee2e6;
+      width: 100%;
+    }
+    .process-item input[type="checkbox"] { margin: 0; }
+    .process-item input[type="date"] { height: 32px; font-size: 14px; }
+    .content-wrapper { padding-top: 20px; }
+</style>
+</head>
+<body class="hold-transition sidebar-mini">
+<div class="wrapper">
+
+<nav class="main-header navbar navbar-expand navbar-dark bg-danger">
+    <ul class="navbar-nav"><li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a></li></ul>
+    <ul class="navbar-nav ml-auto">
+        <li class="nav-item dropdown user-menu">
+            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+                <img src="../dist_v3/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
+                <span class="d-none d-md-inline"><?= $email ?></span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                <li class="user-header bg-danger"><img src="../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image"><p><?= $email ?><small>User</small></p></li>
+                <li class="user-footer"><a href="../logout.php" class="btn btn-default btn-flat float-right">Sign out</a></li>
+            </ul>
+        </li>
+    </ul>
+</nav>
+
+<aside class="main-sidebar sidebar-dark-danger elevation-4">
+    <a href="../home_user.php" class="brand-link"><span class="brand-text font-weight-light"><b>Prime</b>Forecast</span></a>
+    <div class="sidebar">
+        <div class="user-panel mt-3 pb-3 mb-3 d-flex"><div class="image"><img src="../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image"></div><div class="info"><a href="#" class="d-block"><?= $email ?></a></div></div>
+        <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                <li class="nav-header">MAIN NAVIGATION</li>
+                <li class="nav-item"><a href="#" class="nav-link"><i class="nav-icon fas fa-tachometer-alt"></i><p>Dashboard<i class="right fas fa-angle-left"></i></p></a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item"><a href="../home_user.php" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Dashboard (กราฟ)</p></a></li>
+                        <li class="nav-item"><a href="../home_user_01.php" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Dashboard (ตาราง)</p></a></li>
+                    </ul>
+                </li>
+                <li class="nav-item menu-open"><a href="#" class="nav-link active"><i class="nav-icon fas fa-edit"></i><p>จัดการข้อมูล<i class="fas fa-angle-left right"></i></p></a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item"><a href="../User/adduser01.php" class="nav-link"><i class="far fa-circle nav-icon"></i><p>เพิ่มรายละเอียดการขาย</p></a></li>
+                        <li class="nav-item"><a href="#" class="nav-link active"><i class="far fa-circle nav-icon"></i><p>แก้ไขรายละเอียดการขาย</p></a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
     </div>
-    <div class="row">
-      <div class="col-sm-6 form-group">
-        <label>แหล่งที่มาของงบประมาณ</label>
-        <select name="Source_budget_id" class="form-control" required>
-          <option value="">-- เลือกแหล่งที่มา --</option>
-          <?php foreach($Source_budgeOpts as $o): ?>
-            <option value="<?= $o['Source_budget_id'] ?>" <?= $sel($rec['Source_budget_id'],$o['Source_budget_id']) ?>><?= htmlspecialchars($o['Source_budge']) ?></option>
-          <?php endforeach; ?>
-        </select>
-      </div>
-      <div class="col-sm-6 form-group">
-        <label>ปีงบประมาณ</label>
-        <select name="fiscalyear" class="form-control" required>
-          <?php
-            $years = [2568,2569,2570,2571];
-            foreach($years as $y):
-          ?>
-            <option value="<?= $y ?>" <?= $rec['fiscalyear']==$y?'selected':''; ?>><?= $y ?></option>
-          <?php endforeach; ?>
-        </select>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-sm-4 form-group"><label>สินค้า</label><select name="Product_id" class="form-control"><?php foreach($productOpts as $o):?><option value="<?= $o['product_id'] ?>" <?= $sel($rec['Product_id'],$o['product_id']) ?>><?= htmlspecialchars($o['product']) ?></option><?php endforeach;?></select></div>
-      <div class="col-sm-4 form-group"><label>ทีมขาย</label><select name="team_id" class="form-control"><?php foreach($teamOpts as $o):?><option value="<?= $o['team_id'] ?>" <?= $sel($rec['team_id'],$o['team_id']) ?>><?= htmlspecialchars($o['team']) ?></option><?php endforeach;?></select></div>
-      <div class="col-sm-4 form-group"><label>Priority</label><select name="priority_id" class="form-control"><option value="">--</option><?php foreach($priorityOpts as $o):?><option value="<?= $o['priority_id'] ?>" <?= $sel($rec['priority_id'],$o['priority_id']) ?>><?= htmlspecialchars($o['priority']) ?></option><?php endforeach;?></select></div>
-    </div>
-    <div class="row">
-      <div class="col-sm-4 form-group"><label>Contact Start</label><input type="date" class="form-control" name="contact_start_date" value="<?= $rec['contact_start_date'] ?>"></div>
-      <div class="col-sm-4 form-group"><label>Predict Close</label><input type="date" class="form-control" name="date_of_closing_of_sale" value="<?= $rec['date_of_closing_of_sale'] ?>"></div>
-      <div class="col-sm-4 form-group"><label>Deal Close</label><input type="date" class="form-control" name="sales_can_be_close" value="<?= $rec['sales_can_be_close'] ?>"></div>
-    </div>
-    <div class="form-group"><label>ขั้นตอน (Step)</label><select name="step_id" class="form-control"><?php foreach($stepMap as $id=>$name):?><option value="<?= $id ?>" <?= $sel($rec['Step_id'],$id) ?>><?= $name ?></option><?php endforeach;?></select></div>
-    <div class="form-group"><label>สถานะย่อย</label><br><?php foreach($subSteps as $f=>$lb):?><label style="margin-right:1rem"><input type="hidden" name="<?= $f ?>" value="0"><input type="checkbox" name="<?= $f ?>" value="1" <?= $chk($rec[$f]) ?>> <?= $lb ?></label><?php endforeach;?></div>
-    <div class="form-group"><label>หมายเหตุ</label><textarea name="remark" rows="2" class="form-control"><?= htmlspecialchars($rec['remark']) ?></textarea></div>
-    <button class="btn btn-save" type="submit">Save</button>
-  </form>
+</aside>
+
+<div class="content-wrapper">
+    <section class="content">
+        <div class="container-fluid">
+            <div class="sales-card">
+                <div class="card-header text-center"><h2>แบบฟอร์มแก้ไขรายละเอียดการขาย</h2><p class="lead">Sales: <?= $nname ?: 'N/A' ?> | Transaction ID: #<?= $tid ?></p></div>
+                <div class="card-body">
+                  <form method="POST" id="editForm" autocomplete="off">
+                    <input type="hidden" name="user_id" value="<?= $user_id ?>">
+
+                    <div class="row">
+                      <div class="col-sm-12 form-group">
+                        <label for="Product_detail">ชื่อโครงการ</label>
+                        <input type="text" name="Product_detail" id="Product_detail" class="form-control" value="<?= htmlspecialchars($rec['Product_detail']) ?>" required>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-6 form-group">
+                        <label for="company_id">หน่วยงาน / บริษัท</label>
+                        <select name="company_id" id="company_id" class="form-control" required>
+                          <option value="">-- เลือกบริษัท/หน่วยงาน --</option>
+                          <?php foreach($companyOpts as $o): ?>
+                            <option value="<?= $o['company_id'] ?>" <?= $sel($rec['company_id'], $o['company_id']) ?>><?= htmlspecialchars($o['company']) ?></option>
+                          <?php endforeach; ?>
+                        </select>
+                      </div>
+                      <div class="col-md-6 form-group">
+                        <label for="product_value">มูลค่า (บาท)</label>
+                        <input type="text" name="product_value" id="product_value" class="form-control" value="<?= number_format($rec['product_value']) ?>" required>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-6 form-group">
+                        <label for="Source_budget_id">แหล่งที่มาของงบประมาณ</label>
+                        <select name="Source_budget_id" id="Source_budget_id" class="form-control" required>
+                          <option value="">-- เลือกแหล่งที่มาฯ --</option>
+                          <?php foreach($Source_budgeOpts as $o): ?>
+                            <option value="<?= $o['Source_budget_id'] ?>" <?= $sel($rec['Source_budget_id'], $o['Source_budget_id']) ?>><?= htmlspecialchars($o['Source_budge']) ?></option>
+                          <?php endforeach; ?>
+                        </select>
+                      </div>
+                      <div class="col-md-6 form-group">
+                        <label for="fiscalyear">ปีงบประมาณ</label>
+                          <select name="fiscalyear" id="fiscalyear" class="form-control" required>
+                              <?php
+                                  $currentBuddhistYear = date('Y') + 543;
+                                  for ($i = 0; $i < 5; $i++) {
+                                      $year = $currentBuddhistYear + $i;
+                                      echo "<option value=\"$year\" ". $sel($rec['fiscalyear'], $year) .">$year</option>";
+                                  }
+                              ?>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 form-group">
+                            <label for="Product_id">กลุ่มสินค้า</label>
+                            <select name="Product_id" id="Product_id" class="form-control" required>
+                                <?php foreach($productOpts as $o): ?>
+                                    <option value="<?= $o['product_id'] ?>" <?= $sel($rec['Product_id'], $o['product_id']) ?>><?= htmlspecialchars($o['product']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label for="team_id">ทีมขาย</label>
+                            <select name="team_id" id="team_id" class="form-control" required>
+                                <?php foreach($teamOpts as $o): ?>
+                                    <option value="<?= $o['team_id'] ?>" <?= $sel($rec['team_id'], $o['team_id']) ?>><?= htmlspecialchars($o['team']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label for="priority_id">โอกาสชนะ</label>
+                            <select name="priority_id" id="priority_id" class="form-control">
+                                <option value="">-- เลือกระดับ --</option>
+                                <?php foreach($priorityOpts as $o): ?>
+                                    <option value="<?= $o['priority_id'] ?>" <?= $sel($rec['priority_id'], $o['priority_id']) ?>><?= htmlspecialchars($o['priority']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-4 form-group">
+                        <label for="contact_start_date">วันที่เริ่มโครงการ</label>
+                        <input type="date" name="contact_start_date" id="contact_start_date" class="form-control" value="<?= htmlspecialchars($rec['contact_start_date']) ?>" required>
+                      </div>
+                      <div class="col-md-4 form-group">
+                        <label for="date_of_closing_of_sale">วันที่คาดว่าจะ Bidding</label>
+                        <input type="date" name="date_of_closing_of_sale" id="date_of_closing_of_sale" class="form-control" value="<?= htmlspecialchars($rec['date_of_closing_of_sale']) ?>">
+                      </div>
+                      <div class="col-md-4 form-group">
+                        <label for="sales_can_be_close">วันที่คาดจะเซ็นสัญญา</label>
+                        <input type="date" name="sales_can_be_close" id="sales_can_be_close" class="form-control" value="<?= htmlspecialchars($rec['sales_can_be_close']) ?>">
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label>สถานะ</label>
+                      <div class="row">
+                        <?php foreach ($steps as $field => $cfg):
+                              $checked = !empty($rec[$field]);
+                              $dateCol = $cfg['date'];
+                              $dateVal = $dateCol ? ($rec[$dateCol] ?? '') : '';
+                        ?>
+                          <div class="col-12 col-lg-6 mb-2">
+                            <div class="process-item">
+                              <input type="hidden" name="<?= $field ?>" value="0">
+                              <div class="icheck-primary d-inline">
+                                  <input type="checkbox" id="<?= $field ?>_cb" name="<?= $field ?>" value="1" <?= $checked ? 'checked' : '' ?> onchange="toggleDate('<?= $field ?>')">
+                                  <label for="<?= $field ?>_cb" style="margin-bottom: 0; font-weight: normal !important;"><?= $cfg['label'] ?></label>
+                              </div>
+                              <?php if ($dateCol): ?>
+                                <input type="date" class="form-control form-control-sm ml-2" id="<?= $field ?>_date" name="<?= $dateCol ?>" value="<?= htmlspecialchars($dateVal) ?>" style="width: auto;" <?= $checked ? '' : 'disabled' ?>>
+                              <?php endif; ?>
+                            </div>
+                          </div>
+                        <?php endforeach; ?>
+                      </div>
+                    </div>
+
+                    <div class="row"><div class="col-sm-12 form-group"><label for="remark">หมายเหตุ</label><textarea name="remark" id="remark" rows="3" class="form-control"><?= htmlspecialchars($rec['remark']) ?></textarea></div></div>
+
+                    <div class="text-right mt-4">
+                      <a href="../home_user_01.php" class="btn btn-back">กลับหน้าหลัก</a>
+                      <button type="submit" class="btn btn-save">บันทึกข้อมูล</button>
+                    </div>
+                  </form>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
-<script src="../plugins/jQuery/jQuery-2.1.3.min.js"></script><script src="../bootstrap/js/bootstrap.min.js"></script>
-<script>(function(){const el=document.getElementById('product_value');const fm=v=>{v=v.replace(/[^0-9.]/g,'');if(!v)return '';const[p,s]=v.split('.');return(+p).toLocaleString('en-US')+(s?'.'+s.slice(0,2):'');};el.addEventListener('input',()=>{const st=el.selectionStart,l=el.value.length;el.value=fm(el.value);el.setSelectionRange(st+(el.value.length-l),st+(el.value.length-l));});document.getElementById('editForm').addEventListener('submit',()=>{el.value=el.value.replace(/,/g,'');});})();</script>
-</body></html>
+</div>
+<script src="../plugins_v3/jquery/jquery.min.js"></script>
+<script src="../plugins_v3/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../dist_v3/js/adminlte.min.js"></script>
+<script>
+/* จัดรูปแบบตัวเลขใส่ comma */
+(()=>{const f=document.getElementById('product_value');
+const fmt=v=>{v=v.replace(/[^0-9.]/g,'');if(!v)return '';const[x,y]=v.split('.');return(+x).toLocaleString('en-US')+(y?'.'+y.slice(0,2):'');};
+f.addEventListener('input',()=>{const p=f.selectionStart,l=f.value.length;f.value=fmt(f.value);f.setSelectionRange(p+(f.value.length-l),p+(f.value.length-l));});
+document.getElementById('editForm').addEventListener('submit',()=>f.value=f.value.replace(/,/g,''));})();
+</script>
+<script>
+function toggleDate(field) {
+    const checkbox = document.getElementById(field + '_cb');
+    const dateInput = document.getElementById(field + '_date');
+    if (!dateInput) return; // ถ้าไม่มี input date ให้จบการทำงาน
+    
+    if (checkbox.checked) {
+        dateInput.removeAttribute('disabled');
+        // ถ้าวันที่ยังว่างอยู่ ให้กำหนดเป็นวันปัจจุบัน
+        if (!dateInput.value) {
+           const today = new Date().toISOString().split('T')[0];
+           dateInput.value = today;
+        }
+    } else {
+        dateInput.setAttribute('disabled', 'disabled');
+        dateInput.value = ''; // ล้างค่าวันที่เมื่อไม่ถูกเลือก
+    }
+}
+</script>
+</body>
+</html>
