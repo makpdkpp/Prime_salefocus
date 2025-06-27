@@ -8,7 +8,7 @@
 function connectDb(): mysqli
 {
         $host = '127.0.0.1';
-        $db   = 'primes_saledemo';
+        $db   = 'sale';
         $user = 'root';
         $pass = '';
 
