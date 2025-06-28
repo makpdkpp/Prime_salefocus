@@ -1,6 +1,7 @@
 <?php
 require_once '../../functions.php';
 session_start();
+$avatar = htmlspecialchars($_SESSION['avatar'] ?? 'dist/img/user2-160x160.jpg', ENT_QUOTES, 'UTF-8');
 
 if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 1) {
     header('Location: ../../index.php'); exit;
@@ -65,12 +66,12 @@ if ($rs) {
     <ul class="navbar-nav ml-auto">
       <li class="nav-item dropdown user-menu">
         <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-          <img src="../../dist_v3/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
+          <img src="../../<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
           <span class="d-none d-md-inline text-white"><?= $email ?></span>
         </a>
         <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
           <li class="user-header" style="background-color: #0056b3; color: #fff;">
-            <img src="../../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+            <img src="../../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
             <p><?= $email ?><small>Administrator</small></p>
           </li>
           <li class="user-footer">
@@ -88,7 +89,7 @@ if ($rs) {
     <div class="sidebar">
       <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
         <div class="image">
-          <img src="../../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
+          <img src="../../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
         </div>
         <div class="info">
           <a href="#" class="d-block"><?= $email ?></a>

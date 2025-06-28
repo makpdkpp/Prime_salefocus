@@ -2,6 +2,7 @@
 session_start();
 include("../../functions.php");
 $mysqli = connectDb();
+$avatar = htmlspecialchars($_SESSION['avatar'] ?? 'dist/img/user2-160x160.jpg', ENT_QUOTES, 'UTF-8');
 
 // กำหนดตัวเลือกจำนวนแถว
 $limitOptions = [10, 25, 50, 100];
@@ -68,12 +69,12 @@ $industries = $mysqli->query("SELECT Industry_id, Industry FROM industry_group O
     <ul class="navbar-nav ml-auto">
       <li class="nav-item dropdown user-menu">
         <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-          <img src="../../dist/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
+          <img src="../../<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
           <span class="d-none d-md-inline text-white"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></span>
         </a>
         <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
           <li class="user-header" style="background-color: #0056b3; color: #fff;">
-            <img src="../../dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+            <img src="../../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
             <p>
               <?php echo $_SESSION['email'] ?? ''; ?>
               <small>Admin</small>
@@ -94,7 +95,7 @@ $industries = $mysqli->query("SELECT Industry_id, Industry FROM industry_group O
     <div class="sidebar">
     <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
   <div class="image">
-    <img src="../../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
+    <img src="../../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
   </div>
   <div class="info">
     <a href="#" class="d-block"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></a>
