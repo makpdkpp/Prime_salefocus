@@ -78,16 +78,18 @@ $products = $mysqli->query("SELECT product_id, Product FROM product_group LIMIT 
         <span class="brand-text font-weight-light"><b>Prime</b>Forecast</span>
     </a>
 
-    <div class="sidebar">
-    <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
-  <div class="image">
-    <img src="../../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
+ 
+
+<div class="sidebar">
+  <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
+    <div class="image">
+      <a href="adminedit_profile.php"> <img src="../../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;"></a>
+    </div>
+    <div class="info">
+      <a href="#" class="d-block"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></a>
+      <a href="#" class="d-block" style="color: #c2c7d0; font-size: 0.9em;"><i class="fa fa-circle text-success" style="font-size: 0.7em;"></i> Online</a>
+    </div>
   </div>
-  <div class="info">
-    <a href="#" class="d-block"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></a>
-    <a href="#" class="d-block" style="color: #c2c7d0; font-size: 0.9em;"><i class="fa fa-circle text-success" style="font-size: 0.7em;"></i> Online</a>
-  </div>
-</div>
 
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">

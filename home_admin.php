@@ -94,7 +94,7 @@ $email = htmlspecialchars($_SESSION['email']);
     <div class="sidebar">
       <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
         <div class="image">
-          <img src="<?= $avatar ?>" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
+          <a href="pages/layout/adminedit_profile.php"> <img src="<?= $avatar ?>" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
         </div>
         <div class="info">
           <a href="#" class="d-block"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></a>
