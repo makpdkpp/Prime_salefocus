@@ -4,7 +4,7 @@ session_start();
 /* ---------- เชื่อมต่อฐานข้อมูล ---------- */
 require_once '../../functions.php';
 $conn = connectDb();
-$avatar = htmlspecialchars($_SESSION['avatar'] ?? 'dist/img/user2-160x160.jpg', ENT_QUOTES, 'UTF-8');
+$avatar = htmlspecialchars($_SESSION['avatar'] ?? '../../dist/img/user2-160x160.jpg', ENT_QUOTES, 'UTF-8');
 
 $limit = 5;
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;

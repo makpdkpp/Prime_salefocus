@@ -16,7 +16,7 @@ $db = connectDb();
 $message = '';
 $message_type = ''; 
 
-$avatar = htmlspecialchars($_SESSION['avatar'] ?? 'dist/img/user2-160x160.jpg', ENT_QUOTES, 'UTF-8');
+$avatar = htmlspecialchars($_SESSION['avatar'] ?? '../../dist/img/user2-160x160.jpg', ENT_QUOTES, 'UTF-8');
 
 if (isset($_SESSION['message'])) {
     $message = $_SESSION['message'];

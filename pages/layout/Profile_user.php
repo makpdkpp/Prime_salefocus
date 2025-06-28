@@ -2,7 +2,7 @@
 session_start();
 require_once '../../functions.php';
 $mysqli = connectDb();
-$avatar = htmlspecialchars($_SESSION['avatar'] ?? 'dist/img/user2-160x160.jpg', ENT_QUOTES, 'UTF-8');
+$avatar = htmlspecialchars($_SESSION['avatar'] ?? '../../dist/img/user2-160x160.jpg', ENT_QUOTES, 'UTF-8');
 
 // ส่วน PHP สำหรับอัปเดตข้อมูล จะคงไว้เหมือนเดิม
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['updateForecast'])) {
