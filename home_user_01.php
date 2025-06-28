@@ -95,16 +95,25 @@ $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
                             </thead>
                             <tbody>
                               <?php
-                                $q = "SELECT t.*, pg.product, cc.company, pl.priority, tc.team, s.level, u.nname, so.Source_budge
-                                        FROM transactional t
-                                        LEFT JOIN product_group   pg ON t.Product_id = pg.product_id
-                                        LEFT JOIN company_catalog cc ON t.company_id = cc.company_id
-                                        LEFT JOIN priority_level  pl ON t.priority_id = pl.priority_id
-                                        LEFT JOIN team_catalog    tc ON t.team_id     = tc.team_id
-                                        LEFT JOIN step            s  ON t.Step_id     = s.level_id
-                                        LEFT JOIN user            u  ON t.user_id     = u.user_id
-                                        LEFT JOIN source_of_the_budget so ON so.Source_budget_id = t.Source_budget_id
-                                        WHERE t.user_id = $userId";
+                                $q = "
+                                SELECT t.*, pg.product, cc.company, pl.priority, tc.team, u.nname, so.Source_budge,
+                                  (
+                                    SELECT s2.level
+                                    FROM transactional_step ts2
+                                    JOIN step s2 ON s2.level_id = ts2.level_id
+                                    WHERE ts2.transac_id = t.transac_id
+                                    ORDER BY ts2.date DESC, ts2.transacstep_id DESC
+                                    LIMIT 1
+                                  ) AS level
+                                FROM transactional t
+                                LEFT JOIN product_group   pg ON t.Product_id = pg.product_id
+                                LEFT JOIN company_catalog cc ON t.company_id = cc.company_id
+                                LEFT JOIN priority_level  pl ON t.priority_id = pl.priority_id
+                                LEFT JOIN team_catalog    tc ON t.team_id     = tc.team_id
+                                LEFT JOIN user            u  ON t.user_id     = u.user_id
+                                LEFT JOIN source_of_the_budget so ON so.Source_budget_id = t.Source_budget_id
+                                WHERE t.user_id = $userId
+                                ";
                                 $rs = $mysqli->query($q);
                                 if ($rs && $rs->num_rows):
                                     while($r=$rs->fetch_assoc()):
