@@ -2,7 +2,5 @@ config.php
 functions.php
 .DS_Store
 Thunbs.db
-.db
-
-sale.sql
-debug_post.log
+*.sql
+*.log

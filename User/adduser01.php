@@ -25,7 +25,6 @@ function loadOptions(mysqli $db, string $table, string $idCol, string $labelCol)
 }
 
 $productOpts  = loadOptions($mysqli, 'product_group',   'product_id',  'product');
-$teamOpts     = loadOptions($mysqli, 'team_catalog',    'team_id',     'team');
 $companyOpts  = loadOptions($mysqli, 'company_catalog', 'company_id',  'company');
 $priorityOpts = loadOptions($mysqli, 'priority_level',  'priority_id', 'priority');
 $Source_budgeOpts = loadOptions($mysqli, 'source_of_the_budget',  'Source_budget_id', 'Source_budge');
@@ -33,10 +32,6 @@ $Source_budgeOpts = loadOptions($mysqli, 'source_of_the_budget',  'Source_budget
 $stepOpts = [];
 $res = $mysqli->query("SELECT level_id, level FROM step ORDER BY orderlv ASC");
 if ($res) $stepOpts = $res->fetch_all(MYSQLI_ASSOC);
-
-/* map ชื่อ field สถานะตามตาราง */
-// mapping ระหว่าง level กับชื่อ field สถานะ (แก้ไขตาม field จริงใน DB)
-
 
 
 // mapping ระหว่าง level กับชื่อ field วันที่ (แก้ไขตาม field จริงใน DB)
@@ -53,6 +48,17 @@ foreach ($stepOpts as $step) {
 }
 
 $row = []; // หน้า add ให้เป็น array ว่าง
+
+// ดึงเฉพาะทีมที่ user นี้อยู่ (จาก transactional_team)
+$teamOpts = [];
+$stmt = $mysqli->prepare("SELECT transactional_team.team_id, team_catalog.team FROM transactional_team JOIN team_catalog on team_catalog.team_id = transactional_team.team_id WHERE transactional_team.user_id = ? ORDER BY team_catalog.team");
+if ($stmt) {
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    if ($res) $teamOpts = $res->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+}
 
 ?>
 <!doctype html>
