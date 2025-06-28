@@ -14,7 +14,7 @@ use PHPMailer\PHPMailer\Exception;
 
 $db = connectDb();
 $message = '';
-$message_type = ''; 
+$message_type = '';
 
 if (isset($_SESSION['message'])) {
     $message = $_SESSION['message'];
@@ -27,12 +27,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
     $email = trim($_POST['invite_email']);
     $role_id = isset($_POST['invite_role']) ? (int)$_POST['invite_role'] : 0;
     $position_id = isset($_POST['invite_position']) ? (int)$_POST['invite_position'] : 0;
-    $team_id = isset($_POST['invite_team']) ? (int)$_POST['invite_team'] : 0; 
+    $team_ids = isset($_POST['invite_team']) && is_array($_POST['invite_team']) ? $_POST['invite_team'] : [];
 
-    if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL) && $role_id > 0 && $position_id > 0 && $team_id > 0) {
+    if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL) && $role_id > 0) {
         $token = bin2hex(random_bytes(32));
         $expiry = date('Y-m-d H:i:s', strtotime('+1 day'));
-        
+        $uid = null;
+
         $stmt_check = $db->prepare('SELECT user_id FROM user WHERE email=?');
         $stmt_check->bind_param('s', $email);
         $stmt_check->execute();
@@ -41,9 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
         if ($user = $result->fetch_assoc()) {
             $uid = $user['user_id'];
             $stmt_check->close();
-            
-            $stmt_update = $db->prepare('UPDATE user SET role_id=?, position_id=?, team_id=?, reset_token=?, token_expiry=?, is_active=0 WHERE user_id=?');
-            $stmt_update->bind_param('iiissi', $role_id, $position_id, $team_id, $token, $expiry, $uid);
+
+            $stmt_update = $db->prepare('UPDATE user SET role_id=?, position_id=?, reset_token=?, token_expiry=?, is_active=0 WHERE user_id=?');
+            $stmt_update->bind_param('iissi', $role_id, $position_id, $token, $expiry, $uid);
             $stmt_update->execute();
             $stmt_update->close();
         } else {
@@ -53,12 +54,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
             $default_surename = ''; 
             $default_forecast = 0; 
 
-            $stmt_insert = $db->prepare('INSERT INTO user (email, nname, surename, role_id, position_id, team_id, forecast, reset_token, token_expiry, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-            $stmt_insert->bind_param('sssiidisss', $email, $email, $default_surename, $role_id, $position_id, $team_id, $default_forecast, $token, $expiry, $temporary_password);
+            $stmt_insert = $db->prepare('INSERT INTO user (email, nname, surename, role_id, position_id, forecast, reset_token, token_expiry, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt_insert->bind_param('sssiidisss', $email, $email, $default_surename, $role_id, $position_id, $default_forecast, $token, $expiry, $temporary_password);
             $stmt_insert->execute();
+            $uid = $stmt_insert->insert_id;
             $stmt_insert->close();
         }
 
+        // --- จัดการข้อมูลในตาราง transactional_team ---
+        if ($uid) {
+            // 1. ลบทีมเก่าทั้งหมดของ user นี้ออกก่อน
+            $stmt_delete_teams = $db->prepare("DELETE FROM transactional_team WHERE user_id = ?");
+            $stmt_delete_teams->bind_param('i', $uid);
+            $stmt_delete_teams->execute();
+            $stmt_delete_teams->close();
+
+            // 2. ถ้าเป็น Sales (role_id=2) และมีทีมถูกเลือก ให้เพิ่มทีมใหม่เข้าไป
+            if ($role_id == 2 && !empty($team_ids)) {
+                $stmt_add_team = $db->prepare("INSERT INTO transactional_team (user_id, team_id) VALUES (?, ?)");
+                foreach ($team_ids as $team_id) {
+                    $clean_team_id = (int)$team_id;
+                    $stmt_add_team->bind_param('ii', $uid, $clean_team_id);
+                    $stmt_add_team->execute();
+                }
+                $stmt_add_team->close();
+            }
+        }
+
+        // --- ส่วนของการส่ง Email (เหมือนเดิม) ---
         if (empty($message)) {
             $link = 'http://' . $_SERVER['HTTP_HOST'] . '/Prime_saleficus/pages/layout/set-password.php?token=' . $token;
             $subject = 'User Invitation to PrimeForecast';
@@ -86,9 +109,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
             }
         }
     } else {
-        $message = 'Please provide a valid email, role, position, and team.';
+        $message = 'Please provide a valid email and role. Position and Team are required for Sales.';
         $message_type = 'danger';
     }
+    // ใช้ session เพื่อส่งข้อความข้ามหน้า
+    $_SESSION['message'] = $message;
+    $_SESSION['message_type'] = $message_type;
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
 }
 
 $positions_query = $db->query("SELECT position_id, position FROM position ORDER BY position ASC");
@@ -97,11 +125,26 @@ $positions = $positions_query ? $positions_query->fetch_all(MYSQLI_ASSOC) : [];
 $teams_query = $db->query("SELECT team_id, team FROM team_catalog ORDER BY team ASC");
 $teams = $teams_query ? $teams_query->fetch_all(MYSQLI_ASSOC) : [];
 
+// --- Query ดึงข้อมูลผู้ใช้งานและทีมทั้งหมด (ใช้ transactional_team) ---
 $user_query = $db->query("
-    SELECT u.user_id, u.email, u.is_active, u.role_id, u.position_id, u.team_id, p.position, tc.team
+    SELECT
+        u.user_id,
+        u.email,
+        u.is_active,
+        u.role_id,
+        u.position_id,
+        p.position,
+        (SELECT GROUP_CONCAT(tc.team SEPARATOR ', ')
+         FROM transactional_team ut
+         JOIN team_catalog tc ON ut.team_id = tc.team_id
+         WHERE ut.user_id = u.user_id
+        ) AS teams,
+        (SELECT GROUP_CONCAT(ut.team_id SEPARATOR ',')
+         FROM transactional_team ut
+         WHERE ut.user_id = u.user_id
+        ) AS team_ids
     FROM user u
     LEFT JOIN position p ON u.position_id = p.position_id
-    LEFT JOIN team_catalog tc ON u.team_id = tc.team_id
     ORDER BY u.user_id DESC
 ");
 $userRows = $user_query ? $user_query->fetch_all(MYSQLI_ASSOC) : [];
@@ -116,14 +159,55 @@ $db->close();
   <title>เพิ่มผู้ใช้งาน | PrimeForecast</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <link rel="stylesheet" href="../../plugins_v3/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@x.x.x/dist/select2-bootstrap4.min.css">
   <link rel="stylesheet" href="../../dist_v3/css/adminlte.min.css">
   <style>
+    
     .content-wrapper { background-color: #b3d6e4; }
     .container1 { max-width: 1100px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); }
     .btn-add { position: fixed; bottom: 30px; right: 30px; background: #0056b3; color: #fff; border-radius: 50%; width: 56px; height: 56px; font-size: 24px; border: none; z-index: 1040; }
     .modal-content { border-radius: 10px; padding: 20px; }
     .table thead { background: #0056b3; color: white; }
     .sidebar {padding-bottom: 30px; }
+    .select2-container--bootstrap4 .select2-selection--multiple {
+    display: flex;              /* <<< จัดการ layout ด้วย Flexbox */
+    align-items: center;        /* <<< จัดให้อยู่กึ่งกลางแนวตั้ง (สำคัญที่สุด) */
+    flex-wrap: wrap;            /* <<< ทำให้รายการที่เลือกขึ้นบรรทัดใหม่ได้ */
+    min-height: calc(2.25rem + 2px); /* กำหนดความสูงมาตรฐาน */
+    padding: 0 5px;             /* ปรับ padding ให้เหมาะสม */
+}
+
+/* 2. สไตล์ของป้ายที่เลือก (tag) */
+.select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice {
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 2px 8px;           /* ปรับ padding ของป้ายเล็กน้อย */
+    margin: 2px 4px 2px 0;      /* กำหนดระยะห่างรอบป้าย */
+}
+
+/* 3. สไตล์สำหรับปุ่มลบ (กากบาท) */
+.select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice__remove {
+    color: #999;
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-left: 6px;
+    transition: color 0.2s ease;
+}
+
+/* 4. สไตล์เมื่อเอาเมาส์ไปชี้ที่ปุ่มลบ */
+.select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice__remove:hover {
+    color: #d9534f;
+}
+
+/* 5. จัดการช่องค้นหาภายในกล่อง */
+.select2-container--bootstrap4 .select2-search--inline .select2-search__field {
+    margin-top: 0; /* ไม่ต้องมี margin ด้านบน */
+    padding: 0;
+}
+
   </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -161,10 +245,12 @@ $db->close();
     <div class="sidebar">
     <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
   <div class="image">
-    <img src="../../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
+    <a href="page_proflie_admin.php">
+      <img src="../../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
+    </a>
   </div>
   <div class="info">
-    <a href="#" class="d-block"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></a>
+    <a href="page_proflie_admin.php" class="d-block"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></a>
     <a href="#" class="d-block" style="color: #c2c7d0; font-size: 0.9em;"><i class="fa fa-circle text-success" style="font-size: 0.7em;"></i> Online</a>
   </div>
 </div>
@@ -200,8 +286,8 @@ $db->close();
       <div class="container1">
         <h3>รายชื่อผู้ใช้งานในระบบ</h3>
         <?php if(!empty($message)): ?>
-          <div class="alert alert-<?= $message_type ?> alert-dismissible fade show" role="alert">
-            <?= $message ?>
+          <div class="alert alert-<?= htmlspecialchars($message_type) ?> alert-dismissible fade show" role="alert">
+            <?= htmlspecialchars($message) ?>
             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           </div>
         <?php endif; ?>
@@ -231,7 +317,7 @@ $db->close();
                 ?>
               </td>
               <td><?= htmlspecialchars($u['position'] ?? 'N/A') ?></td>
-              <td><?= htmlspecialchars($u['team'] ?? 'N/A') ?></td>
+              <td><?= htmlspecialchars($u['teams'] ?? 'N/A') ?></td>
               <td>
                 <?php if ($u['is_active']): ?>
                   <span class="badge badge-success">Active</span>
@@ -244,9 +330,10 @@ $db->close();
                         data-toggle="modal" 
                         data-target="#editUserModal"
                         data-user-id="<?= $u['user_id'] ?>"
+                        data-email="<?= htmlspecialchars($u['email']) ?>"
                         data-role-id="<?= $u['role_id'] ?>"
                         data-position-id="<?= $u['position_id'] ?>"
-                        data-team-id="<?= $u['team_id'] ?>">
+                        data-team-ids="<?= htmlspecialchars($u['team_ids'] ?? '') ?>">
                   <i class="fas fa-edit"></i>
                 </button>
               </td>
@@ -260,6 +347,7 @@ $db->close();
       </div>
     </section>
   </div>
+  
 
   <button class="btn-add" data-toggle="modal" data-target="#inviteModal" title="Invite New User"><i class="fas fa-user-plus"></i></button>
 
@@ -272,7 +360,7 @@ $db->close();
             <div class="form-group"><label for="invite_email">Email Address</label><input type="email" id="invite_email" name="invite_email" class="form-control" placeholder="Enter email" required></div>
             <div class="form-group"><label for="invite_role">Role</label><select id="invite_role" name="invite_role" class="form-control" required><option value="" disabled selected>-- Select Role --</option><option value="1">Superadmin</option><option value="2">Sales</option></select></div>
             <div class="form-group"><label for="invite_position">Position</label><select id="invite_position" name="invite_position" class="form-control" required><option value="" disabled selected>-- Select Position --</option><?php foreach ($positions as $pos): ?><option value="<?= $pos['position_id'] ?>"><?= htmlspecialchars($pos['position']) ?></option><?php endforeach; ?></select></div>
-            <div class="form-group"><label for="invite_team">Sales Team</label><select id="invite_team" name="invite_team" class="form-control" required><option value="" disabled selected>-- Select Sales Team --</option><?php foreach ($teams as $team): ?><option value="<?= $team['team_id'] ?>"><?= htmlspecialchars($team['team']) ?></option><?php endforeach; ?></select></div>
+            <div class="form-group"><label for="invite_team">Sales Team</label><select id="invite_team" name="invite_team[]" class="form-control" multiple><option disabled>-- Select Sales Team --</option><?php foreach ($teams as $team): ?><option value="<?= $team['team_id'] ?>"><?= htmlspecialchars($team['team']) ?></option><?php endforeach; ?></select></div>
           </div>
           <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Send Invitation</button></div>
         </form>
@@ -283,13 +371,14 @@ $db->close();
   <div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
-        <form action="update_user_role.php" method="POST">
+        <form method="POST">
           <div class="modal-header"><h5 class="modal-title">แก้ไขสิทธิ์และตำแหน่ง</h5><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>
           <div class="modal-body">
-            <input type="hidden" name="user_id" id="edit_user_id">
-            <div class="form-group"><label for="edit_role">Role</label><select id="edit_role" name="role_id" class="form-control" required><option value="1">Superadmin</option><option value="2">Sales</option></select></div>
-            <div class="form-group"><label for="edit_position">Position</label><select id="edit_position" name="position_id" class="form-control" required><option value="" disabled>-- Select Position --</option><?php foreach ($positions as $pos): ?><option value="<?= $pos['position_id'] ?>"><?= htmlspecialchars($pos['position']) ?></option><?php endforeach; ?></select></div>
-            <div class="form-group"><label for="edit_team">Sales Team</label><select id="edit_team" name="team_id" class="form-control" required><option value="" disabled>-- Select Sales Team --</option><?php foreach ($teams as $team): ?><option value="<?= $team['team_id'] ?>"><?= htmlspecialchars($team['team']) ?></option><?php endforeach; ?></select></div>
+            <input type="email" id="edit_email" name="invite_email" class="form-control" readonly style="display:none;">
+            <div class="form-group"><label>Email</label><p id="display_email" class="form-control-static"></p></div>
+            <div class="form-group"><label for="edit_role">Role</label><select id="edit_role" name="invite_role" class="form-control" required><option value="1">Superadmin</option><option value="2">Sales</option></select></div>
+            <div class="form-group"><label for="edit_position">Position</label><select id="edit_position" name="invite_position" class="form-control" required><option value="" disabled>-- Select Position --</option><?php foreach ($positions as $pos): ?><option value="<?= $pos['position_id'] ?>"><?= htmlspecialchars($pos['position']) ?></option><?php endforeach; ?></select></div>
+            <div class="form-group"><label for="edit_team">Sales Team</label><select id="edit_team" name="invite_team[]" class="form-control" multiple><option disabled>-- Select Sales Team --</option><?php foreach ($teams as $team): ?><option value="<?= $team['team_id'] ?>"><?= htmlspecialchars($team['team']) ?></option><?php endforeach; ?></select></div>
           </div>
           <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save Changes</button></div>
         </form>
@@ -300,71 +389,79 @@ $db->close();
 </div>
 <script src="../../plugins_v3/jquery/jquery.min.js"></script>
 <script src="../../plugins_v3/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="../../dist_v3/js/adminlte.min.js"></script>
 
 <script>
 $(document).ready(function() {
+    // --- Initialise Select2 ---
+    function initializeSelect2(selector) {
+        $(selector).select2({
+            theme: 'bootstrap4',
+            placeholder: 'Select options',
+            allowClear: true
+        });
+    }
+    initializeSelect2('#invite_team, #edit_team');
 
-    // --- ส่วนสำหรับ Invite Modal ---
+    // --- Invite Modal Logic ---
     const inviteRoleSelect = $('#invite_role');
     const invitePositionGroup = $('#invite_position').closest('.form-group');
     const inviteTeamGroup = $('#invite_team').closest('.form-group');
 
-    // ฟังก์ชันสำหรับซ่อน/แสดงฟอร์มใน Invite Modal
     function toggleInviteFields() {
-        const selectedRole = inviteRoleSelect.val();
-        
-        // ถ้า Role เป็น "Sales" (ID 2) หรือ "Team Admin" (ID 99)
-        if (selectedRole === '2' || selectedRole === '99') {
-            invitePositionGroup.show(); // แสดงช่อง Position
-            inviteTeamGroup.show();     // แสดงช่อง Sales Team
+        if (inviteRoleSelect.val() === '2') { // Sales
+            invitePositionGroup.show();
+            inviteTeamGroup.show();
+            $('#invite_position').prop('required', true);
         } else {
-            invitePositionGroup.hide(); // ซ่อนช่อง Position
-            inviteTeamGroup.hide();     // ซ่อนช่อง Sales Team
+            invitePositionGroup.hide();
+            inviteTeamGroup.hide();
+            $('#invite_position').prop('required', false);
         }
     }
-
-    // สั่งให้ซ่อนฟอร์มไว้ก่อนตอนเปิดหน้าเว็บ
-    toggleInviteFields(); 
-    // เมื่อมีการเปลี่ยน Role ให้เรียกใช้ฟังก์ชันอีกครั้ง
     inviteRoleSelect.on('change', toggleInviteFields);
+    toggleInviteFields();
 
-
-    // --- ส่วนสำหรับ Edit Modal ---
+    // --- Edit Modal Logic ---
     const editRoleSelect = $('#edit_role');
     const editPositionGroup = $('#edit_position').closest('.form-group');
     const editTeamGroup = $('#edit_team').closest('.form-group');
 
-    // ฟังก์ชันสำหรับซ่อน/แสดงฟอร์มใน Edit Modal
     function toggleEditFields() {
-        const selectedRole = editRoleSelect.val();
-
-        // ถ้า Role เป็น "Sales" (ID 2) หรือ "Team Admin" (ID 99)
-        if (selectedRole === '2' || selectedRole === '99') {
+        if (editRoleSelect.val() === '2') { // Sales
             editPositionGroup.show();
             editTeamGroup.show();
+            $('#edit_position').prop('required', true);
         } else {
             editPositionGroup.hide();
             editTeamGroup.hide();
+            $('#edit_position').prop('required', false);
         }
     }
-    
-    // เมื่อมีการเปลี่ยน Role ใน Edit Modal
     editRoleSelect.on('change', toggleEditFields);
 
-    // โค้ดสำหรับปุ่ม Edit (เหมือนเดิม แต่เพิ่มการเรียกใช้ฟังก์ชัน toggle)
+    // --- Populate Edit Modal on button click ---
     $('.btn-edit').on('click', function() {
-        const userId = $(this).data('user-id');
-        const roleId = $(this).data('role-id');
-        const positionId = $(this).data('position-id');
-        const teamId = $(this).data('team-id');
+        const button = $(this);
+        const userEmail = button.data('email');
+        const roleId = button.data('role-id');
+        const positionId = button.data('position-id');
+        const teamIdsString = button.data('team-ids').toString();
+        const teamIdsArray = teamIdsString ? teamIdsString.split(',') : [];
 
-        $('#edit_user_id').val(userId);
-        $('#edit_role').val(roleId);
-        $('#edit_position').val(positionId);
-        $('#edit_team').val(teamId);
+        // Populate hidden email input for form submission
+        $('#edit_email').val(userEmail);
+        // Display email for user
+        $('#display_email').text(userEmail); 
         
-        // ✅ เรียกใช้ฟังก์ชันเพื่อซ่อน/แสดงฟอร์มทันทีที่ Modal เปิด
+        $('#edit_role').val(roleId);
+        $('#edit_position').val(positionId || '');
+        
+        // Set values for Select2
+        $('#edit_team').val(teamIdsArray).trigger('change');
+        
+        // Ensure correct fields are shown based on the role
         toggleEditFields(); 
     });
 });
