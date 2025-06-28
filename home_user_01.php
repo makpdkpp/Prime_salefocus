@@ -8,6 +8,7 @@ $mysqli = connectDb();
 $userId = (int)$_SESSION['user_id'];
 $email  = htmlspecialchars($_SESSION['email']);
 $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
+$avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -32,12 +33,12 @@ $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
         <ul class="navbar-nav ml-auto">
             <li class="nav-item dropdown user-menu">
                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                    <img src="dist_v3/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
+                    <img src="<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
                     <span class="d-none d-md-inline"><?= $email ?></span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                     <li class="user-header bg-danger">
-                        <img src="dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                        <img src="<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
                         <p><?= $email ?><small>User</small></p>
                     </li>
                     <li class="user-footer">
@@ -53,7 +54,7 @@ $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
         </a>
         <div class="sidebar">
             <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-                <div class="image"><a href="User/edit_profile.php"><img src="dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image"></a></div>
+                <div class="image"><a href="User/edit_profile.php"><img src="<?= $avatar ?>" class="img-circle elevation-2" alt="User Image"></a></div>
                 <div class="info"><a href="#" class="d-block"><?= $email ?></a></div>
             </div>
             <nav class="mt-2">

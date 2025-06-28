@@ -29,16 +29,16 @@ function connectDb(): mysqli
  */
 function authenticate(mysqli $db, string $email, string $password)
 {
-    $stmt = $db->prepare('SELECT user_id, nname, email, role_id FROM user WHERE email = ? AND password = ?');
+    $stmt = $db->prepare('SELECT user_id, nname, email, role_id, avatar_path FROM user WHERE email = ? AND password = ?');
     $hashed = md5(trim($password));
     $stmt->bind_param('ss', $email, $hashed);
     $stmt->execute();
     $stmt->store_result();
     if ($stmt->num_rows === 1) {
-        $stmt->bind_result($id, $nname, $emailDb, $roleId);
+        $stmt->bind_result($id, $nname, $emailDb, $roleId, $avatarPath);
         $stmt->fetch();
         $stmt->close();
-        return ['id' => $id, 'nname' => $nname, 'email' => $emailDb, 'role_id' => $roleId];
+        return ['id' => $id, 'nname' => $nname, 'email' => $emailDb, 'role_id' => $roleId, 'avatar_path' => $avatarPath];
     }
     $stmt->close();
     return false;
@@ -61,6 +61,7 @@ function handleLogin(mysqli $db): ?string
         $_SESSION['nname'] = $user['nname'];
         $_SESSION['email'] = $user['email'];
         $_SESSION['role_id'] = $user['role_id'];
+        $_SESSION['avatar'] = $user['avatar_path'] ?? '';
         switch ($user['role_id']) {
             case 1:
                 header('Location: home_admin.php');

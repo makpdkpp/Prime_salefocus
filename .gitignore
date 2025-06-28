@@ -4,3 +4,5 @@ functions.php
 Thunbs.db
 *.sql
 *.log
+uploads/avatars/
+uploads/avatars/**

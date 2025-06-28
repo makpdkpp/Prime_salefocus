@@ -6,16 +6,20 @@
 require_once '../functions.php';
 session_start();
 
+
 // ===== 1) Auth – เฉพาะผู้ใช้ role_id = 2 =====
 if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {
     header('Location: ../index.php');
     exit;
 }
 
+
+
 $mysqli = connectDb();
 $userId = (int)$_SESSION['user_id'];
 $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
+$avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
 
 /* -------- helper ดึง option (id => label) -------- */
 function loadOptions(mysqli $db, string $table, string $idCol, string $labelCol): array {
@@ -107,12 +111,12 @@ if ($stmt) {
     <ul class="navbar-nav ml-auto">
         <li class="nav-item dropdown user-menu">
             <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                <img src="../dist_v3/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
+                <img src="../<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
                 <span class="d-none d-md-inline"><?= $email ?></span>
             </a>
             <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                 <li class="user-header bg-danger">
-                    <img src="../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                    <img src="../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
                     <p>
                         <?= $email ?>
                         <small>User</small>
@@ -132,7 +136,7 @@ if ($stmt) {
     <div class="sidebar">
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
             <div class="image">
-                <img src="../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                <img src="../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
             </div>
             <div class="info">
                 <a href="#" class="d-block"><?= $email ?></a>

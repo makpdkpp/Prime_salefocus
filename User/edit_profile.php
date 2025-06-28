@@ -1,81 +1,124 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-require_once '../functions.php'; // ใช้พาธเดิม
 session_start();
+require_once '../functions.php';
+$conn = connectDb();
 
 // ตรวจสอบ session และ role
 if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {
-    header('Location: ../index.php'); // ปรับพาธให้ถูกต้อง
+    header('Location: ../index.php');
     exit;
 }
 
 $userId = (int)$_SESSION['user_id'];
-$email = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 
-// ดึงข้อมูล user สำหรับแสดงในโปรไฟล์ (จากไฟล์แรก)
-$conn = connectDb();
-$stmt = $conn->prepare("SELECT nname, surename, role_id, email FROM user WHERE user_id = ?");
+// ดึงข้อมูล user
+$stmt = $conn->prepare(
+  "SELECT nname, surename, email, avatar_path, role_id, position_id 
+   FROM user 
+   WHERE user_id = ?"
+);
 $stmt->bind_param("i", $userId);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-$roles = [
-    1 => 'Admin',
-    2 => 'Sales Manager',
-    3 => 'Marketing',
-    4 => 'Support',
-    5 => 'Developer'
-];
+// เตรียมข้อมูลสำหรับแสดง
+$nname   = htmlspecialchars($user['nname'],   ENT_QUOTES, 'UTF-8');
+$surname = htmlspecialchars($user['surename'],ENT_QUOTES, 'UTF-8');
+$email   = htmlspecialchars($user['email'],   ENT_QUOTES, 'UTF-8');
+$avatar  = $user['avatar_path']
+           ? htmlspecialchars($user['avatar_path'], ENT_QUOTES, 'UTF-8')
+           : '../dist/img/user2-160x160.jpg';
 
-$nname     = htmlspecialchars($user['nname'], ENT_QUOTES, 'UTF-8');
-$surname   = htmlspecialchars($user['surename'], ENT_QUOTES, 'UTF-8');
-$roleId    = (int)$user['role_id'];
-$userEmail = htmlspecialchars($user['email'], ENT_QUOTES, 'UTF-8');
-$roleName  = $roles[$roleId] ?? 'Unknown';
+// ดึงชื่อ Role จาก role_catalog
+$roles = [];
+$rs = $conn->query("SELECT role_id, role FROM role_catalog ORDER BY role");
+while ($r = $rs->fetch_assoc()) {
+    $roles[(int)$r['role_id']] = $r['role'];
+}
+$rs->free();
+
+// ดึงชื่อ Position จาก position
+$positions = [];
+$ps = $conn->query("SELECT position_id, position FROM position ORDER BY position");
+while ($p = $ps->fetch_assoc()) {
+    $positions[(int)$p['position_id']] = $p['position'];
+}
+$ps->free();
+
+$roleName     = $roles[(int)$user['role_id']]       ?? 'Unknown';
+$positionName = $positions[(int)$user['position_id']] ?? 'Unknown';
 ?>
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Prime Forecast | Profile</title>
-
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-    <link rel="stylesheet" href="../plugins_v3/fontawesome-free/css/all.min.css">
-    <link rel="stylesheet" href="../dist_v3/css/adminlte.min.css">
+<meta charset="utf-8">
+<title>เพิ่มรายละเอียดการขาย</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+<link rel="stylesheet" href="../plugins_v3/fontawesome-free/css/all.min.css">
+<link rel="stylesheet" href="../dist_v3/css/adminlte.min.css">
     
-    <style>
-        .profile-container {
-            max-width: 700px;
-            margin: 50px auto;
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .profile-title {
-            font-size: 28px;
-            margin-bottom: 30px;
-            color: #333;
-            font-weight: bold;
-        }
-        .row-data {
-            margin-bottom: 20px;
-        }
-        .label {
-            font-weight: bold;
-            color: #333;
-            font-size: 18px;
-        }
-        .row-data div {
-            color: #333;
-            font-size: 18px;
-        }
-    </style>
+ <style>
+    /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
+    body.sidebar-mini .main-sidebar .user-panel .image img,
+    body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
+
+    /* ==== เอาแถบขาวด้านหลัง content ออก (เฉพาะ background ของ wrapper) ==== */
+    .content-wrapper {
+      background: none;
+    }
+
+    /* ==== สไตล์กล่องโปรไฟล์ ==== */
+    .profile-box {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #fff;            /* ให้เป็นขาว */
+      padding: 30px;               /* รักษาช่องว่าง */
+      border-radius: 8px;          /* มุมโค้ง */
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1); /*เงานิดหน่อยให้ดูเด่น*/
+    }
+
+    .profile-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .avatar-wrapper {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      margin: 0 auto 30px;
+    }
+    .avatar-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 2px solid #ccc;
+    }
+    .avatar-wrapper .btn-avatar {
+      position: absolute;
+      bottom: 5px; right: 5px;
+      background: #d9534f; color: #fff;
+      border: none; width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 18px;
+    }
+    .profile-details .label {
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    .profile-details .value {
+      color: #333;
+      margin: 0;
+    }
+  </style>
 </head>
 
 <body class="hold-transition sidebar-mini">
@@ -88,12 +131,12 @@ $roleName  = $roles[$roleId] ?? 'Unknown';
         <ul class="navbar-nav ml-auto">
             <li class="nav-item dropdown user-menu">
                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                    <img src="../dist_v3/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
+                    <img src="../<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
                     <span class="d-none d-md-inline"><?= $email ?></span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                     <li class="user-header bg-danger">
-                        <img src="../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                        <img src="../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
                         <p><?= $email ?><small>User</small></p>
                     </li>
                     <li class="user-footer">
@@ -111,7 +154,7 @@ $roleName  = $roles[$roleId] ?? 'Unknown';
         <div class="sidebar">
             <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                 <div class="image">
-                    <a href="edit_profile.php"><img src="../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image"></a>
+                    <a href="edit_profile.php"><img src="../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image"></a>
                 </div>
                 <div class="info"><a href="#" class="d-block"><?= $email ?></a></div>
             </div>
@@ -139,136 +182,111 @@ $roleName  = $roles[$roleId] ?? 'Unknown';
             </nav>
         </div>
     </aside>
-
-    <div class="content-wrapper" role="main">
-    
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1></h1>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="../home_user.php">Home</a></li>
-                        <li class="breadcrumb-item active">User Profile</li>
-                    </ol>
-                </div>
-            </div>
-        </div></section>
-
+  <div class="content-wrapper">
     <section class="content">
-        <div class="profile-container" role="region" aria-label="User Profile">
-            <div class="profile-title">👋 Hello! <?= $nname . " " . $surname ?></div>
-
-
-                <div style="position: relative; width: 160px; height: 160px; margin: 0 auto 30px;">
-                    <div class="profile-image-wrapper" id="profileImageWrapperMain" style="width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 2px solid #ccc;">
-                        <img src="../dist/img/user2-160x160.jpg" alt="User Profile Image" id="profileImageMain" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
-                    </div>
-                    <button class="edit-icon" id="editIconMain" title="เปลี่ยนรูปโปรไฟล์" aria-label="เปลี่ยนรูปโปรไฟล์" style="position: absolute; bottom: 8px; right: 8px; background: #d9534f; color: white; width: 36px; height: 36px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.3); user-select: none; cursor: pointer; font-size: 24px; line-height: 1;">
-                        +
-                    </button>
-                </div>
-
-                <div class="row row-data">
-                    <div class="col-md-6">
-                        <label class="label" for="profileName">Name</label>
-                        <div id="profileName"><?= $nname ?></div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="label" for="profileSurname">Surname</label>
-                        <div id="profileSurname"><?= $surname ?></div>
-                    </div>
-                </div>
-
-                <div class="row row-data">
-                    <div class="col-md-6">
-                        <label class="label">Role</label>
-                        <div><?= $roleName ?></div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="label">Team</label>
-                        <div>PDPA</div>
-                    </div>
-                </div>
-
-                <div class="row row-data">
-                    <div class="col-md-12">
-                        <label class="label">Email</label>
-                        <div><?= $userEmail ?></div>
-                    </div>
-                </div>
-                
-                <div class="text-right mt-4">
-                    <button class="btn btn-primary" data-toggle="modal" data-target="#editModal">
-                        <i class="fa fa-pencil"></i> Edit
-                    </button>
-                </div>
-
-                <input type="file" id="fileInputMain" accept="image/*" style="display:none;" aria-label="เลือกไฟล์รูปโปรไฟล์" />
-            </div>
-        </section>
-    </div><div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel">
-        <div class="modal-dialog" role="document">
-            <form method="POST" action="update.php"> <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title" id="editModalLabel">Edit Profile</h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="hidden" name="user_id" value="<?= $userId ?>">
-                        <div class="form-group">
-                            <label for="nname">Name</label>
-                            <input type="text" class="form-control" name="nname" value="<?= $nname ?>" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="surname">Surname</label>
-                            <input type="text" class="form-control" name="surname" value="<?= $surname ?>" required>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-success">Save</button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    </div>
-                </div>
-            </form>
+      <div class="profile-box">
+        <!-- Header -->
+        <div class="profile-header">
+          <h2>👋 Hello!</h2>
         </div>
-    </div>
 
-</div><script src="../plugins_v3/jquery/jquery.min.js"></script>
+        <!-- Avatar -->
+        <div class="avatar-wrapper">
+          <img id="avatarPreview" src="../<?= $avatar ?>" alt="Avatar">
+          <input type="file" name="avatar" id="avatarInput" accept="image/*" style="display:none;">
+        </div>
+
+        <!-- Details Grid -->
+        <div class="row profile-details">
+          <div class="col-md-6 mb-3">
+            <p class="label">Name</p>
+            <p class="value"><?= $nname ?></p>
+          </div>
+          <div class="col-md-6 mb-3">
+            <p class="label">Surname</p>
+            <p class="value"><?= $surname ?></p>
+          </div>
+          <div class="col-md-6 mb-3">
+            <p class="label">Role</p>
+            <p class="value"><?= $roleName ?></p>
+          </div>
+          <div class="col-md-6 mb-3">
+            <p class="label">Team</p>
+            <p class="value"><?= $positionName ?></p>
+          </div>
+          <div class="col-12 mb-3">
+            <p class="label">Email</p>
+            <p class="value"><?= $email ?></p>
+          </div>
+        </div>
+
+        <!-- Edit Button -->
+        <div class="text-right">
+          <button class="btn btn-primary" data-toggle="modal" data-target="#editModal">
+            <i class="fa fa-pencil"></i> Edit
+          </button>
+          <!-- … ฝั่งบนของไฟล์ … -->
+
+<!-- แทรก modal Edit ไว้ตรงนี้ -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <form method="POST" action="update.php" enctype="multipart/form-data">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel"><i class="fa fa-pencil-alt"></i> แก้ไขโปรไฟล์</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="user_id" value="<?= $userId ?>">
+          <div class="form-group text-center">
+            <div class="avatar-wrapper mb-3" style="position:relative; width:100px; height:100px; margin:0 auto;">
+              <img id="avatarInputPreview" src="../<?= $avatar ?>" class="rounded-circle" style="width:100px; height:100px; object-fit:cover;">
+              <button type="button" class="btn btn-sm btn-danger" 
+                      style="position:absolute; bottom:0; right:0; padding:4px;" 
+                      id="changeAvatarBtnModal">
+                <i class="fa fa-camera"></i>
+              </button>
+              <input type="file" name="avatar" id="avatarInputModal" accept="image/*" style="display:none;">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="nname">ชื่อ (Name)</label>
+            <input type="text" class="form-control" name="nname" id="nname" value="<?= $nname ?>" required>
+          </div>
+          <div class="form-group">
+            <label for="surname">นามสกุล (Surname)</label>
+            <input type="text" class="form-control" name="surname" id="surname" value="<?= $surname ?>" required>
+          </div>
+          <div class="form-group">
+            <label for="emailField">E-mail</label>
+            <input type="email" class="form-control" id="emailField" value="<?= $email ?>" disabled>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">ยกเลิก</button>
+          <button type="submit" class="btn btn-success">บันทึก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script src="../plugins_v3/jquery/jquery.min.js"></script>
 <script src="../plugins_v3/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="../dist_v3/js/adminlte.min.js"></script>
-
 <script>
-    const editIcon = document.getElementById('editIconMain');
-    const fileInput = document.getElementById('fileInputMain');
-    const profileImage = document.getElementById('profileImageMain');
-
-    editIcon.addEventListener('click', () => {
-        fileInput.click();
-    });
-
-    fileInput.addEventListener('change', () => {
-        if (fileInput.files && fileInput.files[0]) {
-            const file = fileInput.files[0];
-            if (!file.type.startsWith('image/')) {
-                alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
-                fileInput.value = '';
-                return;
-            }
-            alert('คุณได้เลือกไฟล์รูปภาพเพื่อเปลี่ยนโปรไฟล์: ' + file.name);
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                profileImage.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-            // TODO: อัพโหลดไฟล์ขึ้น server ที่นี่ (ใช้ fetch/AJAX ส่งไปยัง PHP backend)
-        }
-    });
+  // เปิด file input เมื่อคลิกปุ่มกล้องใน modal
+  document.getElementById('changeAvatarBtnModal').addEventListener('click', function(){
+    document.getElementById('avatarInputModal').click();
+  });
+  // แสดงพรีวิวรูปที่เลือก
+  document.getElementById('avatarInputModal').addEventListener('change', function(){
+    const file = this.files[0];
+    if(file && file.type.startsWith('image/')){
+      const reader = new FileReader();
+      reader.onload = e => document.getElementById('avatarInputPreview').src = e.target.result;
+      reader.readAsDataURL(file);
+    }
+  });
 </script>
-
-</body>
-</html>
