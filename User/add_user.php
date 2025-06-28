@@ -125,6 +125,22 @@ $stmt->bind_param(
    Execute
    ------------------------------------------------------------------ */
 if ($stmt->execute()) {
+    $transac_id = $mysqli->insert_id;
+
+    // file_put_contents('debug_post.log', print_r($_POST, true));
+
+    // รับค่าจากฟอร์มใหม่: step[level_id] และ step_date[level_id]
+    $stepsChecked = $_POST['step'] ?? [];
+    $stepsDate = $_POST['step_date'] ?? [];
+    foreach ($stepsChecked as $level_id => $checked) {
+        if ($checked && $level_id) {
+            $date = $stepsDate[$level_id] ?? null;
+            $stmt2 = $mysqli->prepare("INSERT INTO transactional_step (transac_id, level_id, date) VALUES (?, ?, ?)");
+            $stmt2->bind_param('iis', $transac_id, $level_id, $date);
+            $stmt2->execute();
+            $stmt2->close();
+        }
+    }
     header('Location: adduser01.php?success=1');
     exit;
 }

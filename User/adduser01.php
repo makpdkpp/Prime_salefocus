@@ -19,6 +19,7 @@ $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
 
 /* -------- helper ดึง option (id => label) -------- */
 function loadOptions(mysqli $db, string $table, string $idCol, string $labelCol): array {
+    // ดึง option ทั่วไป (ORDER BY label ตามเดิม)
     $rows = $db->query("SELECT `$idCol`, `$labelCol` FROM `$table` ORDER BY `$labelCol`");
     return $rows ? $rows->fetch_all(MYSQLI_ASSOC) : [];
 }
@@ -28,16 +29,28 @@ $teamOpts     = loadOptions($mysqli, 'team_catalog',    'team_id',     'team');
 $companyOpts  = loadOptions($mysqli, 'company_catalog', 'company_id',  'company');
 $priorityOpts = loadOptions($mysqli, 'priority_level',  'priority_id', 'priority');
 $Source_budgeOpts = loadOptions($mysqli, 'source_of_the_budget',  'Source_budget_id', 'Source_budge');
+// ดึง step โดยเรียง orderlv
+$stepOpts = [];
+$res = $mysqli->query("SELECT level_id, level FROM step ORDER BY orderlv ASC");
+if ($res) $stepOpts = $res->fetch_all(MYSQLI_ASSOC);
 
 /* map ชื่อ field สถานะตามตาราง */
-$steps = [
-    'present'  => ['label'=>'Present',  'date'=>null],
-    'budgeted' => ['label'=>'Budget',  'date'=>null],
-    'tor'      => ['label'=>'TOR',     'date'=>'tor_date'],
-    'bidding'  => ['label'=>'Bidding', 'date'=>'bidding_date'],
-    'win'      => ['label'=>'WIN',     'date'=>'win_date'],
-    'lost'     => ['label'=>'LOST',    'date'=>'lost_date']
-];
+// mapping ระหว่าง level กับชื่อ field สถานะ (แก้ไขตาม field จริงใน DB)
+
+
+
+// mapping ระหว่าง level กับชื่อ field วันที่ (แก้ไขตาม field จริงใน DB)
+
+$steps = [];
+foreach ($stepOpts as $step) {
+    $level = $step['level'];
+    $key = strtolower($level); // เช่น 'present', 'budgeted', 'tor', ...
+    $steps[$key] = [
+        'label' => $level,
+        'date'  => $key . '_date',
+        'level_id' => $step['level_id']
+    ];
+}
 
 $row = []; // หน้า add ให้เป็น array ว่าง
 
@@ -260,14 +273,14 @@ $row = []; // หน้า add ให้เป็น array ว่าง
                         ?>
                           <div class="col-12 col-lg-6 mb-2">
                             <div class="process-item">
-                              <input type="hidden" name="<?= $field ?>" value="0">
+                              <input type="hidden" name="step[<?= $cfg['level_id'] ?>]" value="0">
                               <div class="icheck-primary d-inline">
-                                  <input type="checkbox" id="<?= $field ?>_cb" name="<?= $field ?>" value="1" <?= $checked ? 'checked' : '' ?> onchange="toggleDate('<?= $field ?>')">
-                                  <label for="<?= $field ?>_cb" style="margin-bottom: 0; font-weight: normal !important;"><?= $cfg['label'] ?></label>
+                                  <input type="checkbox" id="step_cb_<?= $cfg['level_id'] ?>" name="step[<?= $cfg['level_id'] ?>]" value="<?= $cfg['level_id'] ?>" <?= $checked ? 'checked' : '' ?> onchange="toggleDate('<?= $cfg['level_id'] ?>')">
+                                  <label for="step_cb_<?= $cfg['level_id'] ?>" style="margin-bottom: 0; font-weight: normal !important;"><?= $cfg['label'] ?></label>
                               </div>
 
                               <?php if ($cfg['date']): ?>
-                                <input type="date" class="form-control form-control-sm ml-2" id="<?= $field ?>_date" name="<?= $cfg['date'] ?>" value="<?= htmlspecialchars($dateVal) ?>" style="width: auto;" <?= $checked ? '' : 'disabled' ?>>
+                                <input type="date" class="form-control form-control-sm ml-2" id="step_date_<?= $cfg['level_id'] ?>" name="step_date[<?= $cfg['level_id'] ?>]" value="<?= htmlspecialchars($dateVal) ?>" style="width: auto;" <?= $checked ? '' : 'disabled' ?>>
                               <?php endif; ?>
                             </div>
                           </div>
@@ -300,12 +313,10 @@ f.addEventListener('input',()=>{const p=f.selectionStart,l=f.value.length;f.valu
 $('#salesForm').on('submit',()=>f.value=f.value.replace(/,/g,''));})();
 </script>
 <script>
-function toggleDate(field) {
-    const checkbox = document.getElementById(field + '_cb');
-    const dateInput = document.getElementById(field + '_date');
-
+function toggleDate(levelId) {
+    const checkbox = document.getElementById('step_cb_' + levelId);
+    const dateInput = document.getElementById('step_date_' + levelId);
     if (!dateInput) return;
-
     if (checkbox.checked) {
         dateInput.removeAttribute('disabled');
     } else {
