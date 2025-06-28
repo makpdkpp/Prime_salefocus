@@ -68,6 +68,9 @@ function handleLogin(mysqli $db): ?string
             case 2:
                 header('Location: home_user.php');
                 break;
+            case 3: // <-- เพิ่มบรรทัดนี้เข้ามา
+                header('Location: home_admin_team.php');
+                break;
             default:
                 header('Location: index.php');
         }
