@@ -27,9 +27,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
     $email = trim($_POST['invite_email']);
     $role_id = isset($_POST['invite_role']) ? (int)$_POST['invite_role'] : 0;
     $position_id = isset($_POST['invite_position']) ? (int)$_POST['invite_position'] : 0;
-    $team_ids = isset($_POST['invite_team']) && is_array($_POST['invite_team']) ? $_POST['invite_team'] : [];
+    $team_ids = isset($_POST['invite_team']) ? $_POST['invite_team'] : [];
+    if (!is_array($team_ids)) $team_ids = [$team_ids];
 
-    if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL) && $role_id > 0) {
+    if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL) && $role_id > 0 && $position_id > 0 && count($team_ids) > 0) {
         $token = bin2hex(random_bytes(32));
         $expiry = date('Y-m-d H:i:s', strtotime('+1 day'));
         $uid = null;
@@ -42,46 +43,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
         if ($user = $result->fetch_assoc()) {
             $uid = $user['user_id'];
             $stmt_check->close();
-
+            
             $stmt_update = $db->prepare('UPDATE user SET role_id=?, position_id=?, reset_token=?, token_expiry=?, is_active=0 WHERE user_id=?');
             $stmt_update->bind_param('iissi', $role_id, $position_id, $token, $expiry, $uid);
             $stmt_update->execute();
             $stmt_update->close();
+
+            // ลบทีมเดิม แล้วเพิ่มทีมใหม่
+            $db->query('DELETE FROM transactional_team WHERE user_id=' . (int)$uid);
+            $stmt_trans = $db->prepare('INSERT INTO transactional_team (team_id, user_id) VALUES (?, ?)');
+            foreach ($team_ids as $team_id) {
+                $team_id = (int)$team_id;
+                $stmt_trans->bind_param('ii', $team_id, $uid);
+                $stmt_trans->execute();
+            }
+            $stmt_trans->close();
         } else {
             $stmt_check->close();
-            
             $temporary_password = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
-            $default_surename = ''; 
-            $default_forecast = 0; 
-
+            $default_surename = '';
+            $default_forecast = 0;
+            // First insert the user (team_id removed)
             $stmt_insert = $db->prepare('INSERT INTO user (email, nname, surename, role_id, position_id, forecast, reset_token, token_expiry, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
-            $stmt_insert->bind_param('sssiidisss', $email, $email, $default_surename, $role_id, $position_id, $default_forecast, $token, $expiry, $temporary_password);
+            if (!$stmt_insert) {
+                die('Prepare failed: ' . $db->error);
+            }
+            $stmt_insert->bind_param('sssiiisss', $email, $email, $default_surename, $role_id, $position_id, $default_forecast, $token, $expiry, $temporary_password);
             $stmt_insert->execute();
-            $uid = $stmt_insert->insert_id;
+            $new_user_id = $db->insert_id;
             $stmt_insert->close();
-        }
-
-        // --- จัดการข้อมูลในตาราง transactional_team ---
-        if ($uid) {
-            // 1. ลบทีมเก่าทั้งหมดของ user นี้ออกก่อน
-            $stmt_delete_teams = $db->prepare("DELETE FROM transactional_team WHERE user_id = ?");
-            $stmt_delete_teams->bind_param('i', $uid);
-            $stmt_delete_teams->execute();
-            $stmt_delete_teams->close();
-
-            // 2. ถ้าเป็น Sales (role_id=2) และมีทีมถูกเลือก ให้เพิ่มทีมใหม่เข้าไป
-            if ($role_id == 2 && !empty($team_ids)) {
-                $stmt_add_team = $db->prepare("INSERT INTO transactional_team (user_id, team_id) VALUES (?, ?)");
+            // Insert all selected teams
+            if ($new_user_id) {
+                $stmt_trans = $db->prepare('INSERT INTO transactional_team (team_id, user_id) VALUES (?, ?)');
                 foreach ($team_ids as $team_id) {
-                    $clean_team_id = (int)$team_id;
-                    $stmt_add_team->bind_param('ii', $uid, $clean_team_id);
-                    $stmt_add_team->execute();
+                    $team_id = (int)$team_id;
+                    $stmt_trans->bind_param('ii', $team_id, $new_user_id);
+                    $stmt_trans->execute();
                 }
-                $stmt_add_team->close();
+                $stmt_trans->close();
             }
         }
-
-        // --- ส่วนของการส่ง Email (เหมือนเดิม) ---
         if (empty($message)) {
             $link = 'http://' . $_SERVER['HTTP_HOST'] . '/Prime_saleficus/pages/layout/set-password.php?token=' . $token;
             $subject = 'User Invitation to PrimeForecast';
@@ -112,11 +113,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
         $message = 'Please provide a valid email and role. Position and Team are required for Sales.';
         $message_type = 'danger';
     }
-    // ใช้ session เพื่อส่งข้อความข้ามหน้า
+    // POST-REDIRECT-GET: เก็บ message ใน session แล้ว redirect
     $_SESSION['message'] = $message;
     $_SESSION['message_type'] = $message_type;
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit();
+    header('Location: newuser.php');
+    exit;
 }
 
 $positions_query = $db->query("SELECT position_id, position FROM position ORDER BY position ASC");
@@ -127,24 +128,14 @@ $teams = $teams_query ? $teams_query->fetch_all(MYSQLI_ASSOC) : [];
 
 // --- Query ดึงข้อมูลผู้ใช้งานและทีมทั้งหมด (ใช้ transactional_team) ---
 $user_query = $db->query("
-    SELECT
-        u.user_id,
-        u.email,
-        u.is_active,
-        u.role_id,
-        u.position_id,
-        p.position,
-        (SELECT GROUP_CONCAT(tc.team SEPARATOR ', ')
-         FROM transactional_team ut
-         JOIN team_catalog tc ON ut.team_id = tc.team_id
-         WHERE ut.user_id = u.user_id
-        ) AS teams,
-        (SELECT GROUP_CONCAT(ut.team_id SEPARATOR ',')
-         FROM transactional_team ut
-         WHERE ut.user_id = u.user_id
-        ) AS team_ids
+    SELECT u.user_id, u.email, u.is_active, u.role_id, u.position_id, p.position,
+           GROUP_CONCAT(tc.team SEPARATOR ', ') AS team,
+           GROUP_CONCAT(tt.team_id) AS team_ids
     FROM user u
     LEFT JOIN position p ON u.position_id = p.position_id
+    LEFT JOIN transactional_team tt ON u.user_id = tt.user_id
+    LEFT JOIN team_catalog tc ON tt.team_id = tc.team_id
+    GROUP BY u.user_id
     ORDER BY u.user_id DESC
 ");
 $userRows = $user_query ? $user_query->fetch_all(MYSQLI_ASSOC) : [];
@@ -333,7 +324,7 @@ $db->close();
                         data-email="<?= htmlspecialchars($u['email']) ?>"
                         data-role-id="<?= $u['role_id'] ?>"
                         data-position-id="<?= $u['position_id'] ?>"
-                        data-team-ids="<?= htmlspecialchars($u['team_ids'] ?? '') ?>">
+                        data-team-ids="<?= htmlspecialchars($u['team_ids']) ?>">
                   <i class="fas fa-edit"></i>
                 </button>
               </td>
@@ -360,7 +351,16 @@ $db->close();
             <div class="form-group"><label for="invite_email">Email Address</label><input type="email" id="invite_email" name="invite_email" class="form-control" placeholder="Enter email" required></div>
             <div class="form-group"><label for="invite_role">Role</label><select id="invite_role" name="invite_role" class="form-control" required><option value="" disabled selected>-- Select Role --</option><option value="1">Superadmin</option><option value="2">Sales</option></select></div>
             <div class="form-group"><label for="invite_position">Position</label><select id="invite_position" name="invite_position" class="form-control" required><option value="" disabled selected>-- Select Position --</option><?php foreach ($positions as $pos): ?><option value="<?= $pos['position_id'] ?>"><?= htmlspecialchars($pos['position']) ?></option><?php endforeach; ?></select></div>
-            <div class="form-group"><label for="invite_team">Sales Team</label><select id="invite_team" name="invite_team[]" class="form-control" multiple><option disabled>-- Select Sales Team --</option><?php foreach ($teams as $team): ?><option value="<?= $team['team_id'] ?>"><?= htmlspecialchars($team['team']) ?></option><?php endforeach; ?></select></div>
+            <div class="form-group"><label for="invite_team">Sales Team</label>
+            <div id="invite_team_group">
+              <?php foreach ($teams as $team): ?>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="invite_team[]" id="invite_team_<?= $team['team_id'] ?>" value="<?= $team['team_id'] ?>">
+                  <label class="form-check-label" for="invite_team_<?= $team['team_id'] ?>"><?= htmlspecialchars($team['team']) ?></label>
+                </div>
+              <?php endforeach; ?>
+            </div>
+          </div>
           </div>
           <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Send Invitation</button></div>
         </form>
@@ -374,11 +374,19 @@ $db->close();
         <form method="POST">
           <div class="modal-header"><h5 class="modal-title">แก้ไขสิทธิ์และตำแหน่ง</h5><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>
           <div class="modal-body">
-            <input type="email" id="edit_email" name="invite_email" class="form-control" readonly style="display:none;">
-            <div class="form-group"><label>Email</label><p id="display_email" class="form-control-static"></p></div>
-            <div class="form-group"><label for="edit_role">Role</label><select id="edit_role" name="invite_role" class="form-control" required><option value="1">Superadmin</option><option value="2">Sales</option></select></div>
-            <div class="form-group"><label for="edit_position">Position</label><select id="edit_position" name="invite_position" class="form-control" required><option value="" disabled>-- Select Position --</option><?php foreach ($positions as $pos): ?><option value="<?= $pos['position_id'] ?>"><?= htmlspecialchars($pos['position']) ?></option><?php endforeach; ?></select></div>
-            <div class="form-group"><label for="edit_team">Sales Team</label><select id="edit_team" name="invite_team[]" class="form-control" multiple><option disabled>-- Select Sales Team --</option><?php foreach ($teams as $team): ?><option value="<?= $team['team_id'] ?>"><?= htmlspecialchars($team['team']) ?></option><?php endforeach; ?></select></div>
+            <input type="hidden" name="user_id" id="edit_user_id">
+            <div class="form-group"><label for="edit_role">Role</label><select id="edit_role" name="role_id" class="form-control" required><option value="1">Superadmin</option><option value="2">Sales</option></select></div>
+            <div class="form-group"><label for="edit_position">Position</label><select id="edit_position" name="position_id" class="form-control" required><option value="" disabled>-- Select Position --</option><?php foreach ($positions as $pos): ?><option value="<?= $pos['position_id'] ?>"><?= htmlspecialchars($pos['position']) ?></option><?php endforeach; ?></select></div>
+            <div class="form-group"><label for="edit_team">Sales Team</label>
+              <div id="edit_team_group">
+                <?php foreach ($teams as $team): ?>
+                  <div class="form-check">
+                    <input class="form-check-input edit-team-checkbox" type="checkbox" name="team_id[]" id="edit_team_<?= $team['team_id'] ?>" value="<?= $team['team_id'] ?>">
+                    <label class="form-check-label" for="edit_team_<?= $team['team_id'] ?>"><?= htmlspecialchars($team['team']) ?></label>
+                  </div>
+                <?php endforeach; ?>
+              </div>
+            </div>
           </div>
           <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save Changes</button></div>
         </form>
@@ -407,7 +415,7 @@ $(document).ready(function() {
     // --- Invite Modal Logic ---
     const inviteRoleSelect = $('#invite_role');
     const invitePositionGroup = $('#invite_position').closest('.form-group');
-    const inviteTeamGroup = $('#invite_team').closest('.form-group');
+    const inviteTeamGroup = $('#invite_team_group').closest('.form-group');
 
     function toggleInviteFields() {
         if (inviteRoleSelect.val() === '2') { // Sales
@@ -426,7 +434,7 @@ $(document).ready(function() {
     // --- Edit Modal Logic ---
     const editRoleSelect = $('#edit_role');
     const editPositionGroup = $('#edit_position').closest('.form-group');
-    const editTeamGroup = $('#edit_team').closest('.form-group');
+    const editTeamGroup = $('#edit_team_group').closest('.form-group');
 
     function toggleEditFields() {
         if (editRoleSelect.val() === '2') { // Sales
@@ -443,25 +451,24 @@ $(document).ready(function() {
 
     // --- Populate Edit Modal on button click ---
     $('.btn-edit').on('click', function() {
-        const button = $(this);
-        const userEmail = button.data('email');
-        const roleId = button.data('role-id');
-        const positionId = button.data('position-id');
-        const teamIdsString = button.data('team-ids').toString();
-        const teamIdsArray = teamIdsString ? teamIdsString.split(',') : [];
+        const userId = $(this).data('user-id');
+        const roleId = $(this).data('role-id');
+        const positionId = $(this).data('position-id');
+        let teamIds = $(this).data('team-ids');
 
-        // Populate hidden email input for form submission
-        $('#edit_email').val(userEmail);
-        // Display email for user
-        $('#display_email').text(userEmail); 
-        
+        $('#edit_user_id').val(userId);
         $('#edit_role').val(roleId);
-        $('#edit_position').val(positionId || '');
-        
-        // Set values for Select2
-        $('#edit_team').val(teamIdsArray).trigger('change');
-        
-        // Ensure correct fields are shown based on the role
+        $('#edit_position').val(positionId);
+        // เคลียร์ checkbox ก่อน
+        $('.edit-team-checkbox').prop('checked', false);
+        if (teamIds && teamIds !== 'null' && teamIds !== null && teamIds !== undefined) {
+          // handle กรณีเดียว/หลายทีม และ trim ช่องว่าง
+          let ids = String(teamIds).split(',').map(id => id.trim()).filter(id => id !== '' && id !== 'null');
+          ids.forEach(function(id) {
+            if (id) $('#edit_team_' + id).prop('checked', true);
+          });
+        }
+        // ✅ เรียกใช้ฟังก์ชันเพื่อซ่อน/แสดงฟอร์มทันทีที่ Modal เปิด
         toggleEditFields(); 
     });
 });
