@@ -2,7 +2,9 @@
 session_start();
 include("../../functions.php");
 $mysqli = connectDb();
-$avatar = htmlspecialchars($_SESSION['avatar'] ?? '../../dist/img/user2-160x160.jpg', ENT_QUOTES, 'UTF-8');
+$avatar  = $user['avatar_path']
+           ? htmlspecialchars($user['avatar_path'], ENT_QUOTES, 'UTF-8')
+           : '../../dist/img/user2-160x160.jpg';
 
 // กำหนดตัวเลือกจำนวนแถว
 $limitOptions = [10, 25, 50, 100];

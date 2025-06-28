@@ -8,11 +8,7 @@ if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {
     exit;
 }
 
-if (isset($_SESSION['avatar'])) {
-    echo "SESSION avatar: " . htmlspecialchars($_SESSION['avatar']);
-} else {
-    echo "SESSION avatar: NOT SET";
-}
+
 $userId = (int)$_SESSION['user_id'];
 $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 $avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
