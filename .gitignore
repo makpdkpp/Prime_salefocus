@@ -3,6 +3,6 @@ functions.php
 .DS_Store
 Thunbs.db
 .db
-migrate_transactional_step.php
+
 sale.sql
 debug_post.log
