@@ -23,6 +23,15 @@ $avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" href="dist_v3/css/adminlte.min.css">
 </head>
+<style>
+        /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
+    body.sidebar-mini .main-sidebar .user-panel .image img,
+    body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
+    </style>
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">
 
