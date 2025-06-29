@@ -23,6 +23,13 @@ $email = htmlspecialchars($_SESSION['email']);
   <link rel="stylesheet" href="dist_v3/css/adminlte.min.css">
 
   <style>
+        /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
+    body.sidebar-mini .main-sidebar .user-panel .image img,
+    body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
     /* ✅ เพิ่มโค้ดสีพื้นหลังตรงนี้ */
     .content-wrapper { background-color: #b3d6e4; }
 
