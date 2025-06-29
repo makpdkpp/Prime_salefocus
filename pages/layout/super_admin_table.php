@@ -48,6 +48,13 @@ if ($rs) {
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" href="../../dist_v3/css/adminlte.min.css">
     <style>
+          /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
+    body.sidebar-mini .main-sidebar .user-panel .image img,
+    body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
       .main-header.navbar {
           border-bottom: none;
       }
