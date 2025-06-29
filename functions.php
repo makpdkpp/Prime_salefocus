@@ -27,7 +27,7 @@ if (session_status() === PHP_SESSION_NONE) {
 function connectDb(): mysqli
 {
         $host = '127.0.0.1';
-        $db   = 'sale';
+        $db   = 'sale1';
         $user = 'root';
         $pass = '';
 

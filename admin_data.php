@@ -56,7 +56,7 @@ $output['winvalue'] = querySingle($mysqli,
        SELECT ts.transac_id
        FROM transactional_step ts
        JOIN step s ON s.level_id = ts.level_id
-       WHERE s.level = 'WIN'
+       WHERE s.level = 5
          AND (ts.transacstep_id, ts.transac_id) IN (
            SELECT MAX(ts2.transacstep_id), ts2.transac_id
            FROM transactional_step ts2
@@ -73,7 +73,7 @@ $output['wincount'] = querySingle($mysqli,
        SELECT ts.transac_id
        FROM transactional_step ts
        JOIN step s ON s.level_id = ts.level_id
-       WHERE s.level = 'WIN'
+       WHERE s.level = 5
          AND (ts.transacstep_id, ts.transac_id) IN (
            SELECT MAX(ts2.transacstep_id), ts2.transac_id
            FROM transactional_step ts2
@@ -90,7 +90,7 @@ $output['lostcount'] = querySingle($mysqli,
        SELECT ts.transac_id
        FROM transactional_step ts
        JOIN step s ON s.level_id = ts.level_id
-       WHERE s.level = 'LOST'
+       WHERE s.level = 6
          AND (ts.transacstep_id, ts.transac_id) IN (
            SELECT MAX(ts2.transacstep_id), ts2.transac_id
            FROM transactional_step ts2
@@ -103,12 +103,12 @@ $output['lostcount'] = querySingle($mysqli,
 $output['salestatus'] = queryList($mysqli,
     "SELECT
       month,
-      SUM(type = 'นำเสนอ Solution') AS present_count,
-      SUM(type = 'ตั้งงบประมาณ') AS budgeted_count,
-      SUM(type = 'ร่าง TOR') AS tor_count,
-      SUM(type = 'Bidding ') AS bidding_count,
-      SUM(type = 'WIN') AS win_count,
-      SUM(type = 'LOST') AS lost_count
+      SUM(type = '1.นำเสนอ Solution') AS present_count,
+      SUM(type = '2.ตั้งงบประมาณ') AS budgeted_count,
+      SUM(type = '3.ร่าง TOR') AS tor_count,
+      SUM(type = '4.Bidding / เสนอราคา') AS bidding_count,
+      SUM(type = '5.WIN') AS win_count,
+      SUM(type = '6.LOST') AS lost_count
     FROM (
       SELECT DATE_FORMAT(ts.date, '%Y-%m') AS month, s.level AS type
       FROM transactional_step ts
@@ -130,7 +130,7 @@ $output['sumbyperson'] = queryList($mysqli,
        SELECT ts.transac_id
        FROM transactional_step ts
        JOIN step s ON s.level_id = ts.level_id
-       WHERE s.level = 'WIN'
+       WHERE s.level = '5.WIN'
          AND (ts.transacstep_id, ts.transac_id) IN (
            SELECT MAX(ts2.transacstep_id), ts2.transac_id
            FROM transactional_step ts2
@@ -153,7 +153,7 @@ $output['countbyperson'] = queryList($mysqli,
        SELECT ts.transac_id
        FROM transactional_step ts
        JOIN step s ON s.level_id = ts.level_id
-       WHERE s.level = 'WIN'
+       WHERE s.level = '5.WIN'
          AND (ts.transacstep_id, ts.transac_id) IN (
            SELECT MAX(ts2.transacstep_id), ts2.transac_id
            FROM transactional_step ts2
@@ -176,7 +176,7 @@ $output['sumbyperteam'] = queryList($mysqli,
        SELECT ts.transac_id
        FROM transactional_step ts
        JOIN step s ON s.level_id = ts.level_id
-       WHERE s.level = 'WIN'
+       WHERE s.level = '5.WIN'
          AND (ts.transacstep_id, ts.transac_id) IN (
            SELECT MAX(ts2.transacstep_id), ts2.transac_id
            FROM transactional_step ts2
@@ -192,12 +192,12 @@ $output['sumbyperteam'] = queryList($mysqli,
 $output['salestatusvalue'] = queryList($mysqli,
     "SELECT
       month,
-      SUM(CASE WHEN type = 'นำเสนอ Solution' THEN value ELSE 0 END) AS present_value,
-      SUM(CASE WHEN type = 'ตั้งงบประมาณ' THEN value ELSE 0 END) AS budgeted_value,
-      SUM(CASE WHEN type = 'ร่าง TOR' THEN value ELSE 0 END) AS tor_value,
-      SUM(CASE WHEN type = 'Bidding ' THEN value ELSE 0 END) AS bidding_value,
-      SUM(CASE WHEN type = 'WIN' THEN value ELSE 0 END) AS win_value,
-      SUM(CASE WHEN type = 'LOST' THEN value ELSE 0 END) AS lost_value
+      SUM(CASE WHEN type = '1.นำเสนอ Solution' THEN value ELSE 0 END) AS present_value,
+      SUM(CASE WHEN type = '2.ตั้งงบประมาณ' THEN value ELSE 0 END) AS budgeted_value,
+      SUM(CASE WHEN type = '3.ร่าง TOR' THEN value ELSE 0 END) AS tor_value,
+      SUM(CASE WHEN type = '4.Bidding / เสนอราคา' THEN value ELSE 0 END) AS bidding_value,
+      SUM(CASE WHEN type = '5.WIN' THEN value ELSE 0 END) AS win_value,
+      SUM(CASE WHEN type = '6.LOST' THEN value ELSE 0 END) AS lost_value
     FROM (
       SELECT DATE_FORMAT(ts.date, '%Y-%m') AS month, t.product_value AS value, s.level AS type
       FROM transactional_step ts
@@ -214,7 +214,7 @@ $output['saleforecast'] = queryList($mysqli,
     "SELECT
       u.forecast AS Target,
       SUM(t.product_value) AS Forecast,
-      SUM(CASE WHEN s.level = 'WIN' THEN t.product_value ELSE 0 END) AS Win,
+      SUM(CASE WHEN s.level = '5.WIN' THEN t.product_value ELSE 0 END) AS Win,
       u.nname
     FROM transactional_step ts
     JOIN transactional t ON t.transac_id = ts.transac_id
@@ -234,7 +234,7 @@ $output['productwinrate'] = queryList($mysqli,
       SELECT ts.transac_id
       FROM transactional_step ts
       JOIN step s ON s.level_id = ts.level_id
-      WHERE s.level = 'WIN'
+      WHERE s.level = '5.WIN'
         AND (ts.transacstep_id, ts.transac_id) IN (
           SELECT MAX(ts2.transacstep_id), ts2.transac_id
           FROM transactional_step ts2
