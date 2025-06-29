@@ -2,40 +2,79 @@
 session_start();
 include("../../functions.php");
 $mysqli = connectDb();
-$avatar  = $user['avatar_path']
-           ? htmlspecialchars($user['avatar_path'], ENT_QUOTES, 'UTF-8')
-           : '../../dist/img/user2-160x160.jpg';
+
+// —————— BEGIN: ดึง avatar จาก DB ——————
+if (empty($_SESSION['user_id'])) {
+    header('Location: ../../index.php');
+    exit;
+}
+$stmt = $mysqli->prepare("
+    SELECT avatar_path
+    FROM `user`
+    WHERE user_id = ?
+");
+$stmt->bind_param("i", $_SESSION['user_id']);
+$stmt->execute();
+$row = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+if (!empty($row['avatar_path']) 
+    && file_exists(__DIR__ . '/../../' . $row['avatar_path'])) {
+    $avatar = $row['avatar_path'];
+} else {
+    // รูป default
+    $avatar = 'dist/img/user2-160x160.jpg';
+}
+// —————— END: ดึง avatar จาก DB ——————
+
+
 
 // กำหนดตัวเลือกจำนวนแถว
 $limitOptions = [10, 25, 50, 100];
-$limit = isset($_GET['limit']) && in_array((int)$_GET['limit'], $limitOptions) ? (int)$_GET['limit'] : 10;
-$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$limit = isset($_GET['limit']) && in_array((int)$_GET['limit'], $limitOptions)
+           ? (int)$_GET['limit']
+           : 10;
+$page  = isset($_GET['page'])  ? max(1, (int)$_GET['page']) : 1;
 $start = ($page - 1) * $limit;
 
 // รับค่ากรอง Industry
-$filterIndustry = isset($_GET['industry_filter']) && $_GET['industry_filter'] !== '' ? (int)$_GET['industry_filter'] : '';
-$where = $filterIndustry ? "WHERE cc.Industry_id = {$filterIndustry}" : '';
+$filterIndustry = isset($_GET['industry_filter']) && $_GET['industry_filter'] !== ''
+                  ? (int)$_GET['industry_filter']
+                  : '';
+$where = $filterIndustry
+         ? "WHERE cc.Industry_id = {$filterIndustry}"
+         : '';
 
 // คำนวณ pagination
 $totalQuery = $mysqli->query("SELECT COUNT(*) as total FROM company_catalog cc $where");
-$totalRow = $totalQuery->fetch_assoc()['total'];
+$totalRow   = $totalQuery->fetch_assoc()['total'];
 $totalPages = ceil($totalRow / $limit);
 
 // จัดเรียง A–Z ก่อน ก–ฮ
 $collationLatin = 'utf8mb4_unicode_ci';
-$orderExpr = "CASE WHEN cc.company REGEXP '^[A-Za-z]' THEN 0 ELSE 1 END, cc.company COLLATE $collationLatin ASC";
+$orderExpr = "
+    CASE WHEN cc.company REGEXP '^[A-Za-z]' THEN 0 ELSE 1 END,
+    cc.company COLLATE $collationLatin ASC
+";
 
-// ดึงข้อมูล
-$sql = "SELECT cc.company_id, cc.company, cc.Industry_id, ig.Industry
-        FROM company_catalog cc
-        LEFT JOIN industry_group ig ON cc.Industry_id = ig.Industry_id
-        $where
-        ORDER BY $orderExpr
-        LIMIT $start, $limit";
+// ดึงข้อมูลบริษัท
+$sql = "
+    SELECT cc.company_id, cc.company, cc.Industry_id, ig.Industry
+    FROM company_catalog cc
+    LEFT JOIN industry_group ig
+      ON cc.Industry_id = ig.Industry_id
+    $where
+    ORDER BY $orderExpr
+    LIMIT $start, $limit
+";
 $companies = $mysqli->query($sql);
 
 // ดึง list อุตสาหกรรม สำหรับ dropdown กรอง
-$industries = $mysqli->query("SELECT Industry_id, Industry FROM industry_group ORDER BY Industry COLLATE utf8mb4_unicode_ci");
+$industries = $mysqli->query("
+    SELECT Industry_id, Industry
+    FROM industry_group
+    ORDER BY Industry COLLATE utf8mb4_unicode_ci
+");
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -56,6 +95,20 @@ $industries = $mysqli->query("SELECT Industry_id, Industry FROM industry_group O
     .pagination .page-item.active .page-link { background-color: #0056b3; border-color: #0056b3; }
     .main-header.navbar { border-bottom: none; }
     .sidebar {padding-bottom: 30px; }
+        /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
+    body.sidebar-mini .main-sidebar .user-panel .image img,
+    body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
+        /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
+    body.sidebar-mini .main-sidebar .user-panel .image img,
+    body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
 </style>
   </style>
 </head>
