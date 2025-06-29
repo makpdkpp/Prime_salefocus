@@ -5,7 +5,7 @@ $conn = connectDb();
 session_start();
 
 // ตรวจสอบ session และ role
-if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 3) {
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {
     header('Location: ../index.php');
     exit;
 }
@@ -167,8 +167,8 @@ $positionName = $positions[(int)$user['position_id']] ?? 'Unknown';
                             <i class="nav-icon fas fa-tachometer-alt"></i><p>Dashboard<i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
-                            <li class="nav-item"><a href="../home_user.php" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Dashboard (กราฟ)</p></a></li>
-                            <li class="nav-item"><a href="../home_user_01.php" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Dashboard (ตาราง)</p></a></li>
+                             <li class="nav-item"><a href="../home_team.php" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Dashboard (กราฟ)</p></a></li>
+                             <li class="nav-item"><a href="../home_team_table.php" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Dashboard (ตาราง)</p></a></li>
                         </ul>
                     </li>
                     <li class="nav-item">

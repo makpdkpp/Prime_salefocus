@@ -127,6 +127,9 @@ $positions = $positions_query ? $positions_query->fetch_all(MYSQLI_ASSOC) : [];
 $teams_query = $db->query("SELECT team_id, team FROM team_catalog ORDER BY team ASC");
 $teams = $teams_query ? $teams_query->fetch_all(MYSQLI_ASSOC) : [];
 
+$roles_query = $db->query("SELECT role_id, role FROM role_catalog ORDER BY role_id ASC");
+$roles = $roles_query ? $roles_query->fetch_all(MYSQLI_ASSOC) : [];
+
 $user_query = $db->query("
     SELECT u.user_id, u.email, u.is_active, u.role_id, u.position_id, p.position,
            GROUP_CONCAT(tc.team SEPARATOR ', ') AS team,
@@ -266,7 +269,8 @@ $db->close();
                 <?php
                   switch ($u['role_id']) {
                     case 1: echo '<span class="badge badge-danger">Superadmin</span>'; break;
-                    case 2: echo '<span class="badge badge-info">Sales</span>'; break;
+                    case 2: echo '<span class="badge badge-info">AdminTeam</span>'; break;
+                    case 3: echo '<span class="badge badge-success">Sale</span>'; break;
                     default: echo '<span class="badge badge-secondary">N/A</span>';
                   }
                 ?>
@@ -311,7 +315,15 @@ $db->close();
           <div class="modal-header"><h5 class="modal-title">Invite User by Email</h5><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>
           <div class="modal-body">
             <div class="form-group"><label for="invite_email">Email Address</label><input type="email" id="invite_email" name="invite_email" class="form-control" placeholder="Enter email" required></div>
-            <div class="form-group"><label for="invite_role">Role</label><select id="invite_role" name="invite_role" class="form-control" required><option value="" disabled selected>-- Select Role --</option><option value="1">Superadmin</option><option value="2">Sales</option></select></div>
+            <div class="form-group">
+              <label for="invite_role">Role</label>
+              <select id="invite_role" name="invite_role" class="form-control" required>
+                <option value="" disabled selected>-- Select Role --</option>
+                <?php foreach ($roles as $role): ?>
+                  <option value="<?= $role['role_id'] ?>"><?= htmlspecialchars($role['role']) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
             <div class="form-group"><label for="invite_position">Position</label><select id="invite_position" name="invite_position" class="form-control" required><option value="" disabled selected>-- Select Position --</option><?php foreach ($positions as $pos): ?><option value="<?= $pos['position_id'] ?>"><?= htmlspecialchars($pos['position']) ?></option><?php endforeach; ?></select></div>
             <div class="form-group"><label for="invite_team">Sales Team</label>
             <div id="invite_team_group">
@@ -337,7 +349,14 @@ $db->close();
           <div class="modal-header"><h5 class="modal-title">แก้ไขสิทธิ์และตำแหน่ง</h5><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>
           <div class="modal-body">
             <input type="hidden" name="user_id" id="edit_user_id">
-            <div class="form-group"><label for="edit_role">Role</label><select id="edit_role" name="role_id" class="form-control" required><option value="1">Superadmin</option><option value="2">Sales</option></select></div>
+            <div class="form-group">
+              <label for="edit_role">Role</label>
+              <select id="edit_role" name="role_id" class="form-control" required>
+                <?php foreach ($roles as $role): ?>
+                  <option value="<?= $role['role_id'] ?>"><?= htmlspecialchars($role['role']) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
             <div class="form-group"><label for="edit_position">Position</label><select id="edit_position" name="position_id" class="form-control" required><option value="" disabled>-- Select Position --</option><?php foreach ($positions as $pos): ?><option value="<?= $pos['position_id'] ?>"><?= htmlspecialchars($pos['position']) ?></option><?php endforeach; ?></select></div>
             <div class="form-group"><label for="edit_team">Sales Team</label>
               <div id="edit_team_group">
@@ -374,7 +393,7 @@ $(document).ready(function() {
         const selectedRole = inviteRoleSelect.val();
         
         // ถ้า Role เป็น "Sales" (ID 2) หรือ "Team Admin" (ID 99)
-        if (selectedRole === '2' || selectedRole === '99') {
+        if (selectedRole === '2' || selectedRole === '3') {
             invitePositionGroup.show(); // แสดงช่อง Position
             inviteTeamGroup.show();     // แสดงช่อง Sales Team
         } else {
@@ -399,7 +418,7 @@ $(document).ready(function() {
         const selectedRole = editRoleSelect.val();
 
         // ถ้า Role เป็น "Sales" (ID 2) หรือ "Team Admin" (ID 99)
-        if (selectedRole === '2' || selectedRole === '99') {
+        if (selectedRole === '2' || selectedRole === '3') {
             editPositionGroup.show();
             editTeamGroup.show();
         } else {

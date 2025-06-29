@@ -4,7 +4,7 @@ require_once '../functions.php';
 session_start();
 $conn = connectDb();
 // ตรวจสอบ session และ role
-if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 3) {
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {
     header('Location: ../index.php');
     exit;
 }

@@ -1,6 +1,5 @@
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+
 
 /***********************************************************************
  * edit_transaction.php
@@ -9,6 +8,11 @@ error_reporting(E_ALL);
 
 require_once '../functions.php';
 session_start();
+// ตรวจสอบ session และ role
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 3) {
+    header('Location: ../index.php');
+    exit;
+}
 
 // ─────────────────── 1) Auth – เฉพาะผู้ใช้ role_id = 2 ───────────────────
 if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {

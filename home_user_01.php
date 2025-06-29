@@ -1,7 +1,7 @@
 <?php
 require_once 'functions.php';
 session_start();
-if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 2) {
+if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 3) {
     header('Location: index.php'); exit;
 }
 $mysqli = connectDb();
