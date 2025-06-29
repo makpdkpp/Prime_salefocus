@@ -76,6 +76,13 @@ if ($stmt) {
 <link rel="stylesheet" href="../dist_v3/css/adminlte.min.css">
 
 <style>
+      /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
+    body.sidebar-mini .main-sidebar .user-panel .image img,
+    body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
     .sales-card{max-width:750px;margin:20px auto;background:#fff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1);padding:32px 40px}
     .sales-card h2{font-weight:600;margin-bottom:30px}
     label{font-weight:500 !important}
