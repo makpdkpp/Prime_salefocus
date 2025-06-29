@@ -45,6 +45,13 @@ $products = $mysqli->query("SELECT product_id, Product FROM product_group LIMIT 
     .table thead { background: #0056b3; color: white; }
     .pagination .page-item.active .page-link { background-color: #0056b3; border-color: #0056b3; }
     .sidebar {padding-bottom: 30px; }
+            /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
+    body.sidebar-mini .main-sidebar .user-panel .image img,
+    body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
   </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
