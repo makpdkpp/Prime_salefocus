@@ -193,13 +193,19 @@ $email = htmlspecialchars($_SESSION['email']);
         <div class="row">
           <div class="col-md-6">
             <div class="card card-success">
-              <div class="card-header"><h3 class="card-title">ยอดขายรวม(มูลค่า)</h3></div>
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">ยอดขายรวม(มูลค่า)</h3>
+                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+              </div>
               <div class="card-body"><canvas id="winstatusValueChart" height="180"></canvas></div>
             </div>
           </div>
           <div class="col-md-6">
             <div class="card card-info">
-              <div class="card-header"><h3 class="card-title">ยอดขายรายทีม(บาท)</h3></div>
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">ยอดขายรายทีม(บาท)</h3>
+                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+              </div>
               <div class="card-body"><canvas id="teamSumChart" height="180"></canvas></div>
             </div>
           </div>
@@ -207,13 +213,19 @@ $email = htmlspecialchars($_SESSION['email']);
         <div class="row">
           <div class="col-md-6">
             <div class="card card-success">
-              <div class="card-header"><h3 class="card-title">ยอดขายรายคน(บาท)</h3></div>
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">ยอดขายรายคน(บาท)</h3>
+                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+              </div>
               <div class="card-body"><canvas id="personSumChart" height="180"></canvas></div>
             </div>
           </div>
           <div class="col-md-6">
             <div class="card card-info">
-              <div class="card-header"><h3 class="card-title">สถานะการขายในแต่ละขั้นตอน</h3></div>
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">สถานะการขายในแต่ละขั้นตอน</h3>
+                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+              </div>
               <div class="card-body"><canvas id="salestatusChart" height="180"></canvas></div>
             </div>
           </div>
@@ -221,13 +233,19 @@ $email = htmlspecialchars($_SESSION['email']);
         <div class="row">
           <div class="col-md-6">
             <div class="card card-success">
-              <div class="card-header"><h3 class="card-title">ประมาณการมูลค่าในแต่ละขั้นตอนการขาย</h3></div>
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">ประมาณการมูลค่าในแต่ละขั้นตอนการขาย</h3>
+                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+              </div>
               <div class="card-body"><canvas id="statusValueChart" height="180"></canvas></div>
             </div>
           </div>
           <div class="col-md-6">
             <div class="card card-info">
-              <div class="card-header"><h3 class="card-title">กราฟเปรียบเทียบ Target/Forecast/Win</h3></div>
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">กราฟเปรียบเทียบ Target/Forecast/Win</h3>
+                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+              </div>
               <div class="card-body"><canvas id="saleForecastChart" height="180"></canvas></div>
             </div>
           </div>
@@ -235,13 +253,19 @@ $email = htmlspecialchars($_SESSION['email']);
         <div class="row">
           <div class="col-md-6">
             <div class="card card-success">
-              <div class="card-header"><h3 class="card-title">TOP 10 ประเภทโซลูชั่น</h3></div>
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">TOP 10 ประเภทโซลูชั่น</h3>
+                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+              </div>
               <div class="card-body"><canvas id="topProductsChart" height="180"></canvas></div>
             </div>
           </div>
           <div class="col-md-6">
             <div class="card card-info">
-              <div class="card-header"><h3 class="card-title">ยอดขาย Top 10 ของลูกค้า</h3></div>
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">ยอดขาย Top 10 ของลูกค้า</h3>
+                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+              </div>
               <div class="card-body"><canvas id="topCustomerChart" height="180"></canvas></div>
             </div>
           </div>
@@ -256,7 +280,6 @@ $email = htmlspecialchars($_SESSION['email']);
 <script src="plugins_v3/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="dist_v3/js/adminlte.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
     // สคริปต์สำหรับดึงข้อมูลและวาดกราฟ (เหมือนเดิม)
     async function loadDashboardData() {
@@ -402,6 +425,18 @@ $email = htmlspecialchars($_SESSION['email']);
     }
 
     document.addEventListener('DOMContentLoaded', loadDashboardData);
+
+    // Fullscreen button logic for all chart cards
+    $(document).on('click', '.btn-fullscreen', function() {
+      var card = $(this).closest('.card')[0];
+      if (card.requestFullscreen) {
+        card.requestFullscreen();
+      } else if (card.webkitRequestFullscreen) {
+        card.webkitRequestFullscreen();
+      } else if (card.msRequestFullscreen) {
+        card.msRequestFullscreen();
+      }
+    });
 </script>
 
 </body>

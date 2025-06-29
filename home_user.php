@@ -89,14 +89,20 @@ $avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
                 <div class="row">
                     <div class="col-md-6">
                         <div class="card card-success">
-                            <div class="card-header"><h3 class="card-title">สถานะโครงการในแต่ละขั้นตอน</h3></div>
+                            <div class="card-header d-flex align-items-center">
+                                <h3 class="card-title">สถานะโครงการในแต่ละขั้นตอน</h3>
+                                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+                            </div>
                             <div class="card-body"><canvas id="stepChart"></canvas></div>
                         </div>
                     </div>
 
                     <div class="col-md-6">
                         <div class="card card-success">
-                            <div class="card-header"><h3 class="card-title">กราฟเปรียบเทียบ Target/Forecast/Win</h3></div>
+                            <div class="card-header d-flex align-items-center">
+                                <h3 class="card-title">กราฟเปรียบเทียบ Target/Forecast/Win</h3>
+                                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+                            </div>
                             <div class="card-body"><canvas id="winForecastChart"></canvas></div>
                         </div>
                     </div>
@@ -105,7 +111,10 @@ $avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
                 <div class="row">
                     <div class="col-md-6">
                         <div class="card card-success">
-                            <div class="card-header"><h3 class="card-title">กราฟเปรียบเทียบสัดส่วนของกลุ่มสินค้า</h3></div>
+                            <div class="card-header d-flex align-items-center">
+                                <h3 class="card-title">กราฟเปรียบเทียบสัดส่วนของกลุ่มสินค้า</h3>
+                                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+                            </div>
                             <div class="card-body"><canvas id="sumValuePercentChart" style="min-height: 300px; height: 300px; max-height: 300px; max-width: 100%;"></canvas></div>
                         </div>
                     </div>
@@ -118,7 +127,6 @@ $avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
 <script src="plugins_v3/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="dist_v3/js/adminlte.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
 (async () => {
     const userId = <?= $userId ?>;
@@ -271,6 +279,18 @@ $avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
         });
     }
 })();
+
+// Fullscreen button logic for all chart cards
+$(document).on('click', '.btn-fullscreen', function() {
+  var card = $(this).closest('.card')[0];
+  if (card.requestFullscreen) {
+    card.requestFullscreen();
+  } else if (card.webkitRequestFullscreen) {
+    card.webkitRequestFullscreen();
+  } else if (card.msRequestFullscreen) {
+    card.msRequestFullscreen();
+  }
+});
 </script>
 
 </body>
