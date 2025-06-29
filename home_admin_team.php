@@ -36,6 +36,13 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 
 
     <style>
+          /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
+    body.sidebar-mini .main-sidebar .user-panel .image img,
+    body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
         .box   { margin-bottom: 1.5rem; }
         canvas { width: 100% !important; height: auto !important; }
     </style>
