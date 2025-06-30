@@ -27,7 +27,7 @@ if (session_status() === PHP_SESSION_NONE) {
 function connectDb(): mysqli
 {
         $host = '127.0.0.1';
-        $db   = 'sale1';
+        $db   = 'salev3';
         $user = 'root';
         $pass = '';
 
@@ -91,7 +91,7 @@ function handleLogin(mysqli $db): ?string
                 header('Location: home_admin.php');
                 break;
             case 2:
-                header('Location: home_team.php');
+                header('Location: home_admin_team.php');
                 break;
             case 3:
                 header('Location: home_user.php');
