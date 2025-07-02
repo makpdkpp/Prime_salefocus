@@ -1,17 +1,17 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+
 require_once 'functions.php';
 session_start();
 
-if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 3) {
     header('Location: index.php');
     exit;
 }
 
+
 $userId = (int)$_SESSION['user_id'];
 $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
+$avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -24,6 +24,15 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
     <link rel="stylesheet" href="plugins_v3/fontawesome-free/css/all.min.css">
     <link rel="stylesheet" href="dist_v3/css/adminlte.min.css">
 </head>
+<style>
+        /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
+    body.sidebar-mini .main-sidebar .user-panel .image img,
+    body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
+    </style>
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">
 
@@ -34,12 +43,12 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
         <ul class="navbar-nav ml-auto">
             <li class="nav-item dropdown user-menu">
                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                    <img src="dist_v3/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
+                    <img src="<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
                     <span class="d-none d-md-inline"><?= $email ?></span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                     <li class="user-header bg-danger">
-                        <img src="dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                        <img src="<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
                         <p><?= $email ?><small>User</small></p>
                     </li>
                     <li class="user-footer">
@@ -55,7 +64,7 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
         </a>
         <div class="sidebar">
             <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-                <div class="image"><a href="User/edit_profile.php"><img src="dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image"></a></div>
+                <div class="image"><a href="User/edit_profile.php"><img src="<?= $avatar ?>" class="img-circle elevation-2" alt="User Image"></a></div>
                 <div class="info"><a href="#" class="d-block"><?= $email ?></a></div>
             </div>
             <nav class="mt-2">
@@ -89,14 +98,20 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
                 <div class="row">
                     <div class="col-md-6">
                         <div class="card card-success">
-                            <div class="card-header"><h3 class="card-title">สถานะโครงการในแต่ละขั้นตอน</h3></div>
+                            <div class="card-header d-flex align-items-center">
+                                <h3 class="card-title">สถานะโครงการในแต่ละขั้นตอน</h3>
+                                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+                            </div>
                             <div class="card-body"><canvas id="stepChart"></canvas></div>
                         </div>
                     </div>
 
                     <div class="col-md-6">
                         <div class="card card-success">
-                            <div class="card-header"><h3 class="card-title">กราฟเปรียบเทียบ Target/Forecast/Win</h3></div>
+                            <div class="card-header d-flex align-items-center">
+                                <h3 class="card-title">กราฟเปรียบเทียบ Target/Forecast/Win</h3>
+                                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+                            </div>
                             <div class="card-body"><canvas id="winForecastChart"></canvas></div>
                         </div>
                     </div>
@@ -105,7 +120,10 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
                 <div class="row">
                     <div class="col-md-6">
                         <div class="card card-success">
-                            <div class="card-header"><h3 class="card-title">กราฟเปรียบเทียบสัดส่วนของกลุ่มสินค้า</h3></div>
+                            <div class="card-header d-flex align-items-center">
+                                <h3 class="card-title">กราฟเปรียบเทียบสัดส่วนของกลุ่มสินค้า</h3>
+                                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+                            </div>
                             <div class="card-body"><canvas id="sumValuePercentChart" style="min-height: 300px; height: 300px; max-height: 300px; max-width: 100%;"></canvas></div>
                         </div>
                     </div>
@@ -118,7 +136,6 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 <script src="plugins_v3/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="dist_v3/js/adminlte.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
 (async () => {
     const userId = <?= $userId ?>;
@@ -271,6 +288,18 @@ $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
         });
     }
 })();
+
+// Fullscreen button logic for all chart cards
+$(document).on('click', '.btn-fullscreen', function() {
+  var card = $(this).closest('.card')[0];
+  if (card.requestFullscreen) {
+    card.requestFullscreen();
+  } else if (card.webkitRequestFullscreen) {
+    card.webkitRequestFullscreen();
+  } else if (card.msRequestFullscreen) {
+    card.msRequestFullscreen();
+  }
+});
 </script>
 
 </body>

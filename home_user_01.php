@@ -1,13 +1,14 @@
 <?php
 require_once 'functions.php';
 session_start();
-if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 2) {
+if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 3) {
     header('Location: index.php'); exit;
 }
 $mysqli = connectDb();
 $userId = (int)$_SESSION['user_id'];
 $email  = htmlspecialchars($_SESSION['email']);
 $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
+$avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -22,6 +23,15 @@ $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" href="dist_v3/css/adminlte.min.css">
 </head>
+<style>
+        /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
+    body.sidebar-mini .main-sidebar .user-panel .image img,
+    body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
+    </style>
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">
 
@@ -32,12 +42,12 @@ $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
         <ul class="navbar-nav ml-auto">
             <li class="nav-item dropdown user-menu">
                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                    <img src="dist_v3/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
+                    <img src="<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
                     <span class="d-none d-md-inline"><?= $email ?></span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                     <li class="user-header bg-danger">
-                        <img src="dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                        <img src="<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
                         <p><?= $email ?><small>User</small></p>
                     </li>
                     <li class="user-footer">
@@ -53,7 +63,7 @@ $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
         </a>
         <div class="sidebar">
             <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-                <div class="image"><a href="User/edit_profile.php"><img src="dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image"></a></div>
+                <div class="image"><a href="User/edit_profile.php"><img src="<?= $avatar ?>" class="img-circle elevation-2" alt="User Image"></a></div>
                 <div class="info"><a href="#" class="d-block"><?= $email ?></a></div>
             </div>
             <nav class="mt-2">
@@ -95,16 +105,25 @@ $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
                             </thead>
                             <tbody>
                               <?php
-                                $q = "SELECT t.*, pg.product, cc.company, pl.priority, tc.team, s.level, u.nname, so.Source_budge
-                                        FROM transactional t
-                                        LEFT JOIN product_group   pg ON t.Product_id = pg.product_id
-                                        LEFT JOIN company_catalog cc ON t.company_id = cc.company_id
-                                        LEFT JOIN priority_level  pl ON t.priority_id = pl.priority_id
-                                        LEFT JOIN team_catalog    tc ON t.team_id     = tc.team_id
-                                        LEFT JOIN step            s  ON t.Step_id     = s.level_id
-                                        LEFT JOIN user            u  ON t.user_id     = u.user_id
-                                        LEFT JOIN source_of_the_budget so ON so.Source_budget_id = t.Source_budget_id
-                                        WHERE t.user_id = $userId";
+                                $q = "
+                                SELECT t.*, pg.product, cc.company, pl.priority, tc.team, u.nname, so.Source_budge,
+                                  (
+                                    SELECT s2.level
+                                    FROM transactional_step ts2
+                                    JOIN step s2 ON s2.level_id = ts2.level_id
+                                    WHERE ts2.transac_id = t.transac_id
+                                    ORDER BY ts2.date DESC, ts2.transacstep_id DESC
+                                    LIMIT 1
+                                  ) AS level
+                                FROM transactional t
+                                LEFT JOIN product_group   pg ON t.Product_id = pg.product_id
+                                LEFT JOIN company_catalog cc ON t.company_id = cc.company_id
+                                LEFT JOIN priority_level  pl ON t.priority_id = pl.priority_id
+                                LEFT JOIN team_catalog    tc ON t.team_id     = tc.team_id
+                                LEFT JOIN user            u  ON t.user_id     = u.user_id
+                                LEFT JOIN source_of_the_budget so ON so.Source_budget_id = t.Source_budget_id
+                                WHERE t.user_id = $userId
+                                ";
                                 $rs = $mysqli->query($q);
                                 if ($rs && $rs->num_rows):
                                     while($r=$rs->fetch_assoc()):

@@ -3,7 +3,7 @@ require_once 'functions.php';
 session_start();
 
 // ตรวจสอบสถานะล็อกอิน และบทบาท (role_id 2)
-if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 2) {
+if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 3) {
     header('Location: index.php');
     exit;
 }
@@ -29,60 +29,22 @@ $output = [];
 $sql = "
 SELECT
   month,
-  SUM(CASE WHEN type = 'present'  THEN value ELSE 0 END) AS present_value,
-  SUM(CASE WHEN type = 'budgeted' THEN value ELSE 0 END) AS budgeted_value,
-  SUM(CASE WHEN type = 'tor'      THEN value ELSE 0 END) AS tor_value,
-  SUM(CASE WHEN type = 'bidding'  THEN value ELSE 0 END) AS bidding_value,
-  SUM(CASE WHEN type = 'win'      THEN value ELSE 0 END) AS win_value,
-  SUM(CASE WHEN type = 'lost'     THEN value ELSE 0 END) AS lost_value
+  SUM(CASE WHEN type = '1.นำเสนอ Solution'  THEN value ELSE 0 END) AS present_value,
+  SUM(CASE WHEN type = '2.ตั้งงบประมาณ'     THEN value ELSE 0 END) AS budgeted_value,
+  SUM(CASE WHEN type = '3.ร่าง TOR'         THEN value ELSE 0 END) AS tor_value,
+  SUM(CASE WHEN type = '4.Bidding '         THEN value ELSE 0 END) AS bidding_value,
+  SUM(CASE WHEN type = '5.WIN'              THEN value ELSE 0 END) AS win_value,
+  SUM(CASE WHEN type = '6.LOST'             THEN value ELSE 0 END) AS lost_value
 FROM (
-  SELECT DATE_FORMAT(present_date,  '%Y-%m') AS month,
-         product_value AS value,
-         'present'      AS type
-    FROM transactional
-   WHERE present = 1
-     AND present_date IS NOT NULL
-     AND user_id = ?
-  UNION ALL
-  SELECT DATE_FORMAT(budgeted_date, '%Y-%m'),
-         product_value,
-         'budgeted'
-    FROM transactional
-   WHERE budgeted = 1
-     AND budgeted_date IS NOT NULL
-     AND user_id = ?
-  UNION ALL
-  SELECT DATE_FORMAT(tor_date,      '%Y-%m'),
-         product_value,
-         'tor'
-    FROM transactional
-   WHERE tor = 1
-     AND tor_date IS NOT NULL
-     AND user_id = ?
-  UNION ALL
-  SELECT DATE_FORMAT(bidding_date,  '%Y-%m'),
-         product_value,
-         'bidding'
-    FROM transactional
-   WHERE bidding = 1
-     AND bidding_date IS NOT NULL
-     AND user_id = ?
-  UNION ALL
-  SELECT DATE_FORMAT(win_date,      '%Y-%m'),
-         product_value,
-         'win'
-    FROM transactional
-   WHERE win = 1
-     AND win_date IS NOT NULL
-     AND user_id = ?
-  UNION ALL
-  SELECT DATE_FORMAT(lost_date,     '%Y-%m'),
-         product_value,
-         'lost'
-    FROM transactional
-   WHERE lost = 1
-     AND lost_date IS NOT NULL
-     AND user_id = ?
+  SELECT DATE_FORMAT(ts.date, '%Y-%m') AS month,
+         t.product_value AS value,
+         s.level AS type
+    FROM transactional_step ts
+    JOIN transactional t ON t.transac_id = ts.transac_id
+    JOIN step s ON s.level_id = ts.level_id
+   WHERE t.user_id = ?
+     AND ts.level_id IN (1,2,3,4,5,7)
+     AND ts.date IS NOT NULL
 ) AS values_by_status
 GROUP BY
   month
@@ -93,74 +55,51 @@ ORDER BY
 $stmt = $mysqli->prepare($sql);
 if (!$stmt) sendJsonError($mysqli->error);
 
-// bind $userId six times (one per UNION)
-$stmt->bind_param('iiiiii',
-  $userId,
-  $userId,
-  $userId,
-  $userId,
-  $userId,
-  $userId
-);
+// bind $userId one time (query เดียว)
+$stmt->bind_param('i', $userId);
 
 if (!$stmt->execute()) sendJsonError($stmt->error);
 $result = $stmt->get_result();
 $output['salestep'] = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// 2. personforecast: actual vs forecast for current user where win = 1
+// 2. personforecast: actual vs forecast for current user
 $sql = "
 SELECT
-	SUM(t.product_value) AS Forecast,
- u.forecast AS Target,
-  SUM(
-    CASE WHEN t.win = 1
-         THEN t.product_value
-         ELSE 0
-    END
-  ) AS Win
-   
-  
-FROM transactional t
+  SUM(t.product_value) AS Forecast,
+  u.forecast AS Target,
+  SUM(CASE WHEN ts.level_id = 5 THEN t.product_value ELSE 0 END) AS Win
+FROM transactional_step ts
+JOIN transactional t ON t.transac_id = ts.transac_id
 JOIN `user` u ON u.user_id = t.user_id
 WHERE t.user_id = ?
 ";
 
 $stmt = $mysqli->prepare($sql);
-if (!$stmt) {
-    sendJsonError($mysqli->error);
-}
+if (!$stmt) sendJsonError($mysqli->error);
 $stmt->bind_param('i', $userId);
-if (!$stmt->execute()) {
-    sendJsonError($stmt->error);
-}
+if (!$stmt->execute()) sendJsonError($stmt->error);
 $result = $stmt->get_result();
 $output['winforecast'] = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// 3. sumvaluepercent by person: 
+// 3. sumvaluepercent by person (ใช้ transactional_step)
 $sql = "
 SELECT
-  transactional.Product_id,
-  product_group.product,
-  SUM(product_value) AS sum_value
-FROM
-  transactional
-  JOIN product_group on transactional.Product_id = product_group.product_id
-  WHERE transactional.user_id = ?
-GROUP BY
-  transactional.Product_id
-
+  t.Product_id,
+  p.product,
+  SUM(t.product_value) AS sum_value
+FROM transactional_step ts
+JOIN transactional t ON t.transac_id = ts.transac_id
+JOIN product_group p ON t.Product_id = p.product_id
+WHERE t.user_id = ?
+GROUP BY t.Product_id
 ";
 
 $stmt = $mysqli->prepare($sql);
-if (!$stmt) {
-    sendJsonError($mysqli->error);
-}
+if (!$stmt) sendJsonError($mysqli->error);
 $stmt->bind_param('i', $userId);
-if (!$stmt->execute()) {
-    sendJsonError($stmt->error);
-}
+if (!$stmt->execute()) sendJsonError($stmt->error);
 $result = $stmt->get_result();
 $output['sumvaluepercent'] = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();

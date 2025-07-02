@@ -1,16 +1,12 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
 /* ------------------------------------------------------------------
    add_user.php  –  รับข้อมูลจากฟอร์ม adduser01.php แล้วบันทึกลงตาราง transactional
    ------------------------------------------------------------------ */
 require_once '../functions.php';
 session_start();
-
-// ===== ตรวจสอบสิทธิ์ =====
-if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {
+// ตรวจสอบ session และ role
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] == !2 || (int)$_SESSION['role_id'] == !3) {
     header('Location: ../index.php');
     exit;
 }
@@ -36,19 +32,6 @@ $fiscalyear         = $_POST['fiscalyear'] ?? null;
 $flag = fn($k) => isset($_POST[$k]) && $_POST[$k] === '1' ? 1 : 0;
 $date = fn($k) => ($_POST[$k] ?? '') ?: null;
 
-$present         = $flag('present');
-$present_date    = $date('present_date');
-$budgeted        = $flag('budgeted');
-$budgeted_date   = $date('budgeted_date');
-$tor             = $flag('tor');
-$tor_date        = $date('tor_date');
-$bidding         = $flag('bidding');
-$bidding_date    = $date('bidding_date');
-$win             = $flag('win');
-$win_date        = $date('win_date');
-$lost            = $flag('lost');
-$lost_date       = $date('lost_date');
-
 $team_id              = (int)($_POST['team_id'] ?? 0);
 $contact_start_date   = $date('contact_start_date');
 $predict_close_date   = $date('date_of_closing_of_sale');
@@ -70,13 +53,10 @@ if (!$user_id || !$company_id || !$product_id || !$team_id || !$contact_start_da
 $sql = "INSERT INTO transactional (
     user_id, company_id, Product_id, Product_detail,
     Step_id, Source_budget_id, fiscalyear,
-    present, present_date, budgeted, budgeted_date,
-    tor, tor_date, bidding, bidding_date,
-    win, win_date, lost, lost_date,
     team_id, contact_start_date, date_of_closing_of_sale, sales_can_be_close,
     priority_id, product_value, remark, timestamp
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp()
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp()
 )";
 
 $stmt = $mysqli->prepare($sql);
@@ -85,12 +65,12 @@ if (!$stmt) {
 }
 
 /* ------------------------------------------------------------------
-   bind_param – 26 ค่า + timestamp
+   bind_param – 13 ค่า + timestamp
    ------------------------------------------------------------------ */
-// Type string = 26 ตัวอักษร
+// Type string = 13 ตัวอักษร
 // i = int, s = string, d = double
 $stmt->bind_param(
-    "iiisiiisisiisisisisisssids", // ← แก้ให้เป็น 26 ตัวเท่านั้น
+    "iiisiiisisiids", // ← แก้ให้เป็น 13 ตัวเท่านั้น
     $user_id,
     $company_id,
     $product_id,
@@ -98,19 +78,6 @@ $stmt->bind_param(
     $Step_id,
     $Source_budget_id,
     $fiscalyear, // ถ้า fiscalyear เป็น string ให้ใช้ s
-
-    $present,
-    $present_date,
-    $budgeted,
-    $budgeted_date,
-    $tor,
-    $tor_date,
-    $bidding,
-    $bidding_date,
-    $win,
-    $win_date,
-    $lost,
-    $lost_date,
 
     $team_id,
     $contact_start_date,
@@ -125,6 +92,22 @@ $stmt->bind_param(
    Execute
    ------------------------------------------------------------------ */
 if ($stmt->execute()) {
+    $transac_id = $mysqli->insert_id;
+
+    // file_put_contents('debug_post.log', print_r($_POST, true));
+
+    // รับค่าจากฟอร์มใหม่: step[level_id] และ step_date[level_id]
+    $stepsChecked = $_POST['step'] ?? [];
+    $stepsDate = $_POST['step_date'] ?? [];
+    foreach ($stepsChecked as $level_id => $checked) {
+        if ($checked && $level_id) {
+            $date = $stepsDate[$level_id] ?? null;
+            $stmt2 = $mysqli->prepare("INSERT INTO transactional_step (transac_id, level_id, date) VALUES (?, ?, ?)");
+            $stmt2->bind_param('iis', $transac_id, $level_id, $date);
+            $stmt2->execute();
+            $stmt2->close();
+        }
+    }
     header('Location: adduser01.php?success=1');
     exit;
 }

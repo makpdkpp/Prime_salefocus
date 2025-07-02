@@ -1,6 +1,7 @@
 <?php
 require_once 'functions.php';
 session_start();
+$avatar = htmlspecialchars($_SESSION['avatar'] ?? 'dist/img/user2-160x160.jpg', ENT_QUOTES, 'UTF-8');
 
 // ตรวจสอบว่าล็อกอินหรือไม่
 if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 1) {
@@ -22,6 +23,13 @@ $email = htmlspecialchars($_SESSION['email']);
   <link rel="stylesheet" href="dist_v3/css/adminlte.min.css">
 
   <style>
+        /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
+    body.sidebar-mini .main-sidebar .user-panel .image img,
+    body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
     /* ✅ เพิ่มโค้ดสีพื้นหลังตรงนี้ */
     .content-wrapper { background-color: #b3d6e4; }
 
@@ -54,9 +62,10 @@ $email = htmlspecialchars($_SESSION['email']);
       margin: 0;
       color: #333;
     }
+    .sidebar {padding-bottom: 30px; }
   </style>
 </head>
-<body class="hold-transition sidebar-mini">
+<body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
 
   <nav class="main-header navbar navbar-expand navbar-white navbar-light" style="background-color: #0056b3;">
@@ -68,12 +77,12 @@ $email = htmlspecialchars($_SESSION['email']);
     <ul class="navbar-nav ml-auto">
       <li class="nav-item dropdown user-menu">
         <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-          <img src="dist/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
+          <img src="<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
           <span class="d-none d-md-inline text-white"><?php echo $email; ?></span>
         </a>
         <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
           <li class="user-header" style="background-color: #0056b3; color: #fff;">
-            <img src="dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+            <img src="<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
             <p><?php echo $email; ?> <small>Admin</small></p>
           </li>
           <li class="user-footer">
@@ -88,26 +97,46 @@ $email = htmlspecialchars($_SESSION['email']);
     <a href="home_admin.php" class="brand-link" style="background-color: #0056b3; text-align: center;">
         <span class="brand-text font-weight-light"><b>Prime</b>Forecast</span>
     </a>
+
     <div class="sidebar">
       <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
         <div class="image">
-          <img src="dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
+          <a href="pages/layout/adminedit_profile.php"> <img src="<?= $avatar ?>" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
         </div>
         <div class="info">
           <a href="#" class="d-block"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></a>
-          <span class="d-block" style="color: #c2c7d0; font-size: 0.9em;">(Admin)</span>
-          <a href="#" class="d-block"><i class="fa fa-circle text-success"></i> Online</a>
+          <a href="#" class="d-block" style="color: #c2c7d0; font-size: 0.9em;"><i class="fa fa-circle text-success" style="font-size: 0.7em;"></i> Online</a>
         </div>
       </div>
-      
+
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           <li class="nav-header">MAIN NAVIGATION</li>
-          <li class="nav-item">
-            <a href="home_admin.php" class="nav-link active">
-              <i class="nav-icon fas fa-tachometer-alt"></i><p>Dashboard</p>
+          
+          <li class="nav-item menu-is-opening menu-open">
+            <a href="#" class="nav-link active">
+              <i class="nav-icon fas fa-tachometer-alt"></i>
+              <p>
+                Dashboard
+                <i class="right fas fa-angle-left"></i>
+              </p>
             </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="home_admin.php" class="nav-link active">
+                  <i class="far fa-chart-bar nav-icon"></i>
+                  <p>Dashboard (กราฟ)</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="pages/layout/super_admin_table.php" class="nav-link">
+                  <i class="fas fa-table nav-icon"></i>
+                  <p>Dashboard (ตาราง)</p>
+                </a>
+              </li>
+            </ul>
           </li>
+
           <li class="nav-item">
             <a href="#" class="nav-link">
               <i class="nav-icon fas fa-folder-open"></i><p>เพิ่มข้อมูล....<i class="right fas fa-angle-left"></i></p>
@@ -127,8 +156,8 @@ $email = htmlspecialchars($_SESSION['email']);
           </li>
         </ul>
       </nav>
-    </div>
-  </aside>
+      </div>
+    </aside>
 
   <div class="content-wrapper">
     <section class="content-header">
@@ -171,13 +200,19 @@ $email = htmlspecialchars($_SESSION['email']);
         <div class="row">
           <div class="col-md-6">
             <div class="card card-success">
-              <div class="card-header"><h3 class="card-title">ยอดขายรวม(มูลค่า)</h3></div>
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">ยอดขายรวม(มูลค่า)</h3>
+                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+              </div>
               <div class="card-body"><canvas id="winstatusValueChart" height="180"></canvas></div>
             </div>
           </div>
           <div class="col-md-6">
             <div class="card card-info">
-              <div class="card-header"><h3 class="card-title">ยอดขายรายทีม(บาท)</h3></div>
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">ยอดขายรายทีม(บาท)</h3>
+                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+              </div>
               <div class="card-body"><canvas id="teamSumChart" height="180"></canvas></div>
             </div>
           </div>
@@ -185,13 +220,19 @@ $email = htmlspecialchars($_SESSION['email']);
         <div class="row">
           <div class="col-md-6">
             <div class="card card-success">
-              <div class="card-header"><h3 class="card-title">ยอดขายรายคน(บาท)</h3></div>
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">ยอดขายรายคน(บาท)</h3>
+                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+              </div>
               <div class="card-body"><canvas id="personSumChart" height="180"></canvas></div>
             </div>
           </div>
           <div class="col-md-6">
             <div class="card card-info">
-              <div class="card-header"><h3 class="card-title">สถานะการขายในแต่ละขั้นตอน</h3></div>
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">สถานะการขายในแต่ละขั้นตอน</h3>
+                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+              </div>
               <div class="card-body"><canvas id="salestatusChart" height="180"></canvas></div>
             </div>
           </div>
@@ -199,13 +240,19 @@ $email = htmlspecialchars($_SESSION['email']);
         <div class="row">
           <div class="col-md-6">
             <div class="card card-success">
-              <div class="card-header"><h3 class="card-title">ประมาณการมูลค่าในแต่ละขั้นตอนการขาย</h3></div>
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">ประมาณการมูลค่าในแต่ละขั้นตอนการขาย</h3>
+                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+              </div>
               <div class="card-body"><canvas id="statusValueChart" height="180"></canvas></div>
             </div>
           </div>
           <div class="col-md-6">
             <div class="card card-info">
-              <div class="card-header"><h3 class="card-title">กราฟเปรียบเทียบ Target/Forecast/Win</h3></div>
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">กราฟเปรียบเทียบ Target/Forecast/Win</h3>
+                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+              </div>
               <div class="card-body"><canvas id="saleForecastChart" height="180"></canvas></div>
             </div>
           </div>
@@ -213,13 +260,19 @@ $email = htmlspecialchars($_SESSION['email']);
         <div class="row">
           <div class="col-md-6">
             <div class="card card-success">
-              <div class="card-header"><h3 class="card-title">TOP 10 ประเภทโซลูชั่น</h3></div>
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">TOP 10 ประเภทโซลูชั่น</h3>
+                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+              </div>
               <div class="card-body"><canvas id="topProductsChart" height="180"></canvas></div>
             </div>
           </div>
           <div class="col-md-6">
             <div class="card card-info">
-              <div class="card-header"><h3 class="card-title">ยอดขาย Top 10 ของลูกค้า</h3></div>
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">ยอดขาย Top 10 ของลูกค้า</h3>
+                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+              </div>
               <div class="card-body"><canvas id="topCustomerChart" height="180"></canvas></div>
             </div>
           </div>
@@ -234,7 +287,6 @@ $email = htmlspecialchars($_SESSION['email']);
 <script src="plugins_v3/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="dist_v3/js/adminlte.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
     // สคริปต์สำหรับดึงข้อมูลและวาดกราฟ (เหมือนเดิม)
     async function loadDashboardData() {
@@ -380,6 +432,18 @@ $email = htmlspecialchars($_SESSION['email']);
     }
 
     document.addEventListener('DOMContentLoaded', loadDashboardData);
+
+    // Fullscreen button logic for all chart cards
+    $(document).on('click', '.btn-fullscreen', function() {
+      var card = $(this).closest('.card')[0];
+      if (card.requestFullscreen) {
+        card.requestFullscreen();
+      } else if (card.webkitRequestFullscreen) {
+        card.webkitRequestFullscreen();
+      } else if (card.msRequestFullscreen) {
+        card.msRequestFullscreen();
+      }
+    });
 </script>
 
 </body>

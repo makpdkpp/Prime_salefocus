@@ -3,36 +3,82 @@ session_start();
 include("../../functions.php");
 $mysqli = connectDb();
 
+
+// —————— BEGIN: ดึง avatar จาก DB ——————
+if (empty($_SESSION['user_id'])) {
+    header('Location: ../../index.php');
+    exit;
+}
+$stmt = $mysqli->prepare("
+    SELECT avatar_path
+    FROM `user`
+    WHERE user_id = ?
+");
+$stmt->bind_param("i", $_SESSION['user_id']);
+$stmt->execute();
+$row = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+if (!empty($row['avatar_path']) 
+    && file_exists(__DIR__ . '/../../' . $row['avatar_path'])) {
+    $avatar = $row['avatar_path'];
+} else {
+    // รูป default
+    $avatar = 'dist/img/user2-160x160.jpg';
+}
+// —————— END: ดึง avatar จาก DB ——————
+
+
+
 // กำหนดตัวเลือกจำนวนแถว
 $limitOptions = [10, 25, 50, 100];
-$limit = isset($_GET['limit']) && in_array((int)$_GET['limit'], $limitOptions) ? (int)$_GET['limit'] : 10;
-$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$limit = isset($_GET['limit']) && in_array((int)$_GET['limit'], $limitOptions)
+           ? (int)$_GET['limit']
+           : 10;
+$page  = isset($_GET['page'])  ? max(1, (int)$_GET['page']) : 1;
 $start = ($page - 1) * $limit;
 
 // รับค่ากรอง Industry
-$filterIndustry = isset($_GET['industry_filter']) && $_GET['industry_filter'] !== '' ? (int)$_GET['industry_filter'] : '';
-$where = $filterIndustry ? "WHERE cc.Industry_id = {$filterIndustry}" : '';
+$filterIndustry = isset($_GET['industry_filter']) && $_GET['industry_filter'] !== ''
+                  ? (int)$_GET['industry_filter']
+                  : '';
+$where = $filterIndustry
+         ? "WHERE cc.Industry_id = {$filterIndustry}"
+         : '';
 
 // คำนวณ pagination
 $totalQuery = $mysqli->query("SELECT COUNT(*) as total FROM company_catalog cc $where");
-$totalRow = $totalQuery->fetch_assoc()['total'];
+$totalRow   = $totalQuery->fetch_assoc()['total'];
+
 $totalPages = ceil($totalRow / $limit);
 
 // จัดเรียง A–Z ก่อน ก–ฮ
 $collationLatin = 'utf8mb4_unicode_ci';
-$orderExpr = "CASE WHEN cc.company REGEXP '^[A-Za-z]' THEN 0 ELSE 1 END, cc.company COLLATE $collationLatin ASC";
 
-// ดึงข้อมูล
-$sql = "SELECT cc.company_id, cc.company, cc.Industry_id, ig.Industry
-        FROM company_catalog cc
-        LEFT JOIN industry_group ig ON cc.Industry_id = ig.Industry_id
-        $where
-        ORDER BY $orderExpr
-        LIMIT $start, $limit";
+$orderExpr = "
+    CASE WHEN cc.company REGEXP '^[A-Za-z]' THEN 0 ELSE 1 END,
+    cc.company COLLATE $collationLatin ASC
+";
+
+// ดึงข้อมูลบริษัท
+$sql = "
+    SELECT cc.company_id, cc.company, cc.Industry_id, ig.Industry
+    FROM company_catalog cc
+    LEFT JOIN industry_group ig
+      ON cc.Industry_id = ig.Industry_id
+    $where
+    ORDER BY $orderExpr
+    LIMIT $start, $limit
+";
 $companies = $mysqli->query($sql);
 
 // ดึง list อุตสาหกรรม สำหรับ dropdown กรอง
-$industries = $mysqli->query("SELECT Industry_id, Industry FROM industry_group ORDER BY Industry COLLATE utf8mb4_unicode_ci");
+$industries = $mysqli->query("
+    SELECT Industry_id, Industry
+    FROM industry_group
+    ORDER BY Industry COLLATE utf8mb4_unicode_ci
+");
+
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -52,9 +98,28 @@ $industries = $mysqli->query("SELECT Industry_id, Industry FROM industry_group O
     .modal-content { border-radius: 10px; padding: 20px; }
     .pagination .page-item.active .page-link { background-color: #0056b3; border-color: #0056b3; }
     .main-header.navbar { border-bottom: none; }
+
+    .sidebar {padding-bottom: 30px; }
+        /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
+    body.sidebar-mini .main-sidebar .user-panel .image img,
+    body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
+        /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
+    body.sidebar-mini .main-sidebar .user-panel .image img,
+    body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
+</style>
+=======
+
   </style>
 </head>
-<body class="hold-transition sidebar-mini">
+<body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
   <nav class="main-header navbar navbar-expand navbar-white navbar-light" style="background-color: #0056b3;">
     <ul class="navbar-nav">
@@ -66,12 +131,12 @@ $industries = $mysqli->query("SELECT Industry_id, Industry FROM industry_group O
     <ul class="navbar-nav ml-auto">
       <li class="nav-item dropdown user-menu">
         <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-          <img src="../../dist/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
+          <img src="../../<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
           <span class="d-none d-md-inline text-white"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></span>
         </a>
         <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
           <li class="user-header" style="background-color: #0056b3; color: #fff;">
-            <img src="../../dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+            <img src="../../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
             <p>
               <?php echo $_SESSION['email'] ?? ''; ?>
               <small>Admin</small>
@@ -90,45 +155,57 @@ $industries = $mysqli->query("SELECT Industry_id, Industry FROM industry_group O
     </a>
 
     <div class="sidebar">
-    <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
-  <div class="image">
-    <img src="../../dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
-  </div>
-  <div class="info">
-    <a href="#" class="d-block"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></a>
-    <span class="d-block" style="color: #c2c7d0; font-size: 0.9em;">(Admin)</span>
-    <a href="#" class="d-block"><i class="fa fa-circle text-success"></i> Online</a>
-  </div>
-</div>
+      <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
+        <div class="image">
+          <a href="adminedit_profile.php"> <img src="../../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;"></a>
+        </div>
+        <div class="info">
+          <a href="#" class="d-block"><?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?></a>
+          <a href="#" class="d-block" style="color: #c2c7d0; font-size: 0.9em;"><i class="fa fa-circle text-success" style="font-size: 0.7em;"></i> Online</a>
+        </div>
+      </div>
 
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           <li class="nav-header">MAIN NAVIGATION</li>
           <li class="nav-item">
-            <a href="../../home_admin.php" class="nav-link">
+            <a href="#" class="nav-link">
               <i class="nav-icon fas fa-tachometer-alt"></i>
-              <p>Dashboard</p>
-            </a>
-          </li>
-          <li class="nav-item menu-is-opening menu-open">
-            <a href="#" class="nav-link active">
-              <i class="nav-icon fas fa-folder-open"></i>
               <p>
-                เพิ่มข้อมูล....
+                Dashboard
                 <i class="right fas fa-angle-left"></i>
               </p>
             </a>
             <ul class="nav nav-treeview">
-              <li class="nav-item"><a href="../layout/top-nav.php" class="nav-link active"><i class="fas fa-building nav-icon"></i><p>เพิ่มข้อมูลบริษัท</p></a></li>
-              <li class="nav-item"><a href="../layout/boxed.php" class="nav-link"><i class="fas fa-boxes nav-icon"></i><p>เพิ่มข้อมูลกลุ่มสินค้า</p></a></li>
-              <li class="nav-item"><a href="../layout/fixed.php" class="nav-link"><i class="fas fa-industry nav-icon"></i><p>เพิ่มข้อมูลอุตสาหกรรม</p></a></li>
-              <li class="nav-item"><a href="../layout/Source_of_the_budget.php" class="nav-link"><i class="fas fa-file-invoice-dollar nav-icon"></i><p>เพิ่มข้อมูลที่มาของงบประมาณ</p></a></li>
-              <li class="nav-item"><a href="../layout/collapsed-sidebar.php" class="nav-link"><i class="fas fa-tasks nav-icon"></i><p>ขั้นตอนการขาย</p></a></li>
-              <li class="nav-item"><a href="../layout/of_winning.php" class="nav-link"><i class="fas fa-trophy nav-icon"></i><p>โอกาสการชนะ</p></a></li>
-              <li class="nav-item"><a href="../layout/Saleteam.php" class="nav-link"><i class="fas fa-users nav-icon"></i><p>ทีมขาย</p></a></li>
-              <li class="nav-item"><a href="../layout/position_u.php" class="nav-link"><i class="fas fa-user-tag nav-icon"></i><p>ตำแหน่ง</p></a></li>
-              <li class="nav-item"><a href="../layout/Profile_user.php" class="nav-link"><i class="fas fa-id-card nav-icon"></i><p>รายละเอียดผู้ใช้งาน</p></a></li>
-              <li class="nav-item"><a href="../layout/newuser.php" class="nav-link"><i class="fas fa-user-plus nav-icon"></i><p>เพิ่มผู้ใช้งาน</p></a></li>
+              <li class="nav-item">
+                <a href="../../home_admin.php" class="nav-link">
+                  <i class="far fa-chart-bar nav-icon"></i>
+                  <p>Dashboard (กราฟ)</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="super_admin_table.php" class="nav-link">
+                  <i class="fas fa-table nav-icon"></i>
+                  <p>Dashboard (ตาราง)</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-item menu-is-opening menu-open">
+            <a href="#" class="nav-link active">
+              <i class="nav-icon fas fa-folder-open"></i><p>เพิ่มข้อมูล....<i class="right fas fa-angle-left"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item"><a href="top-nav.php" class="nav-link active"><i class="fas fa-building nav-icon"></i><p>เพิ่มข้อมูลบริษัท</p></a></li>
+              <li class="nav-item"><a href="boxed.php" class="nav-link"><i class="fas fa-boxes nav-icon"></i><p>เพิ่มข้อมูลกลุ่มสินค้า</p></a></li>
+              <li class="nav-item"><a href="fixed.php" class="nav-link"><i class="fas fa-industry nav-icon"></i><p>เพิ่มข้อมูลอุตสาหกรรม</p></a></li>
+              <li class="nav-item"><a href="Source_of_the_budget.php" class="nav-link"><i class="fas fa-file-invoice-dollar nav-icon"></i><p>เพิ่มข้อมูลที่มาของงบประมาณ</p></a></li>
+              <li class="nav-item"><a href="collapsed-sidebar.php" class="nav-link"><i class="fas fa-tasks nav-icon"></i><p>ขั้นตอนการขาย</p></a></li>
+              <li class="nav-item"><a href="of_winning.php" class="nav-link"><i class="fas fa-trophy nav-icon"></i><p>โอกาสการชนะ</p></a></li>
+              <li class="nav-item"><a href="Saleteam.php" class="nav-link"><i class="fas fa-users nav-icon"></i><p>ทีมขาย</p></a></li>
+              <li class="nav-item"><a href="position_u.php" class="nav-link"><i class="fas fa-user-tag nav-icon"></i><p>ตำแหน่ง</p></a></li>
+              <li class="nav-item"><a href="Profile_user.php" class="nav-link"><i class="fas fa-id-card nav-icon"></i><p>รายละเอียดผู้ใช้งาน</p></a></li>
+              <li class="nav-item"><a href="newuser.php" class="nav-link"><i class="fas fa-user-plus nav-icon"></i><p>เพิ่มผู้ใช้งาน</p></a></li>
             </ul>
           </li>
         </ul>

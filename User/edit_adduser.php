@@ -1,6 +1,5 @@
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+
 
 /***********************************************************************
  * edit_transaction.php
@@ -9,6 +8,11 @@ error_reporting(E_ALL);
 
 require_once '../functions.php';
 session_start();
+// ตรวจสอบ session และ role
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 3) {
+    header('Location: ../index.php');
+    exit;
+}
 
 // ─────────────────── 1) Auth – เฉพาะผู้ใช้ role_id = 2 ───────────────────
 if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {
@@ -47,89 +51,82 @@ if (!$rec) {
     exit('ไม่พบข้อมูล หรือไม่ใช่ข้อมูลของคุณ');
 }
 
-// ─────────────────── 4) บันทึกข้อมูล (Save) ───────────────────
+
+// ─────────────────── 4) ดึง step และ transactional_step ───────────────────
+$stepOpts = [];
+$res = $mysqli->query("SELECT level_id, level FROM step ORDER BY orderlv ASC");
+if ($res) $stepOpts = $res->fetch_all(MYSQLI_ASSOC);
+
+// ดึง step ที่ถูกเลือกและวันที่จาก transactional_step
+$stepData = [];
+$res2 = $mysqli->prepare("SELECT level_id, date FROM transactional_step WHERE transac_id = ?");
+$res2->bind_param('i', $tid);
+$res2->execute();
+$result2 = $res2->get_result();
+while ($row = $result2->fetch_assoc()) {
+    $stepData[$row['level_id']] = $row['date'];
+}
+$res2->close();
+
+// ─────────────────── 5) บันทึกข้อมูล (Save) ───────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  // ----- รับค่าจากฟอร์ม (ส่วนนี้ถูกต้องแล้ว ไม่ต้องแก้) -----
-  $data = [
-      'company_id'              => (int)$_POST['company_id'],
-      'Product_id'              => (int)$_POST['Product_id'],
-      'team_id'                 => (int)$_POST['team_id'],
-      'priority_id'             => $_POST['priority_id'] === '' ? null : (int)$_POST['priority_id'],
-      'Product_detail'          => trim($_POST['Product_detail']),
-      'product_value'           => (int)str_replace(',', '', $_POST['product_value']),
-      'Source_budget_id'        => (int)$_POST['Source_budget_id'],
-      'fiscalyear'              => $_POST['fiscalyear'],
-      'contact_start_date'      => $_POST['contact_start_date'] ?: null,
-      'date_of_closing_of_sale' => $_POST['date_of_closing_of_sale'] ?: null,
-      'sales_can_be_close'      => $_POST['sales_can_be_close'] ?: null,
-      'remark'                  => trim($_POST['remark']),
-      'present'                 => isset($_POST['present']) && $_POST['present'] === '1' ? 1 : 0,
-      'present_date'            => null,
-      'budgeted'                => isset($_POST['budgeted']) && $_POST['budgeted'] === '1' ? 1 : 0,
-      'budgeted_date'           => null,
-      'tor'                     => isset($_POST['tor']) && $_POST['tor'] === '1' ? 1 : 0,
-      'tor_date'                => !empty($_POST['tor_date']) ? $_POST['tor_date'] : null,
-      'bidding'                 => isset($_POST['bidding']) && $_POST['bidding'] === '1' ? 1 : 0,
-      'bidding_date'            => !empty($_POST['bidding_date']) ? $_POST['bidding_date'] : null,
-      'win'                     => isset($_POST['win']) && $_POST['win'] === '1' ? 1 : 0,
-      'win_date'                => !empty($_POST['win_date']) ? $_POST['win_date'] : null,
-      'lost'                    => isset($_POST['lost']) && $_POST['lost'] === '1' ? 1 : 0,
-      'lost_date'               => !empty($_POST['lost_date']) ? $_POST['lost_date'] : null,
-  ];
+    // รับค่าจากฟอร์ม (ไม่รวม legacy step fields)
+    $data = [
+        'company_id'              => (int)$_POST['company_id'],
+        'Product_id'              => (int)$_POST['Product_id'],
+        'team_id'                 => (int)$_POST['team_id'],
+        'priority_id'             => $_POST['priority_id'] === '' ? null : (int)$_POST['priority_id'],
+        'Product_detail'          => trim($_POST['Product_detail']),
+        'product_value'           => (int)str_replace(',', '', $_POST['product_value']),
+        'Source_budget_id'        => (int)$_POST['Source_budget_id'],
+        'fiscalyear'              => $_POST['fiscalyear'],
+        'contact_start_date'      => $_POST['contact_start_date'] ?: null,
+        'date_of_closing_of_sale' => $_POST['date_of_closing_of_sale'] ?: null,
+        'sales_can_be_close'      => $_POST['sales_can_be_close'] ?: null,
+        'remark'                  => trim($_POST['remark'])
+    ];
 
-  // ----- UPDATE SQL (ส่วนนี้ถูกต้องแล้ว ไม่ต้องแก้) -----
-  $sql = "UPDATE transactional SET
-              company_id=?, Product_id=?, team_id=?, priority_id=?,
-              Product_detail=?, product_value=?, Source_budget_id=?, fiscalyear=?,
-              contact_start_date=?, date_of_closing_of_sale=?, sales_can_be_close=?, remark=?,
-              present=?, present_date=?, budgeted=?, budgeted_date=?,
-              tor=?, tor_date=?, bidding=?, bidding_date=?,
-              win=?, win_date=?, lost=?, lost_date=?
-          WHERE transac_id=? AND user_id=?";
-  
-  $st = $mysqli->prepare($sql);
+    // UPDATE transactional (ไม่อัปเดต legacy step fields)
+    $sql = "UPDATE transactional SET
+                company_id=?, Product_id=?, team_id=?, priority_id=?,
+                Product_detail=?, product_value=?, Source_budget_id=?, fiscalyear=?,
+                contact_start_date=?, date_of_closing_of_sale=?, sales_can_be_close=?, remark=?
+            WHERE transac_id=? AND user_id=?";
+    $st = $mysqli->prepare($sql);
+    $st->bind_param(
+        'iiiisissssssis',
+        $data['company_id'], $data['Product_id'], $data['team_id'], $data['priority_id'],
+        $data['Product_detail'], $data['product_value'], $data['Source_budget_id'], $data['fiscalyear'],
+        $data['contact_start_date'], $data['date_of_closing_of_sale'], $data['sales_can_be_close'], $data['remark'],
+        $tid, $user_id
+    );
+    if (!$st->execute()) {
+        exit('SQL Error: ' . $st->error);
+    }
+    $st->close();
 
-  // ******** จุดที่แก้ไขอยู่ตรงนี้ ********
-  // แก้ไขการเรียงลำดับตัวแปร และ Type string ให้ถูกต้องตรงกับ SQL
-  $st->bind_param(
-      'iiiisissssssisisisisisiiii', // Type string ที่ถูกต้อง
-      // ----------------- บรรทัดที่ 1 -----------------
-      $data['company_id'], $data['Product_id'], $data['team_id'], $data['priority_id'],
-      // ----------------- บรรทัดที่ 2 -----------------
-      $data['Product_detail'], $data['product_value'], $data['Source_budget_id'], $data['fiscalyear'],
-      // ----------------- บรรทัดที่ 3 -----------------
-      $data['contact_start_date'], $data['date_of_closing_of_sale'], $data['sales_can_be_close'], $data['remark'],
-      // ----------------- บรรทัดที่ 4 -----------------
-      $data['present'], $data['present_date'], $data['budgeted'], $data['budgeted_date'],
-      // ----------------- บรรทัดที่ 5 -----------------
-      $data['tor'], $data['tor_date'], $data['bidding'], $data['bidding_date'],
-      // ----------------- บรรทัดที่ 6 -----------------
-      $data['win'], $data['win_date'], $data['lost'], $data['lost_date'],
-      // ----------------- WHERE clause -----------------
-      $tid, $user_id
-  );
+    // ลบ transactional_step เดิม
+    $mysqli->query("DELETE FROM transactional_step WHERE transac_id = $tid");
 
-  if ($st->execute()) {
-      header('Location: ../home_user_01.php?edit=ok');
-      exit;
-  }
-  exit('SQL Error: ' . $st->error);
+    // เพิ่ม transactional_step ใหม่
+    $stepsChecked = $_POST['step'] ?? [];
+    $stepsDate = $_POST['step_date'] ?? [];
+    foreach ($stepsChecked as $level_id => $checked) {
+        if ($checked && $level_id) {
+            $date = $stepsDate[$level_id] ?? null;
+            if ($date && $date !== '') {
+                $stmt2 = $mysqli->prepare("INSERT INTO transactional_step (transac_id, level_id, date) VALUES (?, ?, ?)");
+                $stmt2->bind_param('iis', $tid, $level_id, $date);
+                $stmt2->execute();
+                $stmt2->close();
+            }
+        }
+    }
+    header('Location: ../home_user_01.php?edit=ok');
+    exit;
 }
 
-// ─────────────────── 5) Helper Functions for HTML ───────────────────
-$sel = function($current_val, $option_val) {
-    return $current_val == $option_val ? 'selected' : '';
-};
-
-// map ชื่อ field สถานะตามตาราง
-$steps = [
-    'present'  => ['label'=>'Present',  'date'=>null],
-    'budgeted' => ['label'=>'Budget',   'date'=>null],
-    'tor'      => ['label'=>'TOR',      'date'=>'tor_date'],
-    'bidding'  => ['label'=>'Bidding',  'date'=>'bidding_date'],
-    'win'      => ['label'=>'WIN',      'date'=>'win_date'],
-    'lost'     => ['label'=>'LOST',     'date'=>'lost_date']
-];
+=======
 
 ?>
 <!doctype html>
@@ -174,11 +171,16 @@ $steps = [
     <ul class="navbar-nav ml-auto">
         <li class="nav-item dropdown user-menu">
             <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                <img src="../dist_v3/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
+
+                <img src="<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
                 <span class="d-none d-md-inline"><?= $email ?></span>
             </a>
             <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                <li class="user-header bg-danger"><img src="../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image"><p><?= $email ?><small>User</small></p></li>
+                <li class="user-header bg-danger">
+                    <img src="<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
+                    <p><?= $email ?><small>User</small></p>
+                </li>
+
                 <li class="user-footer"><a href="../logout.php" class="btn btn-default btn-flat float-right">Sign out</a></li>
             </ul>
         </li>
@@ -231,8 +233,10 @@ $steps = [
                         <select name="company_id" id="company_id" class="form-control" required>
                           <option value="">-- เลือกบริษัท/หน่วยงาน --</option>
                           <?php foreach($companyOpts as $o): ?>
-                            <option value="<?= $o['company_id'] ?>" <?= $sel($rec['company_id'], $o['company_id']) ?>><?= htmlspecialchars($o['company']) ?></option>
-                          <?php endforeach; ?>
+
+                            <option value="<?= $o['company_id'] ?>" <?= $rec['company_id'] == $o['company_id'] ? 'selected' : '' ?>><?= htmlspecialchars($o['company']) ?></option>
+
+
                         </select>
                       </div>
                       <div class="col-md-6 form-group">
@@ -247,7 +251,9 @@ $steps = [
                         <select name="Source_budget_id" id="Source_budget_id" class="form-control" required>
                           <option value="">-- เลือกแหล่งที่มาฯ --</option>
                           <?php foreach($Source_budgeOpts as $o): ?>
-                            <option value="<?= $o['Source_budget_id'] ?>" <?= $sel($rec['Source_budget_id'], $o['Source_budget_id']) ?>><?= htmlspecialchars($o['Source_budge']) ?></option>
+
+                            <option value="<?= $o['Source_budget_id'] ?>" <?= $rec['Source_budget_id'] == $o['Source_budget_id'] ? 'selected' : '' ?>><?= htmlspecialchars($o['Source_budge']) ?></option>
+
                           <?php endforeach; ?>
                         </select>
                       </div>
@@ -258,7 +264,10 @@ $steps = [
                                   $currentBuddhistYear = date('Y') + 543;
                                   for ($i = 0; $i < 5; $i++) {
                                       $year = $currentBuddhistYear + $i;
-                                      echo "<option value=\"$year\" ". $sel($rec['fiscalyear'], $year) .">$year</option>";
+
+                                      echo "<option value=\"$year\" ". ($rec['fiscalyear'] == $year ? 'selected' : '') .">$year</option>";
+
+
                                   }
                               ?>
                         </select>
@@ -270,7 +279,9 @@ $steps = [
                             <label for="Product_id">กลุ่มสินค้า</label>
                             <select name="Product_id" id="Product_id" class="form-control" required>
                                 <?php foreach($productOpts as $o): ?>
-                                    <option value="<?= $o['product_id'] ?>" <?= $sel($rec['Product_id'], $o['product_id']) ?>><?= htmlspecialchars($o['product']) ?></option>
+
+                                    <option value="<?= $o['product_id'] ?>" <?= $rec['Product_id'] == $o['product_id'] ? 'selected' : '' ?>><?= htmlspecialchars($o['product']) ?></option>
+
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -278,7 +289,9 @@ $steps = [
                             <label for="team_id">ทีมขาย</label>
                             <select name="team_id" id="team_id" class="form-control" required>
                                 <?php foreach($teamOpts as $o): ?>
-                                    <option value="<?= $o['team_id'] ?>" <?= $sel($rec['team_id'], $o['team_id']) ?>><?= htmlspecialchars($o['team']) ?></option>
+
+                                    <option value="<?= $o['team_id'] ?>" <?= $rec['team_id'] == $o['team_id'] ? 'selected' : '' ?>><?= htmlspecialchars($o['team']) ?></option>
+
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -287,7 +300,9 @@ $steps = [
                             <select name="priority_id" id="priority_id" class="form-control">
                                 <option value="">-- เลือกระดับ --</option>
                                 <?php foreach($priorityOpts as $o): ?>
-                                    <option value="<?= $o['priority_id'] ?>" <?= $sel($rec['priority_id'], $o['priority_id']) ?>><?= htmlspecialchars($o['priority']) ?></option>
+
+                                    <option value="<?= $o['priority_id'] ?>" <?= $rec['priority_id'] == $o['priority_id'] ? 'selected' : '' ?>><?= htmlspecialchars($o['priority']) ?></option>
+
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -311,21 +326,21 @@ $steps = [
                     <div class="form-group">
                       <label>สถานะ</label>
                       <div class="row">
-                        <?php foreach ($steps as $field => $cfg):
-                              $checked = !empty($rec[$field]);
-                              $dateCol = $cfg['date'];
-                              $dateVal = $dateCol ? ($rec[$dateCol] ?? '') : '';
+
+                        <?php foreach ($stepOpts as $step):
+                            $level_id = $step['level_id'];
+                            $checked = isset($stepData[$level_id]);
+                            $dateVal = $checked ? $stepData[$level_id] : '';
                         ?>
                           <div class="col-12 col-lg-6 mb-2">
                             <div class="process-item">
-                              <input type="hidden" name="<?= $field ?>" value="0">
+                              <input type="hidden" name="step[<?= $level_id ?>]" value="0">
                               <div class="icheck-primary d-inline">
-                                  <input type="checkbox" id="<?= $field ?>_cb" name="<?= $field ?>" value="1" <?= $checked ? 'checked' : '' ?> onchange="toggleDate('<?= $field ?>')">
-                                  <label for="<?= $field ?>_cb" style="margin-bottom: 0; font-weight: normal !important;"><?= $cfg['label'] ?></label>
+                                  <input type="checkbox" id="step_cb_<?= $level_id ?>" name="step[<?= $level_id ?>]" value="<?= $level_id ?>" <?= $checked ? 'checked' : '' ?> onchange="toggleDate('<?= $level_id ?>')">
+                                  <label for="step_cb_<?= $level_id ?>" style="margin-bottom: 0; font-weight: normal !important;"><?= htmlspecialchars($step['level']) ?></label>
                               </div>
-                              <?php if ($dateCol): ?>
-                                <input type="date" class="form-control form-control-sm ml-2" id="<?= $field ?>_date" name="<?= $dateCol ?>" value="<?= htmlspecialchars($dateVal) ?>" style="width: auto;" <?= $checked ? '' : 'disabled' ?>>
-                              <?php endif; ?>
+                              <input type="date" class="form-control form-control-sm ml-2" id="step_date_<?= $level_id ?>" name="step_date[<?= $level_id ?>]" value="<?= htmlspecialchars($dateVal) ?>" style="width: auto;" <?= $checked ? '' : 'disabled' ?>>
+
                             </div>
                           </div>
                         <?php endforeach; ?>
@@ -349,28 +364,28 @@ $steps = [
 <script src="../plugins_v3/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="../dist_v3/js/adminlte.min.js"></script>
 <script>
-/* จัดรูปแบบตัวเลขใส่ comma */
+
 (()=>{const f=document.getElementById('product_value');
 const fmt=v=>{v=v.replace(/[^0-9.]/g,'');if(!v)return '';const[x,y]=v.split('.');return(+x).toLocaleString('en-US')+(y?'.'+y.slice(0,2):'');};
 f.addEventListener('input',()=>{const p=f.selectionStart,l=f.value.length;f.value=fmt(f.value);f.setSelectionRange(p+(f.value.length-l),p+(f.value.length-l));});
 document.getElementById('editForm').addEventListener('submit',()=>f.value=f.value.replace(/,/g,''));})();
-</script>
-<script>
-function toggleDate(field) {
-    const checkbox = document.getElementById(field + '_cb');
-    const dateInput = document.getElementById(field + '_date');
-    if (!dateInput) return; // ถ้าไม่มี input date ให้จบการทำงาน
-    
+
+function toggleDate(levelId) {
+    const checkbox = document.getElementById('step_cb_' + levelId);
+    const dateInput = document.getElementById('step_date_' + levelId);
+    if (!dateInput) return;
     if (checkbox.checked) {
         dateInput.removeAttribute('disabled');
-        // ถ้าวันที่ยังว่างอยู่ ให้กำหนดเป็นวันปัจจุบัน
+
         if (!dateInput.value) {
            const today = new Date().toISOString().split('T')[0];
            dateInput.value = today;
         }
     } else {
         dateInput.setAttribute('disabled', 'disabled');
-        dateInput.value = ''; // ล้างค่าวันที่เมื่อไม่ถูกเลือก
+
+        dateInput.value = '';
+
     }
 }
 </script>

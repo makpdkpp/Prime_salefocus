@@ -2,16 +2,14 @@
 require_once 'functions.php';
 session_start();
 
-// ตรวจสอบว่าล็อกอินและสิทธิ์เป็น admin (role_id 1)"เเก้พี่มาเล่นๆ" พพพพ rrrrr
+// ตรวจสอบว่าล็อกอินและสิทธิ์เป็น admin (role_id 1)
 if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 1) {
     header('Location: index.php');
     exit;
 }
 
-// เชื่อมต่อฐานข้อมูล
 $mysqli = connectDb();
 
-// ฟังก์ชันช่วยส่ง JSON error และ exit
 function sendJsonError($message) {
     http_response_code(500);
     header('Content-Type: application/json; charset=utf-8');
@@ -19,7 +17,6 @@ function sendJsonError($message) {
     exit;
 }
 
-// ฟังก์ชันรัน query คืนค่าเดียว (scalar) หรือ 0
 function querySingle($db, $sql) {
     $res = $db->query($sql);
     if (!$res) {
@@ -31,7 +28,6 @@ function querySingle($db, $sql) {
     return $value;
 }
 
-// ฟังก์ชันรัน query คืนหลายแถว
 function queryList($db, $sql) {
     $res = $db->query($sql);
     if (!$res) {
@@ -52,203 +48,228 @@ $output['estimatevalue'] = querySingle($mysqli,
     "SELECT COALESCE(SUM(product_value),0) FROM transactional "
 );
 
-// 2. winvalue (sum product_value where win = 1)
+// 2. winvalue (sum product_value where latest step is WIN)
 $output['winvalue'] = querySingle($mysqli,
-    "SELECT COALESCE(SUM(product_value),0) FROM transactional WHERE win = 1"
+    "SELECT COALESCE(SUM(t.product_value),0)
+     FROM transactional t
+     JOIN (
+       SELECT ts.transac_id
+       FROM transactional_step ts
+       JOIN step s ON s.level_id = ts.level_id
+       WHERE s.level = 5
+         AND (ts.transacstep_id, ts.transac_id) IN (
+           SELECT MAX(ts2.transacstep_id), ts2.transac_id
+           FROM transactional_step ts2
+           GROUP BY ts2.transac_id
+         )
+     ) wintrans ON wintrans.transac_id = t.transac_id"
 );
 
-// 3. wincount (จำนวนรายการ Win เมื่อ win = 1)
+// 3. wincount (จำนวนรายการที่ latest step เป็น WIN)
 $output['wincount'] = querySingle($mysqli,
-    "SELECT COUNT(*) FROM transactional WHERE win = 1"
+    "SELECT COUNT(*)
+     FROM transactional t
+     JOIN (
+       SELECT ts.transac_id
+       FROM transactional_step ts
+       JOIN step s ON s.level_id = ts.level_id
+       WHERE s.level = 5
+         AND (ts.transacstep_id, ts.transac_id) IN (
+           SELECT MAX(ts2.transacstep_id), ts2.transac_id
+           FROM transactional_step ts2
+           GROUP BY ts2.transac_id
+         )
+     ) wintrans ON wintrans.transac_id = t.transac_id"
 );
 
-// 3.2. wincount (จำนวนรายการ Lost เมื่อ lost = 1)
+// 3.2. lostcount (จำนวนรายการที่ latest step เป็น LOST)
 $output['lostcount'] = querySingle($mysqli,
-    "SELECT COUNT(*) FROM transactional WHERE lost = 1"
+    "SELECT COUNT(*)
+     FROM transactional t
+     JOIN (
+       SELECT ts.transac_id
+       FROM transactional_step ts
+       JOIN step s ON s.level_id = ts.level_id
+       WHERE s.level = 6
+         AND (ts.transacstep_id, ts.transac_id) IN (
+           SELECT MAX(ts2.transacstep_id), ts2.transac_id
+           FROM transactional_step ts2
+           GROUP BY ts2.transac_id
+         )
+     ) losttrans ON losttrans.transac_id = t.transac_id"
 );
 
-// 4. salestatus (สรุปสถานะต่างๆ แยกเดือน พร้อม Lost)
+// 4. salestatus (pivot รายเดือน แยก step)
 $output['salestatus'] = queryList($mysqli,
     "SELECT
-  month,
-  SUM(type = 'present')   AS present_count,
-  SUM(type = 'budgeted')  AS budgeted_count,
-  SUM(type = 'tor')        AS tor_count,
-  SUM(type = 'bidding')    AS bidding_count,
-  SUM(type = 'win')        AS win_count,
-  SUM(type = 'lost')       AS lost_count
-FROM (
-  SELECT DATE_FORMAT(present_date,  '%Y-%m') AS month, 'present'  AS type
-    FROM transactional
-   WHERE present   = 1 AND present_date   IS NOT NULL
-  UNION ALL
-  SELECT DATE_FORMAT(budgeted_date, '%Y-%m'), 'budgeted'
-    FROM transactional
-   WHERE budgeted  = 1 AND budgeted_date  IS NOT NULL
-  UNION ALL
-  SELECT DATE_FORMAT(tor_date,      '%Y-%m'), 'tor'
-    FROM transactional
-   WHERE tor       = 1 AND tor_date      IS NOT NULL
-  UNION ALL
-  SELECT DATE_FORMAT(bidding_date,  '%Y-%m'), 'bidding'
-    FROM transactional
-   WHERE bidding   = 1 AND bidding_date  IS NOT NULL
-  UNION ALL
-  SELECT DATE_FORMAT(win_date,      '%Y-%m'), 'win'
-    FROM transactional
-   WHERE win       = 1 AND win_date      IS NOT NULL
-  UNION ALL
-  SELECT DATE_FORMAT(lost_date,     '%Y-%m'), 'lost'
-    FROM transactional
-   WHERE lost      = 1 AND lost_date     IS NOT NULL
-) AS events
-GROUP BY
-  month
-ORDER BY
-  month"
+      month,
+      SUM(type = '1.นำเสนอ Solution') AS present_count,
+      SUM(type = '2.ตั้งงบประมาณ') AS budgeted_count,
+      SUM(type = '3.ร่าง TOR') AS tor_count,
+      SUM(type = '4.Bidding / เสนอราคา') AS bidding_count,
+      SUM(type = '5.WIN') AS win_count,
+      SUM(type = '6.LOST') AS lost_count
+    FROM (
+      SELECT DATE_FORMAT(ts.date, '%Y-%m') AS month, s.level AS type
+      FROM transactional_step ts
+      JOIN step s ON s.level_id = ts.level_id
+      WHERE ts.date IS NOT NULL
+    ) AS events
+    GROUP BY month
+    ORDER BY month"
 );
 
-
-
-
-// 7. sumbyperson (ยอดรวมต่อผู้ใช้)
+// 7. sumbyperson (ยอดรวมต่อผู้ใช้ เฉพาะที่ latest step เป็น WIN)
 $output['sumbyperson'] = queryList($mysqli,
     "SELECT
         u.nname,
         COALESCE(SUM(t.product_value),0) AS total_value
      FROM `user` u
-     LEFT JOIN transactional t ON t.user_id = u.user_id AND t.win = 1
+     LEFT JOIN transactional t ON t.user_id = u.user_id
+     LEFT JOIN (
+       SELECT ts.transac_id
+       FROM transactional_step ts
+       JOIN step s ON s.level_id = ts.level_id
+       WHERE s.level = '5.WIN'
+         AND (ts.transacstep_id, ts.transac_id) IN (
+           SELECT MAX(ts2.transacstep_id), ts2.transac_id
+           FROM transactional_step ts2
+           GROUP BY ts2.transac_id
+         )
+     ) wintrans ON wintrans.transac_id = t.transac_id
+     WHERE wintrans.transac_id IS NOT NULL
      GROUP BY u.nname
      ORDER BY u.nname"
 );
 
-// 7. countbyperson (จำนวนขายต่อผู้ใช้)
+// 7. countbyperson (จำนวนขายต่อผู้ใช้ เฉพาะที่ latest step เป็น WIN)
 $output['countbyperson'] = queryList($mysqli,
     "SELECT
         u.nname,
         COALESCE(COUNT(t.product_value),0) AS count_value
      FROM `user` u
-     LEFT JOIN transactional t ON t.user_id = u.user_id AND t.win = 1
+     LEFT JOIN transactional t ON t.user_id = u.user_id
+     LEFT JOIN (
+       SELECT ts.transac_id
+       FROM transactional_step ts
+       JOIN step s ON s.level_id = ts.level_id
+       WHERE s.level = '5.WIN'
+         AND (ts.transacstep_id, ts.transac_id) IN (
+           SELECT MAX(ts2.transacstep_id), ts2.transac_id
+           FROM transactional_step ts2
+           GROUP BY ts2.transac_id
+         )
+     ) wintrans ON wintrans.transac_id = t.transac_id
+     WHERE wintrans.transac_id IS NOT NULL
      GROUP BY u.nname
      ORDER BY u.nname"
 );
 
-// 8. sumbyperteam (ยอดรวมต่อทีม)
+// 8. sumbyperteam (ยอดรวมต่อทีม เฉพาะที่ latest step เป็น WIN)
 $output['sumbyperteam'] = queryList($mysqli,
     "SELECT
         tc.team,
         COALESCE(SUM(t.product_value),0) AS sumvalue
      FROM team_catalog tc
-     LEFT JOIN transactional t ON t.team_id = tc.team_id AND t.win = 1
+     LEFT JOIN transactional t ON t.team_id = tc.team_id
+     LEFT JOIN (
+       SELECT ts.transac_id
+       FROM transactional_step ts
+       JOIN step s ON s.level_id = ts.level_id
+       WHERE s.level = '5.WIN'
+         AND (ts.transacstep_id, ts.transac_id) IN (
+           SELECT MAX(ts2.transacstep_id), ts2.transac_id
+           FROM transactional_step ts2
+           GROUP BY ts2.transac_id
+         )
+     ) wintrans ON wintrans.transac_id = t.transac_id
+     WHERE wintrans.transac_id IS NOT NULL
      GROUP BY tc.team_id
      ORDER BY tc.team"
 );
 
-// 9. salestatusvalue (เปรียบเทียบ product_value กับแต่ละสถานะในแต่ละเดือน)
+// 9. salestatusvalue (pivot รายเดือน แยก step, sum product_value)
 $output['salestatusvalue'] = queryList($mysqli,
     "SELECT
-  month,
-  SUM(CASE WHEN type = 'present'  THEN value ELSE 0 END) AS present_value,
-  SUM(CASE WHEN type = 'budgeted' THEN value ELSE 0 END) AS budgeted_value,
-  SUM(CASE WHEN type = 'tor'      THEN value ELSE 0 END) AS tor_value,
-  SUM(CASE WHEN type = 'bidding'  THEN value ELSE 0 END) AS bidding_value,
-  SUM(CASE WHEN type = 'win'      THEN value ELSE 0 END) AS win_value,
-  SUM(CASE WHEN type = 'lost'     THEN value ELSE 0 END) AS lost_value
-FROM (
-  SELECT DATE_FORMAT(present_date,  '%Y-%m') AS month, product_value AS value, 'present'  AS type
-    FROM transactional
-   WHERE present   = 1 AND present_date   IS NOT NULL
-  UNION ALL
-  SELECT DATE_FORMAT(budgeted_date, '%Y-%m'), product_value, 'budgeted'
-    FROM transactional
-   WHERE budgeted  = 1 AND budgeted_date  IS NOT NULL
-  UNION ALL
-  SELECT DATE_FORMAT(tor_date,      '%Y-%m'), product_value, 'tor'
-    FROM transactional
-   WHERE tor       = 1 AND tor_date      IS NOT NULL
-  UNION ALL
-  SELECT DATE_FORMAT(bidding_date,  '%Y-%m'), product_value, 'bidding'
-    FROM transactional
-   WHERE bidding   = 1 AND bidding_date  IS NOT NULL
-  UNION ALL
-  SELECT DATE_FORMAT(win_date,      '%Y-%m'), product_value, 'win'
-    FROM transactional
-   WHERE win       = 1 AND win_date      IS NOT NULL
-  UNION ALL
-  SELECT DATE_FORMAT(lost_date,     '%Y-%m'), product_value, 'lost'
-    FROM transactional
-   WHERE lost      = 1 AND lost_date     IS NOT NULL
-) AS values_by_status
-GROUP BY
-  month
-ORDER BY
-  month"
+      month,
+      SUM(CASE WHEN type = '1.นำเสนอ Solution' THEN value ELSE 0 END) AS present_value,
+      SUM(CASE WHEN type = '2.ตั้งงบประมาณ' THEN value ELSE 0 END) AS budgeted_value,
+      SUM(CASE WHEN type = '3.ร่าง TOR' THEN value ELSE 0 END) AS tor_value,
+      SUM(CASE WHEN type = '4.Bidding / เสนอราคา' THEN value ELSE 0 END) AS bidding_value,
+      SUM(CASE WHEN type = '5.WIN' THEN value ELSE 0 END) AS win_value,
+      SUM(CASE WHEN type = '6.LOST' THEN value ELSE 0 END) AS lost_value
+    FROM (
+      SELECT DATE_FORMAT(ts.date, '%Y-%m') AS month, t.product_value AS value, s.level AS type
+      FROM transactional_step ts
+      JOIN transactional t ON t.transac_id = ts.transac_id
+      JOIN step s ON s.level_id = ts.level_id
+      WHERE ts.date IS NOT NULL
+    ) AS values_by_status
+    GROUP BY month
+    ORDER BY month"
 );
 
-// 10. saleforecast (saleforecast)
+// 10. saleforecast (Forecast, Target, Win per user)
 $output['saleforecast'] = queryList($mysqli,
     "SELECT
-	u.forecast AS Target,
-  SUM(t.product_value) AS Forecast,
-  SUM(
-    CASE WHEN t.win = 1
-         THEN t.product_value
-         ELSE 0
-    END
-  ) AS Win,
-  u.nname
-FROM transactional t
-JOIN `user` u ON u.user_id = t.user_id
-GROUP by u.nname"
+      u.forecast AS Target,
+      SUM(t.product_value) AS Forecast,
+      SUM(CASE WHEN s.level = '5.WIN' THEN t.product_value ELSE 0 END) AS Win,
+      u.nname
+    FROM transactional_step ts
+    JOIN transactional t ON t.transac_id = ts.transac_id
+    JOIN `user` u ON u.user_id = t.user_id
+    JOIN step s ON s.level_id = ts.level_id
+    GROUP BY u.nname"
 );
 
-// 11. Productortderbywinrate (productwinrate)
+// 11. Productortderbywinrate (productwinrate, latest step is WIN)
 $output['productwinrate'] = queryList($mysqli,
     "SELECT 
-  t.Product_detail AS Product,
-  p.priority
-FROM 
-  transactional AS t
-join
-  priority_level AS p 
-  ON t.priority_id = p.priority_id
-ORDER BY 
-  t.priority_id DESC"
+      t.Product_detail AS Product,
+      p.priority
+    FROM transactional t
+    JOIN priority_level p ON t.priority_id = p.priority_id
+    JOIN (
+      SELECT ts.transac_id
+      FROM transactional_step ts
+      JOIN step s ON s.level_id = ts.level_id
+      WHERE s.level = '5.WIN'
+        AND (ts.transacstep_id, ts.transac_id) IN (
+          SELECT MAX(ts2.transacstep_id), ts2.transac_id
+          FROM transactional_step ts2
+          GROUP BY ts2.transac_id
+        )
+    ) wintrans ON wintrans.transac_id = t.transac_id
+    ORDER BY t.priority_id DESC"
 );
 
-// 12. TOP10ProductGroup 
+// 12. TOP10ProductGroup (sum by product group, all steps)
 $output['TopProductGroup'] = queryList($mysqli,
     "SELECT
-  transactional.Product_id,
-  product_group.product,
-  SUM(product_value) AS sum_value
-FROM
-  transactional
-  JOIN product_group on transactional.Product_id = product_group.product_id
-GROUP BY
-  transactional.Product_id
-ORDER BY
-  sum_value DESC
-LIMIT 10"
+      t.Product_id,
+      pg.product,
+      SUM(t.product_value) AS sum_value
+    FROM transactional t
+    JOIN product_group pg ON t.Product_id = pg.product_id
+    GROUP BY t.Product_id
+    ORDER BY sum_value DESC
+    LIMIT 10"
 );
 
-// 13. Top10custopmer
+// 13. Top10custopmer (sum by company, all steps)
 $output['TopCustopmer'] = queryList($mysqli,
     "SELECT
-  company_catalog.company,
-  SUM(product_value) AS sum_value
-FROM
-  transactional
-  JOIN company_catalog on transactional.company_id = company_catalog.company_id
-GROUP BY
-  company_catalog.company
-ORDER BY
-  sum_value DESC
-LIMIT 10"
+      cc.company,
+      SUM(t.product_value) AS sum_value
+    FROM transactional t
+    JOIN company_catalog cc ON t.company_id = cc.company_id
+    GROUP BY cc.company
+    ORDER BY sum_value DESC
+    LIMIT 10"
 );
 
 $mysqli->close();
 
-// ส่ง JSON response
 header('Content-Type: application/json; charset=utf-8');
 echo json_encode($output, JSON_UNESCAPED_UNICODE);

@@ -5,41 +5,65 @@
    ------------------------------------------------------------------ */
 require_once '../functions.php';
 session_start();
-
-// ===== 1) Auth – เฉพาะผู้ใช้ role_id = 2 =====
-if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {
+// ตรวจสอบ session และ role
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] == !2 || (int)$_SESSION['role_id'] == !3) {
     header('Location: ../index.php');
     exit;
 }
+
+
+
+
+
 
 $mysqli = connectDb();
 $userId = (int)$_SESSION['user_id'];
 $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
+$avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
 
 /* -------- helper ดึง option (id => label) -------- */
 function loadOptions(mysqli $db, string $table, string $idCol, string $labelCol): array {
+    // ดึง option ทั่วไป (ORDER BY label ตามเดิม)
     $rows = $db->query("SELECT `$idCol`, `$labelCol` FROM `$table` ORDER BY `$labelCol`");
     return $rows ? $rows->fetch_all(MYSQLI_ASSOC) : [];
 }
 
 $productOpts  = loadOptions($mysqli, 'product_group',   'product_id',  'product');
-$teamOpts     = loadOptions($mysqli, 'team_catalog',    'team_id',     'team');
 $companyOpts  = loadOptions($mysqli, 'company_catalog', 'company_id',  'company');
 $priorityOpts = loadOptions($mysqli, 'priority_level',  'priority_id', 'priority');
 $Source_budgeOpts = loadOptions($mysqli, 'source_of_the_budget',  'Source_budget_id', 'Source_budge');
+// ดึง step โดยเรียง orderlv
+$stepOpts = [];
+$res = $mysqli->query("SELECT level_id, level FROM step ORDER BY orderlv ASC");
+if ($res) $stepOpts = $res->fetch_all(MYSQLI_ASSOC);
 
-/* map ชื่อ field สถานะตามตาราง */
-$steps = [
-    'present'  => ['label'=>'Present',  'date'=>null],
-    'budgeted' => ['label'=>'Budget',  'date'=>null],
-    'tor'      => ['label'=>'TOR',     'date'=>'tor_date'],
-    'bidding'  => ['label'=>'Bidding', 'date'=>'bidding_date'],
-    'win'      => ['label'=>'WIN',     'date'=>'win_date'],
-    'lost'     => ['label'=>'LOST',    'date'=>'lost_date']
-];
+
+// mapping ระหว่าง level กับชื่อ field วันที่ (แก้ไขตาม field จริงใน DB)
+
+$steps = [];
+foreach ($stepOpts as $step) {
+    $level = $step['level'];
+    $key = strtolower($level); // เช่น 'present', 'budgeted', 'tor', ...
+    $steps[$key] = [
+        'label' => $level,
+        'date'  => $key . '_date',
+        'level_id' => $step['level_id']
+    ];
+}
 
 $row = []; // หน้า add ให้เป็น array ว่าง
+
+// ดึงเฉพาะทีมที่ user นี้อยู่ (จาก transactional_team)
+$teamOpts = [];
+$stmt = $mysqli->prepare("SELECT transactional_team.team_id, team_catalog.team FROM transactional_team JOIN team_catalog on team_catalog.team_id = transactional_team.team_id WHERE transactional_team.user_id = ? ORDER BY team_catalog.team");
+if ($stmt) {
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    if ($res) $teamOpts = $res->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+}
 
 ?>
 <!doctype html>
@@ -53,6 +77,13 @@ $row = []; // หน้า add ให้เป็น array ว่าง
 <link rel="stylesheet" href="../dist_v3/css/adminlte.min.css">
 
 <style>
+      /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
+    body.sidebar-mini .main-sidebar .user-panel .image img,
+    body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
     .sales-card{max-width:750px;margin:20px auto;background:#fff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1);padding:32px 40px}
     .sales-card h2{font-weight:600;margin-bottom:30px}
     label{font-weight:500 !important}
@@ -88,12 +119,12 @@ $row = []; // หน้า add ให้เป็น array ว่าง
     <ul class="navbar-nav ml-auto">
         <li class="nav-item dropdown user-menu">
             <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                <img src="../dist_v3/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
+                <img src="../<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
                 <span class="d-none d-md-inline"><?= $email ?></span>
             </a>
             <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                 <li class="user-header bg-danger">
-                    <img src="../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                    <img src="../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
                     <p>
                         <?= $email ?>
                         <small>User</small>
@@ -113,7 +144,7 @@ $row = []; // หน้า add ให้เป็น array ว่าง
     <div class="sidebar">
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
             <div class="image">
-                <img src="../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                <img src="../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
             </div>
             <div class="info">
                 <a href="#" class="d-block"><?= $email ?></a>
@@ -260,14 +291,14 @@ $row = []; // หน้า add ให้เป็น array ว่าง
                         ?>
                           <div class="col-12 col-lg-6 mb-2">
                             <div class="process-item">
-                              <input type="hidden" name="<?= $field ?>" value="0">
+                              <input type="hidden" name="step[<?= $cfg['level_id'] ?>]" value="0">
                               <div class="icheck-primary d-inline">
-                                  <input type="checkbox" id="<?= $field ?>_cb" name="<?= $field ?>" value="1" <?= $checked ? 'checked' : '' ?> onchange="toggleDate('<?= $field ?>')">
-                                  <label for="<?= $field ?>_cb" style="margin-bottom: 0; font-weight: normal !important;"><?= $cfg['label'] ?></label>
+                                  <input type="checkbox" id="step_cb_<?= $cfg['level_id'] ?>" name="step[<?= $cfg['level_id'] ?>]" value="<?= $cfg['level_id'] ?>" <?= $checked ? 'checked' : '' ?> onchange="toggleDate('<?= $cfg['level_id'] ?>')">
+                                  <label for="step_cb_<?= $cfg['level_id'] ?>" style="margin-bottom: 0; font-weight: normal !important;"><?= $cfg['label'] ?></label>
                               </div>
 
                               <?php if ($cfg['date']): ?>
-                                <input type="date" class="form-control form-control-sm ml-2" id="<?= $field ?>_date" name="<?= $cfg['date'] ?>" value="<?= htmlspecialchars($dateVal) ?>" style="width: auto;" <?= $checked ? '' : 'disabled' ?>>
+                                <input type="date" class="form-control form-control-sm ml-2" id="step_date_<?= $cfg['level_id'] ?>" name="step_date[<?= $cfg['level_id'] ?>]" value="<?= htmlspecialchars($dateVal) ?>" style="width: auto;" <?= $checked ? '' : 'disabled' ?>>
                               <?php endif; ?>
                             </div>
                           </div>
@@ -300,12 +331,10 @@ f.addEventListener('input',()=>{const p=f.selectionStart,l=f.value.length;f.valu
 $('#salesForm').on('submit',()=>f.value=f.value.replace(/,/g,''));})();
 </script>
 <script>
-function toggleDate(field) {
-    const checkbox = document.getElementById(field + '_cb');
-    const dateInput = document.getElementById(field + '_date');
-
+function toggleDate(levelId) {
+    const checkbox = document.getElementById('step_cb_' + levelId);
+    const dateInput = document.getElementById('step_date_' + levelId);
     if (!dateInput) return;
-
     if (checkbox.checked) {
         dateInput.removeAttribute('disabled');
     } else {

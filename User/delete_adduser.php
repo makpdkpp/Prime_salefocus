@@ -1,7 +1,12 @@
 <?php
 session_start();
 include("../connect.php");
-
+session_start();
+// ตรวจสอบ session และ role
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 3) {
+    header('Location: ../index.php');
+    exit;
+}
 // ดึงข้อมูลของผู้ใช้จากเซสชัน
 $email = $_SESSION['email'];
 

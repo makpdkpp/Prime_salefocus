@@ -2,3 +2,7 @@ config.php
 functions.php
 .DS_Store
 Thunbs.db
+*.sql
+*.log
+uploads/avatars/
+uploads/avatars/**
