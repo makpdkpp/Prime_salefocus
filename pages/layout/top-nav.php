@@ -3,6 +3,7 @@ session_start();
 include("../../functions.php");
 $mysqli = connectDb();
 
+
 // —————— BEGIN: ดึง avatar จาก DB ——————
 if (empty($_SESSION['user_id'])) {
     header('Location: ../../index.php');
@@ -48,10 +49,12 @@ $where = $filterIndustry
 // คำนวณ pagination
 $totalQuery = $mysqli->query("SELECT COUNT(*) as total FROM company_catalog cc $where");
 $totalRow   = $totalQuery->fetch_assoc()['total'];
+
 $totalPages = ceil($totalRow / $limit);
 
 // จัดเรียง A–Z ก่อน ก–ฮ
 $collationLatin = 'utf8mb4_unicode_ci';
+
 $orderExpr = "
     CASE WHEN cc.company REGEXP '^[A-Za-z]' THEN 0 ELSE 1 END,
     cc.company COLLATE $collationLatin ASC
@@ -75,6 +78,7 @@ $industries = $mysqli->query("
     FROM industry_group
     ORDER BY Industry COLLATE utf8mb4_unicode_ci
 ");
+
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -94,6 +98,7 @@ $industries = $mysqli->query("
     .modal-content { border-radius: 10px; padding: 20px; }
     .pagination .page-item.active .page-link { background-color: #0056b3; border-color: #0056b3; }
     .main-header.navbar { border-bottom: none; }
+
     .sidebar {padding-bottom: 30px; }
         /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
     body.sidebar-mini .main-sidebar .user-panel .image img,
@@ -110,6 +115,8 @@ $industries = $mysqli->query("
       object-fit: cover;
     }
 </style>
+=======
+
   </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">

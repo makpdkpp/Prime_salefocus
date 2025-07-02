@@ -51,6 +51,7 @@ if (!$rec) {
     exit('ไม่พบข้อมูล หรือไม่ใช่ข้อมูลของคุณ');
 }
 
+
 // ─────────────────── 4) ดึง step และ transactional_step ───────────────────
 $stepOpts = [];
 $res = $mysqli->query("SELECT level_id, level FROM step ORDER BY orderlv ASC");
@@ -125,6 +126,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+=======
+
 ?>
 <!doctype html>
 <html lang="th">
@@ -168,6 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <ul class="navbar-nav ml-auto">
         <li class="nav-item dropdown user-menu">
             <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+
                 <img src="<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
                 <span class="d-none d-md-inline"><?= $email ?></span>
             </a>
@@ -176,6 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <img src="<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
                     <p><?= $email ?><small>User</small></p>
                 </li>
+
                 <li class="user-footer"><a href="../logout.php" class="btn btn-default btn-flat float-right">Sign out</a></li>
             </ul>
         </li>
@@ -228,8 +233,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <select name="company_id" id="company_id" class="form-control" required>
                           <option value="">-- เลือกบริษัท/หน่วยงาน --</option>
                           <?php foreach($companyOpts as $o): ?>
+
                             <option value="<?= $o['company_id'] ?>" <?= $rec['company_id'] == $o['company_id'] ? 'selected' : '' ?>><?= htmlspecialchars($o['company']) ?></option>
-                          <?php endforeach; ?>
+
+
                         </select>
                       </div>
                       <div class="col-md-6 form-group">
@@ -244,7 +251,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <select name="Source_budget_id" id="Source_budget_id" class="form-control" required>
                           <option value="">-- เลือกแหล่งที่มาฯ --</option>
                           <?php foreach($Source_budgeOpts as $o): ?>
+
                             <option value="<?= $o['Source_budget_id'] ?>" <?= $rec['Source_budget_id'] == $o['Source_budget_id'] ? 'selected' : '' ?>><?= htmlspecialchars($o['Source_budge']) ?></option>
+
                           <?php endforeach; ?>
                         </select>
                       </div>
@@ -255,7 +264,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                   $currentBuddhistYear = date('Y') + 543;
                                   for ($i = 0; $i < 5; $i++) {
                                       $year = $currentBuddhistYear + $i;
+
                                       echo "<option value=\"$year\" ". ($rec['fiscalyear'] == $year ? 'selected' : '') .">$year</option>";
+
+
                                   }
                               ?>
                         </select>
@@ -267,7 +279,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <label for="Product_id">กลุ่มสินค้า</label>
                             <select name="Product_id" id="Product_id" class="form-control" required>
                                 <?php foreach($productOpts as $o): ?>
+
                                     <option value="<?= $o['product_id'] ?>" <?= $rec['Product_id'] == $o['product_id'] ? 'selected' : '' ?>><?= htmlspecialchars($o['product']) ?></option>
+
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -275,7 +289,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <label for="team_id">ทีมขาย</label>
                             <select name="team_id" id="team_id" class="form-control" required>
                                 <?php foreach($teamOpts as $o): ?>
+
                                     <option value="<?= $o['team_id'] ?>" <?= $rec['team_id'] == $o['team_id'] ? 'selected' : '' ?>><?= htmlspecialchars($o['team']) ?></option>
+
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -284,7 +300,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <select name="priority_id" id="priority_id" class="form-control">
                                 <option value="">-- เลือกระดับ --</option>
                                 <?php foreach($priorityOpts as $o): ?>
+
                                     <option value="<?= $o['priority_id'] ?>" <?= $rec['priority_id'] == $o['priority_id'] ? 'selected' : '' ?>><?= htmlspecialchars($o['priority']) ?></option>
+
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -308,6 +326,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="form-group">
                       <label>สถานะ</label>
                       <div class="row">
+
                         <?php foreach ($stepOpts as $step):
                             $level_id = $step['level_id'];
                             $checked = isset($stepData[$level_id]);
@@ -321,6 +340,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                   <label for="step_cb_<?= $level_id ?>" style="margin-bottom: 0; font-weight: normal !important;"><?= htmlspecialchars($step['level']) ?></label>
                               </div>
                               <input type="date" class="form-control form-control-sm ml-2" id="step_date_<?= $level_id ?>" name="step_date[<?= $level_id ?>]" value="<?= htmlspecialchars($dateVal) ?>" style="width: auto;" <?= $checked ? '' : 'disabled' ?>>
+
                             </div>
                           </div>
                         <?php endforeach; ?>
@@ -344,23 +364,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <script src="../plugins_v3/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="../dist_v3/js/adminlte.min.js"></script>
 <script>
+
 (()=>{const f=document.getElementById('product_value');
 const fmt=v=>{v=v.replace(/[^0-9.]/g,'');if(!v)return '';const[x,y]=v.split('.');return(+x).toLocaleString('en-US')+(y?'.'+y.slice(0,2):'');};
 f.addEventListener('input',()=>{const p=f.selectionStart,l=f.value.length;f.value=fmt(f.value);f.setSelectionRange(p+(f.value.length-l),p+(f.value.length-l));});
 document.getElementById('editForm').addEventListener('submit',()=>f.value=f.value.replace(/,/g,''));})();
+
 function toggleDate(levelId) {
     const checkbox = document.getElementById('step_cb_' + levelId);
     const dateInput = document.getElementById('step_date_' + levelId);
     if (!dateInput) return;
     if (checkbox.checked) {
         dateInput.removeAttribute('disabled');
+
         if (!dateInput.value) {
            const today = new Date().toISOString().split('T')[0];
            dateInput.value = today;
         }
     } else {
         dateInput.setAttribute('disabled', 'disabled');
+
         dateInput.value = '';
+
     }
 }
 </script>
