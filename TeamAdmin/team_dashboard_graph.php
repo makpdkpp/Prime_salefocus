@@ -26,12 +26,24 @@ $email = htmlspecialchars($_SESSION['email']);
   <link rel="stylesheet" href="../dist_v3/css/adminlte.min.css">
 
   <style>
-    .content-wrapper { background-color: #f4f6f9; }
+    /* .content-wrapper { background-color: #f4f6f9; } */
     .summary-boxes { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; }
     .summary-box { flex: 1; min-width: 220px; background: #fff; padding: 20px; border-radius: 8px; text-align: left; box-shadow: 0 4px 8px rgba(0,0,0,0.05); border-left: 5px solid #28a745; }
     .summary-box h4 { font-size: 16px; margin-bottom: 10px; color: #555; font-weight: bold; }
     .summary-box p { font-size: 26px; font-weight: bold; margin: 0; color: #333; }
     .sidebar {padding-bottom: 30px; }
+    #teamSumChart {
+      /*min-width: 900px !important;*/
+      width: 100% !important;
+      max-width: 100vw;
+      height: 350px !important;
+      display: block;
+    }
+    .card-body {
+      /*min-width: 900px !important;*/
+      width: 100% !important;
+      /*overflow-x: auto !important;*/
+    }
   </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -165,6 +177,22 @@ $email = htmlspecialchars($_SESSION['email']);
             </div>
           </div>
         </div>
+        
+<div class="row">
+          <div class="col-md-6">
+            <div class="card card-success">
+              <div class="card-header"><h3 class="card-title">กราฟเปรียบเทียบ Target/Forecast/Win</h3></div>
+              <div class="card-body"><canvas id="teamSaleforecastChart" height="180"></canvas></div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card card-info">
+              <div class="card-header"><h3 class="card-title">สัดส่วนกลุ่มสินค้า</h3></div>
+              <div class="card-body"><canvas id=" " height="180"></canvas></div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
   </div>
@@ -178,76 +206,191 @@ $email = htmlspecialchars($_SESSION['email']);
 <script>
     async function loadDashboardData() {
         try {
-            // Path นี้ถูกต้องแล้ว เพราะ fetch จากไฟล์ที่อยู่ในโฟลเดอร์เดียวกัน
-            const response = await fetch('../team_data.php'); 
-            
+            const response = await fetch('../team_data.php');
             if (!response.ok) {
-                throw new Error('Network response was not ok ' + response.statusText);
+                throw new Error('Network response was not ok: ' + response.statusText);
             }
             const data = await response.json();
 
-            document.getElementById('estimatevalue').innerText = Number(data.teamEstimatevalue.teamEstimatevalue).toLocaleString('th-TH');
-        //    document.getElementById('totalWinDisplay').innerText = Number(data.winvalue).toLocaleString('th-TH');
-        //    document.getElementById('wincount').innerText = Number(data.wincount).toLocaleString('th-TH');
-        //   document.getElementById('lostcount').innerText = Number(data.lostcount).toLocaleString('th-TH');
+            document.getElementById('estimatevalue').innerText =
+                (data.teamEstimatevalue !== undefined && data.teamEstimatevalue !== null)
+                ? Number(data.teamEstimatevalue).toLocaleString('th-TH')
+                : "0";
+            document.getElementById('totalWinDisplay').innerText = Number(data.teamWinvalue || 0).toLocaleString('th-TH');
+            document.getElementById('wincount').innerText = Number(data.teamWinCount || 0).toLocaleString('th-TH');
+            document.getElementById('lostcount').innerText = Number(data.teamCountLost || 0).toLocaleString('th-TH');
 
-         //   renderTeamSumChart(data.sumbyperteam || []);
-         //   renderPersonSumChart(data.sumbyperson || []);
-         //   renderSaleStatusChart(data.salestatus || []);
-          //  renderStatusValueChart(data.salestatusvalue || []);
-
+            renderTeamSumChart(data.teamSumMonth || []);
+            renderPersonSumChart(data.teamSumByPerson || []);
+            renderSaleStatusChart(data.teamSalestep || []);
+            renderStatusValueChart(data.teamSalestepValue || []);
+            renderTeamSaleforecastChart(data.teamSaleforecast || []);
         } catch (error) {
-            console.error('There has been a problem with your fetch operation:', error);
+            console.error('Error loading dashboard data:', error);
+            document.getElementById('estimatevalue').innerText = "Error";
         }
     }
 
+    let teamSumChartInstance = null;
+    let personSumChartInstance = null;
+    let saleStatusChartInstance = null;
+    let statusValueChartInstance = null;
+    let teamSaleforecastChartInstance = null;
+
     function renderTeamSumChart(rawData) {
         if (!document.getElementById('teamSumChart') || !rawData.length) return;
-        const labels = rawData.map(item => item.team);
-        const values = rawData.map(item => Number(item.sumvalue));
+        const labels = rawData.map(item => item.month);
+        const values = rawData.map(item => Number(item.total));
         const ctx = document.getElementById('teamSumChart').getContext('2d');
-        new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'ยอดรวม (มูลค่า)', data: values, backgroundColor: '#28a745' }] }, options: { plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => v.toLocaleString('th-TH') } } } } });
+        if (teamSumChartInstance) teamSumChartInstance.destroy();
+        teamSumChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'ยอดรวม (มูลค่า)',
+                    data: values,
+                    backgroundColor: '#28a745',
+                    maxBarThickness: 60,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.5
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { autoSkip: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: v => v.toLocaleString('th-TH')
+                        }
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false
+            }
+        });
     }
 
     function renderPersonSumChart(rawData) {
         if (!document.getElementById('personSumChart') || !rawData.length) return;
-        const labels = rawData.map(item => item.nname);
-        const values = rawData.map(item => Number(item.total_value));
+        const labels = rawData.map(item => item.NAME);
+        const values = rawData.map(item => Number(item.total));
         const ctx = document.getElementById('personSumChart').getContext('2d');
-        new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'ยอดรวม (มูลค่า)', data: values, backgroundColor: 'rgba(54, 162, 235, 0.7)' }] }, options: { plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => v.toLocaleString('th-TH') } } } } });
+        if (personSumChartInstance) personSumChartInstance.destroy();
+        personSumChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: labels, datasets: [{ label: 'ยอดรวม (มูลค่า)', data: values, backgroundColor: 'rgba(54, 162, 235, 0.7)' }] },
+            options: { plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => v.toLocaleString('th-TH') } } } }
+        });
     }
 
     function renderSaleStatusChart(rawData) {
         if (!document.getElementById('salestatusChart') || !rawData.length) return;
-         const labels   = rawData.map(r => r.month);
+        const labels = rawData.map(r => r.month);
         const datasets = [
-            { label: 'Present', data: rawData.map(r => +r.present_count), backgroundColor: 'rgba(128, 81, 255, 1)'},
-            { label: 'Budget', data: rawData.map(r => +r.budgeted_count), backgroundColor: 'rgba(255, 0, 144, 1)'},
-            { label: 'TOR', data: rawData.map(r => +r.tor_count), backgroundColor: 'rgba(230, 180, 40, 1)'},
-            { label: 'Bidding', data: rawData.map(r => +r.bidding_count), backgroundColor: 'rgba(230, 120, 40, 1)'},
-            { label: 'Win', data: rawData.map(r => +r.win_count), backgroundColor: 'rgba(34, 139, 34, 1)'},
-            { label: 'Lost', data: rawData.map(r => +r.lost_count), backgroundColor: 'rgba(178, 34, 34, 1)'}
+            { label: 'Present', data: rawData.map(r => +r.present_count), backgroundColor: 'rgba(128, 81, 255, 1)' },
+            { label: 'Budget', data: rawData.map(r => +r.budgeted_count), backgroundColor: 'rgba(255, 0, 144, 1)' },
+            { label: 'TOR', data: rawData.map(r => +r.tor_count), backgroundColor: 'rgba(230, 180, 40, 1)' },
+            { label: 'Bidding', data: rawData.map(r => +r.bidding_count), backgroundColor: 'rgba(230, 120, 40, 1)' },
+            { label: 'Win', data: rawData.map(r => +r.win_count), backgroundColor: 'rgba(34, 139, 34, 1)' },
+            { label: 'Lost', data: rawData.map(r => +r.lost_count), backgroundColor: 'rgba(178, 34, 34, 1)' }
         ];
         const ctx = document.getElementById('salestatusChart').getContext('2d');
-        new Chart(ctx, { type: 'bar', data: { labels, datasets }, options: { scales: { y: { ticks: { precision: 0 } } } } });
+        if (saleStatusChartInstance) saleStatusChartInstance.destroy();
+        saleStatusChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets },
+            options: { scales: { y: { ticks: { precision: 0 } } } }
+        });
     }
-    
+
     function renderStatusValueChart(rawData) {
         if (!document.getElementById('statusValueChart') || !rawData.length) return;
         const labels = rawData.map(r => r.month);
         const datasets = [
             { label: 'Present', data: rawData.map(r => +r.present_value), backgroundColor: 'rgba(128, 81, 255, 1)' },
-            { label: 'Budget', data: rawData.map(r => +r.budgeted_value), backgroundColor: 'rgba(255, 0, 144, 1)'},
+            { label: 'Budget', data: rawData.map(r => +r.budgeted_value), backgroundColor: 'rgba(255, 0, 144, 1)' },
             { label: 'TOR', data: rawData.map(r => +r.tor_value), backgroundColor: 'rgba(230, 180, 40, 1)' },
             { label: 'Bidding', data: rawData.map(r => +r.bidding_value), backgroundColor: 'rgba(230, 120, 40, 1)' },
             { label: 'Win', data: rawData.map(r => +r.win_value), backgroundColor: 'rgba(34, 139, 34, 1)' },
             { label: 'Lost', data: rawData.map(r => +r.lost_value), backgroundColor: 'rgba(178, 34, 34, 1)' }
         ];
         const ctx = document.getElementById('statusValueChart').getContext('2d');
-        new Chart(ctx, { type: 'bar', data: { labels, datasets }, options: { scales: { y: { ticks: { callback: v => v.toLocaleString('th-TH') } } } } });
+        if (statusValueChartInstance) statusValueChartInstance.destroy();
+        statusValueChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets },
+            options: { scales: { y: { ticks: { callback: v => v.toLocaleString('th-TH') } } } }
+        });
     }
+
+    function renderTeamSaleforecastChart(rawData) {
+        if (!document.getElementById('teamSaleforecastChart') || !rawData.length) return;
+        const labels = rawData.map(item => item.nname);
+        const target = rawData.map(item => Number(item.Target));
+        const forecast = rawData.map(item => Number(item.Forecast));
+        const win = rawData.map(item => Number(item.Win));
+        const ctx = document.getElementById('teamSaleforecastChart').getContext('2d');
+        if (teamSaleforecastChartInstance) teamSaleforecastChartInstance.destroy();
+        teamSaleforecastChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Target',
+                        data: target,
+                        backgroundColor: 'rgba(255, 193, 7, 0.8)',
+                        barPercentage: 0.8,
+                        categoryPercentage: 0.7
+                    },
+                    {
+                        label: 'Forecast',
+                        data: forecast,
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        barPercentage: 0.8,
+                        categoryPercentage: 0.7
+                    },
+                    {
+                        label: 'Win',
+                        data: win,
+                        backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                        barPercentage: 0.8,
+                        categoryPercentage: 0.7
+                    }
+                ]
+            },
+            options: {
+                plugins: { legend: { display: true } },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        stacked: false,
+                        ticks: { autoSkip: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: v => v.toLocaleString('th-TH')
+                        }
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', loadDashboardData);
 </script>
+
 
 </body>
 </html>

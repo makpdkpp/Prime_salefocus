@@ -142,7 +142,7 @@ $avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
                                     <td><?= htmlspecialchars($r['sales_can_be_close']) ?></td>
                                     <td><?= htmlspecialchars($r['level']) ?></td>
                                     <td><?= htmlspecialchars($r['remark']) ?></td>
-                                    <td class="text-center"><a href="User/edit_adduser.php?id=<?= $r['transac_id']?>" class="btn btn-sm btn-info"><i class="fas fa-pencil-alt"></i></a></td>
+                                    <td class="text-center"><a href="User/edit_admin.php?id=<?= $r['transac_id']?>" class="btn btn-sm btn-info"><i class="fas fa-pencil-alt"></i></a></td>
                                 </tr>
                               <?php
                                     endwhile;

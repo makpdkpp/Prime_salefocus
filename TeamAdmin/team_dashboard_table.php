@@ -9,6 +9,13 @@ $mysqli = connectDb();
 $userId = (int)$_SESSION['user_id']; // User ID ของ Team Head ที่ Login
 $email  = htmlspecialchars($_SESSION['email']);
 $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
+// ดึง team_id ทั้งหมดของ user นี้
+$teamIDS = [];
+$q = "SELECT team_id FROM transactional_team WHERE user_id = $userId";
+$res = $mysqli->query($q);
+while ($row = $res->fetch_assoc()) {
+    $teamIDS[] = (int)$row['team_id'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -105,27 +112,30 @@ $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
                               <?php
                                 // --- CHANGE 1: START - แก้ไข SQL QUERY ---
                                 // Query นี้จะดึงข้อมูลการขายทั้งหมดของ User ที่อยู่ในทีมเดียวกันกับ Team Head ($userId)
-                                $q = "SELECT t.*, pg.product, cc.company, pl.priority, tc.team, s.level, u.nname, so.Source_budge
-                                        FROM transactional t
-                                        LEFT JOIN product_group   pg ON t.Product_id = pg.product_id
-                                        LEFT JOIN company_catalog cc ON t.company_id = cc.company_id
-                                        LEFT JOIN priority_level  pl ON t.priority_id = pl.priority_id
-                                        LEFT JOIN team_catalog    tc ON t.team_id     = tc.team_id
-                                        LEFT JOIN step            s  ON t.Step_id     = s.level_id
-                                        LEFT JOIN user            u  ON t.user_id     = u.user_id
-                                        LEFT JOIN source_of_the_budget so ON so.Source_budget_id = t.Source_budget_id
-                                        WHERE t.user_id IN (
-                                            -- Subquery: ค้นหา user_id ทั้งหมดที่อยู่ในทีมของ Team Head คนนี้
-                                            SELECT DISTINCT user_id
-                                            FROM transactional_team
-                                            WHERE team_id IN (
-                                                -- Subquery: ค้นหา team_id ทั้งหมดของ Team Head คนนี้
-                                                SELECT team_id FROM transactional_team WHERE user_id = $userId
-                                            )
-                                        )
-                                        ORDER BY t.transac_id DESC";
+                                if ($teamIDS) {
+                                    $teamIdList = implode(',', $teamIDS);
+                                    $q = " SELECT t.*, pg.product, cc.company, pl.priority, tc.team, u.nname, so.Source_budge,
+                                      (
+                                        SELECT s2.level
+                                        FROM transactional_step ts2
+                                        JOIN step s2 ON s2.level_id = ts2.level_id
+                                        WHERE ts2.transac_id = t.transac_id
+                                        ORDER BY ts2.date DESC, ts2.transacstep_id DESC
+                                        LIMIT 1
+                                      ) AS level
+                                    FROM transactional t
+                                    LEFT JOIN product_group   pg ON t.Product_id = pg.product_id
+                                    LEFT JOIN company_catalog cc ON t.company_id = cc.company_id
+                                    LEFT JOIN priority_level  pl ON t.priority_id = pl.priority_id
+                                    LEFT JOIN team_catalog    tc ON t.team_id     = tc.team_id
+                                    LEFT JOIN user            u  ON t.user_id     = u.user_id
+                                    LEFT JOIN source_of_the_budget so ON so.Source_budget_id = t.Source_budget_id
+                                    WHERE t.team_id IN ($teamIdList)";
+                                    $rs = $mysqli->query($q);
+                                } else {
+                                    $rs = false;
+                                }
                                 // --- CHANGE 1: END - แก้ไข SQL QUERY ---
-                                $rs = $mysqli->query($q);
                                 if ($rs && $rs->num_rows):
                                     while($r=$rs->fetch_assoc()):
                               ?>
@@ -144,7 +154,7 @@ $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
                                     <td><?= htmlspecialchars($r['sales_can_be_close']) ?></td>
                                     <td><?= htmlspecialchars($r['level']) ?></td>
                                     <td><?= htmlspecialchars($r['remark']) ?></td>
-                                    <td class="text-center"><a href="../User/edit_adduser.php?id=<?= $r['transac_id']?>" class="btn btn-sm btn-info"><i class="fas fa-pencil-alt"></i></a></td>
+                                    <td class="text-center"><a href="edit_admin.php?id=<?= $r['transac_id']?>" class="btn btn-sm btn-info"><i class="fas fa-pencil-alt"></i></a></td>
                                 </tr>
                               <?php
                                     endwhile;

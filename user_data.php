@@ -29,12 +29,12 @@ $output = [];
 $sql = "
 SELECT
   month,
-  SUM(CASE WHEN type = 'นำเสนอ Solution'  THEN value ELSE 0 END) AS present_value,
-  SUM(CASE WHEN type = 'ตั้งงบประมาณ'     THEN value ELSE 0 END) AS budgeted_value,
-  SUM(CASE WHEN type = 'ร่าง TOR'         THEN value ELSE 0 END) AS tor_value,
-  SUM(CASE WHEN type = 'Bidding '         THEN value ELSE 0 END) AS bidding_value,
-  SUM(CASE WHEN type = 'WIN'              THEN value ELSE 0 END) AS win_value,
-  SUM(CASE WHEN type = 'LOST'             THEN value ELSE 0 END) AS lost_value
+  SUM(CASE WHEN type = '1.นำเสนอ Solution'  THEN value ELSE 0 END) AS present_value,
+  SUM(CASE WHEN type = '2.ตั้งงบประมาณ'     THEN value ELSE 0 END) AS budgeted_value,
+  SUM(CASE WHEN type = '3.ร่าง TOR'         THEN value ELSE 0 END) AS tor_value,
+  SUM(CASE WHEN type = '4.Bidding '         THEN value ELSE 0 END) AS bidding_value,
+  SUM(CASE WHEN type = '5.WIN'              THEN value ELSE 0 END) AS win_value,
+  SUM(CASE WHEN type = '6.LOST'             THEN value ELSE 0 END) AS lost_value
 FROM (
   SELECT DATE_FORMAT(ts.date, '%Y-%m') AS month,
          t.product_value AS value,

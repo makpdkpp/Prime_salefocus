@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['updateForecast'])) {
   }
 }
 
-$sql = "SELECT user_id, nname, surename, email, forecast FROM user WHERE role_id = 2";
+$sql = "SELECT user_id, nname, surename, email, forecast FROM user WHERE role_id != 1";
 $result = $mysqli->query($sql);
 ?>
 <!DOCTYPE html>

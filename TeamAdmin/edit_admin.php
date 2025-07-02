@@ -8,13 +8,13 @@
 
 require_once '../functions.php';
 session_start();
-// ตรวจสอบ session และ role
+
+
+// ─────────────────── 1) Auth – เฉพาะผู้ใช้ role_id = 2 ───────────────────
 if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {
     header('Location: ../index.php');
     exit;
 }
-
-
 
 $mysqli  = connectDb();
 $user_id = (int)$_SESSION['user_id'];
@@ -117,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
-    header('Location: ../home_user_01.php?edit=ok');
+    header('Location: home_admin_team_table.php?edit=ok');
     exit;
 }
 
@@ -326,7 +326,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="row"><div class="col-sm-12 form-group"><label for="remark">หมายเหตุ</label><textarea name="remark" id="remark" rows="3" class="form-control"><?= htmlspecialchars($rec['remark']) ?></textarea></div></div>
 
                     <div class="text-right mt-4">
-                      <a href="../home_user_01.php" class="btn btn-back">กลับหน้าหลัก</a>
+                      <a href="home_admin_team_table.php" class="btn btn-back">กลับหน้าหลัก</a>
                       <button type="submit" class="btn btn-save">บันทึกข้อมูล</button>
                     </div>
                   </form>
