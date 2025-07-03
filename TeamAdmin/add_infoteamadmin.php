@@ -2,7 +2,7 @@
 require_once '../functions.php';
 session_start();
 
-// 1. ตรวจสอบสิทธิ์เฉพาะ role_id = 3 (Team Head)
+// 1. ตรวจสอบสิทธิ์เฉพาะ role_id = 2 (Team Head)
 if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {
     header('Location: ../index.php');
     exit;
@@ -24,7 +24,7 @@ if ($team_data = $result_team->fetch_assoc()) {
 }
 $stmt_team->close();
 
-/* -------- ดึงข้อมูล Options สำหรับ Dropdown ต่างๆ (เหมือนเดิม) -------- */
+/* -------- ดึงข้อมูล Options สำหรับ Dropdown ต่างๆ -------- */
 function loadOptions($mysqli, string $table, string $idCol, string $labelCol): array {
     $rows = $mysqli->query("SELECT `$idCol`, `$labelCol` FROM `$table` ORDER BY `$labelCol`");
     return $rows ? $rows->fetch_all(MYSQLI_ASSOC) : [];
@@ -35,13 +35,11 @@ $companyOpts      = loadOptions($mysqli, 'company_catalog', 'company_id',  'comp
 $priorityOpts     = loadOptions($mysqli, 'priority_level',  'priority_id', 'priority');
 $Source_budgeOpts = loadOptions($mysqli, 'source_of_the_budget',  'Source_budget_id', 'Source_budge');
 
-$steps = [
-    'present' => ['label'=>'Present', 'date'=>null], 'budgeted' => ['label'=>'Budget', 'date'=>null],
-    'tor' => ['label'=>'TOR', 'date'=>'tor_date'], 'bidding' => ['label'=>'Bidding', 'date'=>'bidding_date'],
-    'win' => ['label'=>'WIN', 'date'=>'win_date'], 'lost' => ['label'=>'LOST', 'date'=>'lost_date']
-];
-
-$row = [];
+// ▼▼▼ 1. เพิ่มการดึงข้อมูลสถานะจาก DB และเตรียมตัวแปร ▼▼▼
+$stepQuery = $mysqli->query("SELECT level_id, level FROM step ORDER BY level_id ASC");
+$stepOpts = $stepQuery ? $stepQuery->fetch_all(MYSQLI_ASSOC) : [];
+$stepData = []; // สำหรับฟอร์ม "เพิ่ม" ข้อมูลจะยังไม่มีค่าเริ่มต้น
+// ▲▲▲ จบส่วนที่เพิ่ม ▲▲▲
 ?>
 <!doctype html>
 <html lang="th">
@@ -51,6 +49,7 @@ $row = [];
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
 <link rel="stylesheet" href="../plugins_v3/fontawesome-free/css/all.min.css">
+<link rel="stylesheet" href="../plugins_v3/icheck-bootstrap/icheck-bootstrap.min.css">
 <link rel="stylesheet" href="../dist_v3/css/adminlte.min.css">
 <style>
     .sales-card{max-width:750px;margin:20px auto;background:#fff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1);padding:32px 40px}
@@ -140,7 +139,6 @@ $row = [];
                       <div class="col-md-6 form-group"><label for="Source_budget_id">แหล่งที่มาของงบประมาณ</label><select name="Source_budget_id" id="Source_budget_id" class="form-control" required><option value="">-- เลือกแหล่งที่มาของงบประมาณ --</option><?php foreach($Source_budgeOpts as $o): ?><option value="<?= $o['Source_budget_id'] ?>"><?= htmlspecialchars($o['Source_budge']) ?></option><?php endforeach; ?></select></div>
                       <div class="col-md-6 form-group"><label for="fiscalyear">ปีงบประมาณ</label><select name="fiscalyear" id="fiscalyear" class="form-control" required><option value="">-- เลือกปีงบประมาณ --</option><?php $cY = date('Y') + 543; for ($i = 0; $i < 5; $i++) { $y = $cY + $i; echo "<option value=\"$y\">$y</option>"; } ?></select></div>
                     </div>
-
                     <div class="row">
                         <div class="col-md-6 form-group">
                             <label for="Product_id">กลุ่มสินค้า</label>
@@ -157,17 +155,31 @@ $row = [];
                             </select>
                         </div>
                     </div>
-
                     <div class="row">
                       <div class="col-md-4 form-group"><label for="contact_start_date">วันที่เริ่มโครงการ</label><input type="date" name="contact_start_date" id="contact_start_date" class="form-control" required></div>
                       <div class="col-md-4 form-group"><label for="date_of_closing_of_sale">วันที่คาดว่าจะ Bidding</label><input type="date" name="date_of_closing_of_sale" id="date_of_closing_of_sale" class="form-control"></div>
                       <div class="col-md-4 form-group"><label for="sales_can_be_close">วันที่คาดจะเซ็นสัญญา</label><input type="date" name="sales_can_be_close" id="sales_can_be_close" class="form-control"></div>
                     </div>
+
                     <div class="form-group">
                       <label>สถานะ</label>
                       <div class="row">
-                        <?php foreach ($steps as $field => $cfg): $checked = !empty($row[$field]); $dateVal = $row[$cfg['date']] ?? ''; ?>
-                          <div class="col-12 col-lg-6 mb-2"><div class="process-item"><input type="hidden" name="<?= $field ?>" value="0"><div class="icheck-primary d-inline"><input type="checkbox" id="<?= $field ?>_cb" name="<?= $field ?>" value="1" <?= $checked ? 'checked' : '' ?> onchange="toggleDate('<?= $field ?>')"><label for="<?= $field ?>_cb" style="margin-bottom: 0; font-weight: normal !important;"><?= $cfg['label'] ?></label></div><?php if ($cfg['date']): ?><input type="date" class="form-control form-control-sm ml-2" id="<?= $field ?>_date" name="<?= $cfg['date'] ?>" value="<?= htmlspecialchars($dateVal) ?>" style="width: auto;" <?= $checked ? '' : 'disabled' ?>><?php endif; ?></div></div>
+                        <?php foreach ($stepOpts as $step):
+                            $level_id = $step['level_id'];
+                            $checked = isset($stepData[$level_id]);
+                            $dateVal = $checked ? $stepData[$level_id] : '';
+                        ?>
+                          <div class="col-12 col-lg-6 mb-2">
+                            <div class="process-item">
+                              <input type="hidden" name="step[<?= $level_id ?>]" value="0">
+                              <div class="icheck-primary d-inline">
+                                  <input type="checkbox" id="step_cb_<?= $level_id ?>" name="step[<?= $level_id ?>]" value="<?= $level_id ?>" <?= $checked ? 'checked' : '' ?> onchange="toggleDate('<?= $level_id ?>')">
+                                  <label for="step_cb_<?= $level_id ?>" style="margin-bottom: 0; font-weight: normal !important;"><?= htmlspecialchars($step['level']) ?></label>
+                              </div>
+                              <input type="date" class="form-control form-control-sm ml-2" id="step_date_<?= $level_id ?>" name="step_date[<?= $level_id ?>]" value="<?= htmlspecialchars($dateVal) ?>" style="width: auto;" <?= $checked ? '' : 'disabled' ?>>
+
+                            </div>
+                          </div>
                         <?php endforeach; ?>
                       </div>
                     </div>
@@ -184,9 +196,20 @@ $row = [];
 <script src="../plugins_v3/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="../dist_v3/js/adminlte.min.js"></script>
 <script>
-/* JavaScript ที่เหลือเหมือนเดิมทั้งหมด ไม่ต้องแก้ไข */
+/* จัดรูปแบบตัวเลข */
 (()=>{const f=document.getElementById('product_value');const fmt=v=>{v=v.replace(/[^0-9.]/g,'');if(!v)return '';const[x,y]=v.split('.');return(+x).toLocaleString('en-US')+(y?'.'+y.slice(0,2):'');};f.addEventListener('input',()=>{const p=f.selectionStart,l=f.value.length;f.value=fmt(f.value);f.setSelectionRange(p+(f.value.length-l),p+(f.value.length-l));});$('#salesForm').on('submit',()=>f.value=f.value.replace(/,/g,''));})();
-function toggleDate(field) { const cb=document.getElementById(field+'_cb'), d=document.getElementById(field+'_date'); if(d) { d.disabled=!cb.checked; if(!cb.checked) d.value=''; } }
+
+/* ▼▼▼ 3. แก้ไขฟังก์ชัน toggleDate ให้ทำงานกับ ID ใหม่ ▼▼▼ */
+function toggleDate(levelId) {
+    const checkbox = document.getElementById('step_cb_' + levelId);
+    const dateInput = document.getElementById('step_date_' + levelId);
+    if (dateInput) {
+        dateInput.disabled = !checkbox.checked;
+        if (!checkbox.checked) {
+            dateInput.value = '';
+        }
+    }
+}
 </script>
 </body>
 </html>

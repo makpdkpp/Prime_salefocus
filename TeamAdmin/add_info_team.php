@@ -1,11 +1,12 @@
 <?php
+/* ------------------------------------------------------------------
+   add_info_team.php  –  รับข้อมูลจากฟอร์ม add_infoteamadmin.php
+   (แก้ไข Redirect ไปหน้าตาราง)
+   ------------------------------------------------------------------ */
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-/* ------------------------------------------------------------------
-   add_info_team.php – (แก้ไขล่าสุด)
-   ------------------------------------------------------------------ */
 require_once '../functions.php';
 session_start();
 
@@ -21,101 +22,102 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-/* ------------------------------------------------------------------
-   รับค่าจากฟอร์ม
-   ------------------------------------------------------------------ */
-$user_id            = (int)($_POST['user_id'] ?? 0);
-$company_id         = (int)($_POST['company_id'] ?? 0);
-$product_id         = (int)($_POST['Product_id'] ?? 0);
-$product_detail     = trim($_POST['Product_detail'] ?? '');
-$Step_id            = 0;
-$Source_budget_id   = (int)($_POST['Source_budget_id'] ?? 0);
-$fiscalyear         = $_POST['fiscalyear'] ?? null;
+$mysqli->begin_transaction();
 
-$flag = fn($k) => isset($_POST[$k]) && $_POST[$k] === '1' ? 1 : 0;
-$date = fn($k) => ($_POST[$k] ?? '') ?: null;
+try {
+    // --- รับค่าจากฟอร์ม (ส่วนนี้เหมือนเดิม) ---
+    $user_id            = (int)($_POST['user_id'] ?? 0);
+    $company_id         = (int)($_POST['company_id'] ?? 0);
+    $product_id         = (int)($_POST['Product_id'] ?? 0);
+    $product_detail     = trim($_POST['Product_detail'] ?? '');
+    $Source_budget_id   = (int)($_POST['Source_budget_id'] ?? 0);
+    $fiscalyear         = $_POST['fiscalyear'] ?? null;
+    $team_id            = (int)($_POST['team_id'] ?? 0);
+    
+    $date = fn($k) => ($_POST[$k] ?? '') ?: null;
+    $contact_start_date   = $date('contact_start_date');
+    $predict_close_date   = $date('date_of_closing_of_sale');
+    $deal_close_date      = $date('sales_can_be_close');
+    
+    $priority_id          = $_POST['priority_id'] !== '' ? (int)$_POST['priority_id'] : null;
+    $product_value        = (float)str_replace(',', '', $_POST['product_value'] ?? '0');
+    $remark               = trim($_POST['remark'] ?? '');
 
-$present         = $flag('present');
-$budgeted        = $flag('budgeted');
-$tor             = $flag('tor');
-$tor_date        = $date('tor_date');
-$bidding         = $flag('bidding');
-$bidding_date    = $date('bidding_date');
-$win             = $flag('win');
-$win_date        = $date('win_date');
-$lost            = $flag('lost');
-$lost_date       = $date('lost_date');
+    $steps      = $_POST['step'] ?? [];
+    $step_dates = $_POST['step_date'] ?? [];
 
-$currentDate = date('Y-m-d');
-$present_date  = $present  ? $currentDate : null;
-$budgeted_date = $budgeted ? $currentDate : null;
+    $Step_id = 0;
+    foreach ($steps as $level_id => $value) {
+        if ($value != '0') {
+            $Step_id = max($Step_id, (int)$level_id);
+        }
+    }
+    
+    if (!$user_id || !$company_id || !$product_id || !$team_id || !$contact_start_date || !$product_detail) {
+        throw new Exception('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน');
+    }
 
-if ($win) $Step_id = 5;
-elseif ($lost) $Step_id = 6;
-elseif ($bidding) $Step_id = 4;
-elseif ($tor) $Step_id = 3;
-elseif ($budgeted) $Step_id = 2;
-elseif ($present) $Step_id = 1;
+    // --- INSERT ข้อมูลหลัก (ส่วนนี้เหมือนเดิม) ---
+    $sql_main = "INSERT INTO transactional (
+        user_id, company_id, Product_id, Product_detail,
+        Step_id, Source_budget_id, fiscalyear, team_id,
+        contact_start_date, date_of_closing_of_sale, sales_can_be_close,
+        priority_id, product_value, remark, timestamp
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp())";
 
-$team_id              = (int)($_POST['team_id'] ?? 0);
-$contact_start_date   = $date('contact_start_date');
-$predict_close_date   = $date('date_of_closing_of_sale');
-$deal_close_date      = $date('sales_can_be_close');
-$priority_id          = $_POST['priority_id'] !== '' ? (int)$_POST['priority_id'] : null;
-$product_value        = (float)str_replace(',', '', $_POST['product_value'] ?? '0');
-$remark               = trim($_POST['remark'] ?? '');
+    $stmt_main = $mysqli->prepare($sql_main);
+    if (!$stmt_main) {
+        throw new Exception('Prepare statement for transactional failed: ' . $mysqli->error);
+    }
+    
+    $stmt_main->bind_param(
+        "iiisisiisssids",
+        $user_id, $company_id, $product_id, $product_detail,
+        $Step_id, $Source_budget_id, $fiscalyear, $team_id,
+        $contact_start_date, $predict_close_date, $deal_close_date,
+        $priority_id, $product_value, $remark
+    );
 
-if (!$user_id || !$company_id || !$product_id || !$team_id || !$contact_start_date || !$product_detail) {
-    $_SESSION['error_message'] = 'กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน: ชื่อโครงการ, บริษัท, กลุ่มสินค้า, และวันที่เริ่มโครงการ';
-    header('Location: add_infoteamadmin.php');
-    exit;
-}
+    if (!$stmt_main->execute()) {
+        throw new Exception('Execute statement for transactional failed: ' . $stmt_main->error);
+    }
 
-$sql = "INSERT INTO transactional (
-    user_id, company_id, Product_id, Product_detail,
-    Step_id, Source_budget_id, fiscalyear,
-    present, present_date, budgeted, budgeted_date,
-    tor, tor_date, bidding, bidding_date,
-    win, win_date, lost, lost_date,
-    team_id, contact_start_date, date_of_closing_of_sale, sales_can_be_close,
-    priority_id, product_value, remark, timestamp
-) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp()
-)";
+    $transac_id = $mysqli->insert_id;
+    $stmt_main->close();
 
-$stmt = $mysqli->prepare($sql);
-if (!$stmt) {
-    exit('Prepare failed: ' . $mysqli->error);
-}
+    // --- INSERT ข้อมูลสถานะ (ส่วนนี้เหมือนเดิม) ---
+    $sql_step = "INSERT INTO transactional_step (transac_id, level_id, date) VALUES (?, ?, ?)";
+    $stmt_step = $mysqli->prepare($sql_step);
+    if (!$stmt_step) {
+        throw new Exception('Prepare statement for steps failed: ' . $mysqli->error);
+    }
 
-/* ------------------------------------------------------------------
-   bind_param (ฉบับแก้ไขที่ถูกต้อง 100%)
-   ------------------------------------------------------------------ */
-$stmt->bind_param(
-    "iiisiss" .  // 7 ตัว: user_id, company_id, Product_id, Product_detail, Step_id, Source_budget_id, fiscalyear
-    "isis"    .  // 4 ตัว: present, present_date, budgeted, budgeted_date
-    "isis"    .  // 4 ตัว: tor, tor_date, bidding, bidding_date
-    "isis"    .  // 4 ตัว: win, win_date, lost, lost_date
-    "isssids",   // 7 ตัว: team_id, contact_start_date, ... , remark
-    $user_id, $company_id, $product_id, $product_detail,
-    $Step_id, $Source_budget_id, $fiscalyear,
-    $present, $present_date, 
-    $budgeted, $budgeted_date,
-    $tor, $tor_date, 
-    $bidding, $bidding_date,
-    $win, $win_date, 
-    $lost, $lost_date,
-    $team_id, $contact_start_date, $predict_close_date, $deal_close_date,
-    $priority_id, $product_value, $remark
-);
+    foreach ($steps as $level_id => $value) {
+        if ($value != '0') {
+            $current_step_id = (int)$level_id;
+            $completed_date = !empty($step_dates[$current_step_id]) ? $step_dates[$current_step_id] : date('Y-m-d');
 
-if ($stmt->execute()) {
+            $stmt_step->bind_param("iis", $transac_id, $current_step_id, $completed_date);
+            if (!$stmt_step->execute()) {
+                throw new Exception('Execute statement for steps failed: ' . $stmt_step->error);
+            }
+        }
+    }
+    $stmt_step->close();
+    
+    // ---- ถ้าทุกอย่างสำเร็จ ----
+    $mysqli->commit();
     $_SESSION['success_message'] = 'บันทึกข้อมูลเรียบร้อยแล้ว!';
-    header('Location: add_infoteamadmin.php');
+    
+    // ▼▼▼ แก้ไขบรรทัดนี้เพื่อไปที่หน้าตาราง ▼▼▼
+    header('Location: home_admin_team_table.php');
     exit;
-}
 
-$_SESSION['error_message'] = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' . $stmt->error;
-header('Location: add_infoteamadmin.php');
-exit();
+} catch (Exception $e) {
+    // ---- ถ้ามีข้อผิดพลาดเกิดขึ้น ----
+    $mysqli->rollback();
+    $_SESSION['error_message'] = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' . $e->getMessage();
+    header('Location: add_infoteamadmin.php');
+    exit();
+}
 ?>
