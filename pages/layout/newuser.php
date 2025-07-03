@@ -161,13 +161,19 @@ $db->close();
     .modal-content { border-radius: 10px; padding: 20px; }
     .table thead { background: #0056b3; color: white; }
     .sidebar {padding-bottom: 30px; }
-            /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
     body.sidebar-mini .main-sidebar .user-panel .image img,
     body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
       width: 40px;
       height: 40px;
       object-fit: cover;
     }
+
+    /* ▼▼▼ เพิ่ม CSS สำหรับโทรศัพท์ ▼▼▼ */
+    .table-responsive-container {
+      overflow-x: auto; /* ทำให้สามารถ scroll แนวนอนได้ */
+      -webkit-overflow-scrolling: touch; /* ทำให้การ scroll ลื่นขึ้นบน iOS */
+    }
+    /* ▲▲▲ จบส่วนที่เพิ่ม ▲▲▲ */
   </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -250,64 +256,65 @@ $db->close();
           </div>
         <?php endif; ?>
         
-        <table class="table table-bordered table-hover">
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>สิทธิ์ผู้ใช้งาน</th>
-              <th>ตำแหน่ง</th>
-              <th>ทีมขาย</th>
-              <th style="width: 150px;">Status</th>
-              <th style="width: 100px;">แก้ไข</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach($userRows as $u): ?>
-            <tr>
-              <td><?= htmlspecialchars($u['email']) ?></td>
-              <td>
-                <?php
-                  switch ($u['role_id']) {
-                    case 1: echo '<span class="badge badge-danger">Superadmin</span>'; break;
-                    case 2: echo '<span class="badge badge-info">AdminTeam</span>'; break;
-                    case 3: echo '<span class="badge badge-success">Sale</span>'; break;
-                    default: echo '<span class="badge badge-secondary">N/A</span>';
-                  }
-                ?>
-              </td>
-              <td><?= htmlspecialchars($u['position'] ?? 'N/A') ?></td>
-              <td><?= htmlspecialchars($u['team'] ?? 'N/A') ?></td>
-              <td>
-                <?php if ($u['is_active']): ?>
-                  <span class="badge badge-success">Active</span>
-                <?php else: ?>
-                  <span class="badge badge-warning">Pending Invitation</span>
-                <?php endif; ?>
-              </td>
-              <td class="text-center">
-                <button class="btn btn-sm btn-warning btn-edit" 
-                        data-toggle="modal" 
-                        data-target="#editUserModal"
-                        data-user-id="<?= $u['user_id'] ?>"
-                        data-role-id="<?= $u['role_id'] ?>"
-                        data-position-id="<?= $u['position_id'] ?>"
-                        data-team-ids="<?= htmlspecialchars($u['team_ids']) ?>">
-                  <i class="fas fa-edit"></i>
-                </button>
-              </td>
-            </tr>
-            <?php endforeach; ?>
-            <?php if (empty($userRows)): ?>
-              <tr><td colspan="6" class="text-center">-- ไม่มีผู้ใช้งานในระบบ --</td></tr>
-            <?php endif; ?>
-          </tbody>
-        </table>
-      </div>
+        <div class="table-responsive-container">
+          <table class="table table-bordered table-hover">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>สิทธิ์ผู้ใช้งาน</th>
+                <th>ตำแหน่ง</th>
+                <th>ทีมขาย</th>
+                <th style="width: 150px;">Status</th>
+                <th style="width: 100px;">แก้ไข</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach($userRows as $u): ?>
+              <tr>
+                <td><?= htmlspecialchars($u['email']) ?></td>
+                <td>
+                  <?php
+                    switch ($u['role_id']) {
+                      case 1: echo '<span class="badge badge-danger">Superadmin</span>'; break;
+                      case 2: echo '<span class="badge badge-info">AdminTeam</span>'; break;
+                      case 3: echo '<span class="badge badge-success">Sale</span>'; break;
+                      default: echo '<span class="badge badge-secondary">N/A</span>';
+                    }
+                  ?>
+                </td>
+                <td><?= htmlspecialchars($u['position'] ?? 'N/A') ?></td>
+                <td><?= htmlspecialchars($u['team'] ?? 'N/A') ?></td>
+                <td>
+                  <?php if ($u['is_active']): ?>
+                    <span class="badge badge-success">Active</span>
+                  <?php else: ?>
+                    <span class="badge badge-warning">Pending Invitation</span>
+                  <?php endif; ?>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-sm btn-warning btn-edit" 
+                          data-toggle="modal" 
+                          data-target="#editUserModal"
+                          data-user-id="<?= $u['user_id'] ?>"
+                          data-role-id="<?= $u['role_id'] ?>"
+                          data-position-id="<?= $u['position_id'] ?>"
+                          data-team-ids="<?= htmlspecialchars($u['team_ids']) ?>">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </td>
+              </tr>
+              <?php endforeach; ?>
+              <?php if (empty($userRows)): ?>
+                <tr><td colspan="6" class="text-center">-- ไม่มีผู้ใช้งานในระบบ --</td></tr>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+        </div>
     </section>
   </div>
 
   <button class="btn-add" data-toggle="modal" data-target="#inviteModal" title="Invite New User"><i class="fas fa-user-plus"></i></button>
-
   <div class="modal fade" id="inviteModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -341,7 +348,6 @@ $db->close();
       </div>
     </div>
   </div>
-
   <div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -382,42 +388,29 @@ $db->close();
 
 <script>
 $(document).ready(function() {
-
     // --- ส่วนสำหรับ Invite Modal ---
     const inviteRoleSelect = $('#invite_role');
     const invitePositionGroup = $('#invite_position').closest('.form-group');
     const inviteTeamGroup = $('#invite_team_group').closest('.form-group');
-
-    // ฟังก์ชันสำหรับซ่อน/แสดงฟอร์มใน Invite Modal
     function toggleInviteFields() {
         const selectedRole = inviteRoleSelect.val();
-        
-        // ถ้า Role เป็น "Sales" (ID 2) หรือ "Team Admin" (ID 99)
         if (selectedRole === '2' || selectedRole === '3') {
-            invitePositionGroup.show(); // แสดงช่อง Position
-            inviteTeamGroup.show();     // แสดงช่อง Sales Team
+            invitePositionGroup.show();
+            inviteTeamGroup.show();
         } else {
-            invitePositionGroup.hide(); // ซ่อนช่อง Position
-            inviteTeamGroup.hide();     // ซ่อนช่อง Sales Team
+            invitePositionGroup.hide();
+            inviteTeamGroup.hide();
         }
     }
-
-    // สั่งให้ซ่อนฟอร์มไว้ก่อนตอนเปิดหน้าเว็บ
     toggleInviteFields(); 
-    // เมื่อมีการเปลี่ยน Role ให้เรียกใช้ฟังก์ชันอีกครั้ง
     inviteRoleSelect.on('change', toggleInviteFields);
-
 
     // --- ส่วนสำหรับ Edit Modal ---
     const editRoleSelect = $('#edit_role');
     const editPositionGroup = $('#edit_position').closest('.form-group');
     const editTeamGroup = $('#edit_team_group').closest('.form-group');
-
-    // ฟังก์ชันสำหรับซ่อน/แสดงฟอร์มใน Edit Modal
     function toggleEditFields() {
         const selectedRole = editRoleSelect.val();
-
-        // ถ้า Role เป็น "Sales" (ID 2) หรือ "Team Admin" (ID 99)
         if (selectedRole === '2' || selectedRole === '3') {
             editPositionGroup.show();
             editTeamGroup.show();
@@ -426,11 +419,8 @@ $(document).ready(function() {
             editTeamGroup.hide();
         }
     }
-    
-    // เมื่อมีการเปลี่ยน Role ใน Edit Modal
     editRoleSelect.on('change', toggleEditFields);
 
-    // โค้ดสำหรับปุ่ม Edit (เหมือนเดิม แต่เพิ่มการเรียกใช้ฟังก์ชัน toggle)
     $('.btn-edit').on('click', function() {
         const userId = $(this).data('user-id');
         const roleId = $(this).data('role-id');
@@ -440,16 +430,13 @@ $(document).ready(function() {
         $('#edit_user_id').val(userId);
         $('#edit_role').val(roleId);
         $('#edit_position').val(positionId);
-        // เคลียร์ checkbox ก่อน
         $('.edit-team-checkbox').prop('checked', false);
         if (teamIds && teamIds !== 'null' && teamIds !== null && teamIds !== undefined) {
-          // handle กรณีเดียว/หลายทีม และ trim ช่องว่าง
           let ids = String(teamIds).split(',').map(id => id.trim()).filter(id => id !== '' && id !== 'null');
           ids.forEach(function(id) {
             if (id) $('#edit_team_' + id).prop('checked', true);
           });
         }
-        // ✅ เรียกใช้ฟังก์ชันเพื่อซ่อน/แสดงฟอร์มทันทีที่ Modal เปิด
         toggleEditFields(); 
     });
 });
