@@ -132,12 +132,12 @@ $positionName = $positions[(int)$user['position_id']] ?? 'Unknown';
         <ul class="navbar-nav ml-auto">
             <li class="nav-item dropdown user-menu">
                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                    <img src="<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
+                    <img src="../<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
                     <span class="d-none d-md-inline"><?= $email ?></span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                     <li class="user-header bg-success">
-                        <img src="<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
+                        <img src="../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
                         <p><?= $email ?><small>Team Head</small></p>
                     </li>
                     <li class="user-footer">
