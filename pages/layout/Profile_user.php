@@ -63,13 +63,19 @@ $result = $mysqli->query($sql);
         color: #fff;
     }
     .sidebar {padding-bottom: 30px; }
-            /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
     body.sidebar-mini .main-sidebar .user-panel .image img,
     body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
       width: 40px;
       height: 40px;
       object-fit: cover;
     }
+
+    /* ▼▼▼ เพิ่ม CSS สำหรับโทรศัพท์ ▼▼▼ */
+    .table-responsive-container {
+      overflow-x: auto; /* ทำให้สามารถ scroll แนวนอนได้ */
+      -webkit-overflow-scrolling: touch; /* ทำให้การ scroll ลื่นขึ้นบน iOS */
+    }
+    /* ▲▲▲ จบส่วนที่เพิ่ม ▲▲▲ */
   </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -191,39 +197,42 @@ $result = $mysqli->query($sql);
               <?= htmlspecialchars($error) ?>
           </div>
         <?php endif; ?>
-        <table class="table table-bordered table-hover">
-          <thead>
-            <tr>
-              <th>ชื่อ</th>
-              <th>นามสกุล</th>
-              <th>Email</th>
-              <th>Target</th>
-              <th style="width: 160px;">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php while ($row = $result->fetch_assoc()): ?>
+        
+        <div class="table-responsive-container">
+          <table class="table table-bordered table-hover">
+            <thead>
               <tr>
-                <td><?= htmlspecialchars($row['nname']) ?></td>
-                <td><?= htmlspecialchars($row['surename']) ?></td>
-                <td><?= htmlspecialchars($row['email']) ?></td>
-                <td><?= number_format((float)$row['forecast'], 2) ?></td>
-                <td>
-  <button class='btn btn-sm btn-custom-edit btn-edit' data-toggle="modal" data-target="#editModal" data-id="<?= $row['user_id'] ?>" data-forecast="<?= $row['forecast'] ?>">
-    <i class='fas fa-edit'></i> Edit
-  </button>
-  <a href='delete_Pro.php?user_id=<?= $row['user_id'] ?>' onclick="return confirm('คุณต้องการลบหรือไม่?')" class='btn btn-sm btn-danger'>
-    <i class='fas fa-trash'></i> Delete
-  </a>
-</td>
+                <th>ชื่อ</th>
+                <th>นามสกุล</th>
+                <th>Email</th>
+                <th>Target</th>
+                <th style="width: 160px;">Actions</th>
               </tr>
-            <?php endwhile; ?>
-            <?php if ($result->num_rows === 0): ?>
-              <tr><td colspan='5' class='text-center'>-- ไม่พบข้อมูลในระบบ --</td></tr>
-            <?php endif; ?>
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              <?php while ($row = $result->fetch_assoc()): ?>
+                <tr>
+                  <td><?= htmlspecialchars($row['nname']) ?></td>
+                  <td><?= htmlspecialchars($row['surename']) ?></td>
+                  <td><?= htmlspecialchars($row['email']) ?></td>
+                  <td><?= number_format((float)$row['forecast'], 2) ?></td>
+                  <td>
+                    <button class='btn btn-sm btn-custom-edit btn-edit' data-toggle="modal" data-target="#editModal" data-id="<?= $row['user_id'] ?>" data-forecast="<?= $row['forecast'] ?>">
+                      <i class='fas fa-edit'></i> Edit
+                    </button>
+                    <a href='delete_Pro.php?user_id=<?= $row['user_id'] ?>' onclick="return confirm('คุณต้องการลบหรือไม่?')" class='btn btn-sm btn-danger'>
+                      <i class='fas fa-trash'></i> Delete
+                    </a>
+                  </td>
+                </tr>
+              <?php endwhile; ?>
+              <?php if ($result->num_rows === 0): ?>
+                <tr><td colspan='5' class='text-center'>-- ไม่พบข้อมูลในระบบ --</td></tr>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+        </div>
     </section>
   </div>
 
@@ -264,7 +273,6 @@ $result = $mysqli->query($sql);
     $('#editModal').on('show.bs.modal', function (event) {
       var button = $(event.relatedTarget);
       var userId = button.data('id');
-      // แปลง forecast เป็นตัวเลขที่ไม่มี comma
       var forecast = String(button.data('forecast')).replace(/,/g, '');
 
       var modal = $(this);
@@ -277,7 +285,7 @@ $result = $mysqli->query($sql);
   function validateForecast() {
     const input = document.getElementById('editForecast');
     const errorDiv = document.getElementById('forecastError');
-    const value = input.value.replace(/,/g, ''); // เอา comma ออกก่อนเช็ค
+    const value = input.value.replace(/,/g, '');
 
     if (isNaN(value) || value.trim() === '') {
       errorDiv.classList.remove('d-none');

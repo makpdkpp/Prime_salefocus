@@ -159,49 +159,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">
 
-<nav class="main-header navbar navbar-expand navbar-dark bg-danger">
-    <ul class="navbar-nav"><li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a></li></ul>
-    <ul class="navbar-nav ml-auto">
-        <li class="nav-item dropdown user-menu">
-            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                <img src="<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
-                <span class="d-none d-md-inline"><?= $email ?></span>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                <li class="user-header bg-danger">
-                    <img src="<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
-                    <p><?= $email ?><small>User</small></p>
-                </li>
-                <li class="user-footer"><a href="../logout.php" class="btn btn-default btn-flat float-right">Sign out</a></li>
-            </ul>
-        </li>
-    </ul>
-</nav>
+<nav class="main-header navbar navbar-expand navbar-dark navbar-success">
+        <ul class="navbar-nav">
+            <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a></li>
+        </ul>
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item dropdown user-menu">
+                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+                    <img src="../dist_v3/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
+                    <span class="d-none d-md-inline"><?= $email ?></span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                    <li class="user-header bg-success">
+                        <img src="../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                        <p><?= $email ?><small>Team Head</small></p>
+                    </li>
+                    <li class="user-footer">
+                        <a href="../logout.php" class="btn btn-default btn-flat float-right">Sign out</a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
 
-<aside class="main-sidebar sidebar-dark-danger elevation-4">
-    <a href="../home_user.php" class="brand-link"><span class="brand-text font-weight-light"><b>Prime</b>Forecast</span></a>
-    <div class="sidebar">
-        <div class="user-panel mt-3 pb-3 mb-3 d-flex"><div class="image"><img src="../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image"></div><div class="info"><a href="#" class="d-block"><?= $email ?></a></div></div>
-        <nav class="mt-2">
-            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                <li class="nav-header">MAIN NAVIGATION</li>
-                <li class="nav-item"><a href="#" class="nav-link"><i class="nav-icon fas fa-tachometer-alt"></i><p>Dashboard<i class="right fas fa-angle-left"></i></p></a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item"><a href="../home_user.php" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Dashboard (กราฟ)</p></a></li>
-                        <li class="nav-item"><a href="../home_user_01.php" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Dashboard (ตาราง)</p></a></li>
-                    </ul>
-                </li>
-                <li class="nav-item menu-open"><a href="#" class="nav-link active"><i class="nav-icon fas fa-edit"></i><p>จัดการข้อมูล<i class="fas fa-angle-left right"></i></p></a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item"><a href="../User/adduser01.php" class="nav-link"><i class="far fa-circle nav-icon"></i><p>เพิ่มรายละเอียดการขาย</p></a></li>
-                        <li class="nav-item"><a href="#" class="nav-link active"><i class="far fa-circle nav-icon"></i><p>แก้ไขรายละเอียดการขาย</p></a></li>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
-    </div>
-</aside>
-
+    <aside class="main-sidebar sidebar-dark-success elevation-4">
+        <a href="../home_admin_team.php" class="brand-link">
+             <span class="brand-text font-weight-light"><b>Prime</b>Forecast</span>
+        </a>
+        <div class="sidebar">
+            <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                <div class="image"><a href="../User/edit_profile.php"><img src="../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image"></a></div>
+                <div class="info"><a href="#" class="d-block"><?= $email ?></a></div>
+            </div>
+            <nav class="mt-2">
+                <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                    <li class="nav-header">MAIN NAVIGATION</li>
+                    <li class="nav-item menu-open">
+                        <a href="#" class="nav-link "><i class="nav-icon fas fa-user-shield"></i><p>My Dashboard<i class="right fas fa-angle-left"></i></p></a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item"><a href="../home_admin_team.php" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Dashboard (กราฟ)</p></a></li>
+                            <li class="nav-item"><a href="home_admin_team_table.php" class="nav-link "><i class="far fa-circle nav-icon"></i><p>Dashboard (ตาราง)</p></a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link"><i class="nav-icon fas fa-users"></i><p>Team Dashboard<i class="right fas fa-angle-left"></i></p></a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item"><a href="team_dashboard_graph.php" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Dashboard ทีม (กราฟ)</p></a></li>
+                            <li class="nav-item"><a href="team_dashboard_table.php" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Dashboard ทีม (ตาราง)</p></a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link"><i class="nav-icon fas fa-edit"></i><p>เพิ่มข้อมูล<i class="fas fa-angle-left right"></i></p></a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item"><a href="add_infoteamadmin.php" class="nav-link"><i class="far fa-circle nav-icon"></i><p>เพิ่มรายละเอียดการขาย</p></a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </aside>
 <div class="content-wrapper">
     <section class="content">
         <div class="container-fluid">
