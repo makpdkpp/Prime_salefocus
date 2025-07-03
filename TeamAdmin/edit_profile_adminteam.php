@@ -132,12 +132,12 @@ $positionName = $positions[(int)$user['position_id']] ?? 'Unknown';
         <ul class="navbar-nav ml-auto">
             <li class="nav-item dropdown user-menu">
                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                    <img src="../dist_v3/img/user2-160x160.jpg" class="user-image img-circle elevation-2" alt="User Image">
+                    <img src="<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
                     <span class="d-none d-md-inline"><?= $email ?></span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                     <li class="user-header bg-success">
-                        <img src="../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                        <img src="<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
                         <p><?= $email ?><small>Team Head</small></p>
                     </li>
                     <li class="user-footer">
@@ -149,12 +149,12 @@ $positionName = $positions[(int)$user['position_id']] ?? 'Unknown';
     </nav>
 
     <aside class="main-sidebar sidebar-dark-success elevation-4">
-        <a href="../home_admin_team.php" class="brand-link">
-             <span class="brand-text font-weight-light"><b>Prime</b>Forecast</span>
-        </a>
-        <div class="sidebar">
+    <a href="../home_admin_team.php" class="brand-link navbar-success" style="text-align: center;">
+         <span class="brand-text font-weight-light"><b>Prime</b>Forecast</span>
+    </a>
+    <div class="sidebar">
             <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-                <div class="image"><a href="edit_profile_adminteam.php"><img src="../dist_v3/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image"></a></div>
+                <div class="image"><a href="edit_profile_adminteam.php"><img src="<?= $avatar ?>" class="img-circle elevation-2" alt="User Image"></a></div>
                 <div class="info"><a href="#" class="d-block"><?= $email ?></a></div>
             </div>
             <nav class="mt-2">
