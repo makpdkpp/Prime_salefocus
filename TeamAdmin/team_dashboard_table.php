@@ -2,20 +2,40 @@
 require_once '../functions.php';
 session_start();
 
-if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 2) {
-    header('Location: ../index.php'); exit;
+// 1. ตรวจสอบ Session
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {
+    header('Location: ../index.php');
+    exit;
 }
+
+// 2. เชื่อมต่อฐานข้อมูลและดึง User ID
 $mysqli = connectDb();
-$userId = (int)$_SESSION['user_id']; // User ID ของ Team Head ที่ Login
-$email  = htmlspecialchars($_SESSION['email']);
-$nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
-// ดึง team_id ทั้งหมดของ user นี้
+$userId = (int)$_SESSION['user_id'];
+
+// 3. ดึงข้อมูล User หลัก (รวม Avatar) จากฐานข้อมูล
+// เราจะดึง nname, email, และ avatar_path มาจาก DB โดยตรง
+// เพื่อให้ข้อมูลสดใหม่และครบถ้วนในที่เดียว
+$stmt = $mysqli->prepare("SELECT nname, email, avatar_path FROM user WHERE user_id = ?");
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$user = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+// 4. กำหนดค่าให้กับตัวแปรที่จะใช้แสดงผล
+$nname  = htmlspecialchars($user['nname'] ?? '', ENT_QUOTES, 'UTF-8');
+$email  = htmlspecialchars($user['email'] ?? '', ENT_QUOTES, 'UTF-8');
+$avatar = !empty($user['avatar_path'])
+          ? htmlspecialchars($user['avatar_path'], ENT_QUOTES, 'UTF-8')
+          : 'dist/img/user2-160x160.jpg'; // Path รูป Default หากไม่มีรูป
+
+// 5. ดึง team_id ทั้งหมดของ user นี้ (โค้ดเดิมของคุณ)
 $teamIDS = [];
 $q = "SELECT team_id FROM transactional_team WHERE user_id = $userId";
 $res = $mysqli->query($q);
 while ($row = $res->fetch_assoc()) {
     $teamIDS[] = (int)$row['team_id'];
 }
+$res->free(); // คืน memory หลังใช้งาน
 ?>
 <!DOCTYPE html>
 <html lang="th">

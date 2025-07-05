@@ -13,6 +13,19 @@ $userId = (int)$_SESSION['user_id']; // ID ของหัวหน้าที�
 $email  = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
 
+// --- ส่วนที่เพิ่มเข้ามาสำหรับ Avatar ---
+$stmt_avatar = $mysqli->prepare("SELECT avatar_path FROM user WHERE user_id = ?");
+$stmt_avatar->bind_param("i", $userId);
+$stmt_avatar->execute();
+$user_avatar_data = $stmt_avatar->get_result()->fetch_assoc();
+$stmt_avatar->close();
+
+$avatar = (!empty($user_avatar_data['avatar_path']))
+          ? htmlspecialchars($user_avatar_data['avatar_path'], ENT_QUOTES, 'UTF-8')
+          : '../dist/img/user2-160x160.jpg';
+// --- สิ้นสุดส่วนที่เพิ่ม ---
+
+
 // 2. หา "ทีมหลัก" ของหัวหน้าคนนี้ เพื่อใช้บันทึกข้อมูลโดยอัตโนมัติ
 $primaryTeamId = 0;
 $stmt_team = $mysqli->prepare("SELECT team_id FROM transactional_team WHERE user_id = ? LIMIT 1");

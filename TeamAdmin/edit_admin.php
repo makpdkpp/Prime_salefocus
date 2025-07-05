@@ -21,6 +21,19 @@ $user_id = (int)$_SESSION['user_id'];
 $email   = htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8');
 $nname   = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
 
+// --- ส่วนที่เพิ่มเข้ามาสำหรับ Avatar ---
+$stmt_avatar = $mysqli->prepare("SELECT avatar_path FROM user WHERE user_id = ?");
+$stmt_avatar->bind_param("i", $user_id);
+$stmt_avatar->execute();
+$user_avatar_data = $stmt_avatar->get_result()->fetch_assoc();
+$stmt_avatar->close();
+
+$avatar = (!empty($user_avatar_data['avatar_path']))
+          ? htmlspecialchars($user_avatar_data['avatar_path'], ENT_QUOTES, 'UTF-8')
+          : '../dist/img/user2-160x160.jpg'; // ใช้ ../ เพื่อถอย path ให้ถูกต้อง
+// --- สิ้นสุดส่วนที่เพิ่ม ---
+
+
 // ─────────────────── 2) ดึงข้อมูลสำหรับ Dropdowns ───────────────────
 function loadOptions(mysqli $db, string $table, string $idCol, string $labelCol): array {
     $rows = $db->query("SELECT `$idCol`, `$labelCol` FROM `$table` ORDER BY `$labelCol`");

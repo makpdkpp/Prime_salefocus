@@ -1,9 +1,7 @@
 <?php
-// แก้ไข Path: ถอย 1 ขั้นเพื่อหา functions.php
 require_once '../functions.php';
 session_start();
 
-// แก้ไข Path: ถอย 1 ขั้นเพื่อไปหน้า index.php
 if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 2) {
     header('Location: ../index.php'); exit;
 }
@@ -11,7 +9,18 @@ $mysqli = connectDb();
 $userId = (int)$_SESSION['user_id'];
 $email  = htmlspecialchars($_SESSION['email']);
 $nname  = htmlspecialchars($_SESSION['nname'] ?? '', ENT_QUOTES, 'UTF-8');
-// ตรวจสอบ team_id จาก transactional_team
+
+// --- ส่วนที่เพิ่มเข้ามาสำหรับ Avatar เท่านั้น ---
+$avatar_q = "SELECT avatar_path FROM user WHERE user_id = $userId";
+$avatar_res = $mysqli->query($avatar_q);
+$user_avatar_data = $avatar_res->fetch_assoc();
+$avatar = (!empty($user_avatar_data['avatar_path']))
+          ? htmlspecialchars($user_avatar_data['avatar_path'], ENT_QUOTES, 'UTF-8')
+          : 'dist/img/user2-160x160.jpg';
+$avatar_res->free();
+// --- สิ้นสุดส่วนที่เพิ่ม ---
+
+// ตรวจสอบ team_id จาก transactional_team (โค้ดเดิมของคุณ ไม่ได้แก้ไข)
 $q = "SELECT team_id FROM transactional_team WHERE user_id = $userId";
 $teamIDS = $mysqli->query($q);
 
