@@ -1,18 +1,31 @@
 <?php
 // FILE: TeamAdmin/team_dashboard_graph.php
 
-// แก้ไข Path: ถอย 1 ขั้นเพื่อหา functions.php
 require_once '../functions.php';
+$conn = connectDb(); // เพิ่มบรรทัดนี้เพื่อเชื่อมต่อฐานข้อมูล
 session_start();
 
-// แก้ไข Path: ถอย 1 ขั้นเพื่อไปหน้า index.php
 if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 2) {
     header('Location: ../index.php');
     exit;
 }
 
 $userId = (int)$_SESSION['user_id'];
-$email = htmlspecialchars($_SESSION['email']);
+
+// --- เพิ่มส่วนนี้เข้ามา ---
+// ดึงข้อมูล user ทั้งหมดจากฐานข้อมูล
+$stmt = $conn->prepare("SELECT email, avatar_path FROM user WHERE user_id = ?");
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$user = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+// กำหนดค่าให้ตัวแปร $email และ $avatar
+$email  = htmlspecialchars($user['email'], ENT_QUOTES, 'UTF-8');
+$avatar = $user['avatar_path']
+          ? htmlspecialchars($user['avatar_path'], ENT_QUOTES, 'UTF-8')
+          : 'dist/img/user2-160x160.jpg'; // กำหนด path รูป default
+// --- สิ้นสุดส่วนที่เพิ่ม ---
 ?>
 <!DOCTYPE html>
 <html lang="th">
