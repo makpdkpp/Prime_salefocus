@@ -46,110 +46,109 @@ if ($rs) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap4.min.css">
     <link rel="stylesheet" href="../../dist_v3/css/adminlte.min.css">
     <style>
-          /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
-    body.sidebar-mini .main-sidebar .user-panel .image img,
-    body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
-      width: 40px;
-      height: 40px;
-      object-fit: cover;
-    }
-      .main-header.navbar {
-          border-bottom: none;
-      }
-      .sidebar {padding-bottom: 30px; }
+        body.sidebar-mini .main-sidebar .user-panel .image img,
+        body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+        }
+        .main-header.navbar {
+            border-bottom: none;
+        }
+        .sidebar {padding-bottom: 30px; }
+
+        /* CSS สำหรับจัดวาง Filter ข้างๆ ปุ่ม */
+        .dt-buttons .form-group {
+            margin-bottom: 0;
+            margin-left: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .dt-buttons .form-group label {
+            margin-bottom: 0;
+            margin-right: 5px;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
-
-  <nav class="main-header navbar navbar-expand navbar-white navbar-light" style="background-color: #0056b3;">
-    <ul class="navbar-nav">
-      <li class="nav-item">
-        <a class="nav-link text-white" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
-      </li>
-    </ul>
-    <ul class="navbar-nav ml-auto">
-      <li class="nav-item dropdown user-menu">
-        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-          <img src="../../<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
-          <span class="d-none d-md-inline text-white"><?= $email ?></span>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-          <li class="user-header" style="background-color: #0056b3; color: #fff;">
-            <img src="../../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
-            <p><?= $email ?><small>Administrator</small></p>
-          </li>
-          <li class="user-footer">
-            <a href="../../logout.php" class="btn btn-default btn-flat float-right">Sign out</a>
-          </li>
-        </ul>
-      </li>
-    </ul>
-  </nav>
-
-  <aside class="main-sidebar sidebar-dark-primary elevation-4">
-    <a href="../../home_admin.php" class="brand-link" style="background-color: #0056b3; text-align: center;">
-        <span class="brand-text font-weight-light"><b>Prime</b>Forecast</span>
-    </a>
-    <div class="sidebar">
-      <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
-        <div class="image">
-          <img src="../../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
-        </div>
-        <div class="info">
-          <a href="#" class="d-block"><?= $email ?></a>
-          <a href="#" class="d-block" style="color: #c2c7d0; font-size: 0.9em;"><i class="fa fa-circle text-success" style="font-size: 0.7em;"></i> Online</a>
-        </div>
-      </div>
-      <nav class="mt-2">
-        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-          <li class="nav-header">MAIN NAVIGATION</li>
-          <li class="nav-item menu-is-opening menu-open">
-            <a href="#" class="nav-link active">
-              <i class="nav-icon fas fa-tachometer-alt"></i>
-              <p>
-                Dashboard
-                <i class="right fas fa-angle-left"></i>
-              </p>
-            </a>
-            <ul class="nav nav-treeview">
-              <li class="nav-item">
-                <a href="../../home_admin.php" class="nav-link">
-                  <i class="far fa-chart-bar nav-icon"></i>
-                  <p>Dashboard (กราฟ)</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="super_admin_table.php" class="nav-link active">
-                  <i class="fas fa-table nav-icon"></i>
-                  <p>Dashboard (ตาราง)</p>
-                </a>
-              </li>
-            </ul>
-          </li>
+  
+    <nav class="main-header navbar navbar-expand navbar-white navbar-light" style="background-color: #0056b3;">
+        <ul class="navbar-nav">
           <li class="nav-item">
-            <a href="#" class="nav-link">
-              <i class="nav-icon fas fa-folder-open"></i><p>เพิ่มข้อมูล....<i class="right fas fa-angle-left"></i></p>
+            <a class="nav-link text-white" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+          </li>
+        </ul>
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item dropdown user-menu">
+            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+              <img src="../../<?= $avatar ?>" class="user-image img-circle elevation-2" alt="User Image">
+              <span class="d-none d-md-inline text-white"><?= $email ?></span>
             </a>
-            <ul class="nav nav-treeview">
-              <li class="nav-item"><a href="top-nav.php" class="nav-link"><i class="fas fa-building nav-icon"></i><p>เพิ่มข้อมูลบริษัท</p></a></li>
-              <li class="nav-item"><a href="boxed.php" class="nav-link"><i class="fas fa-boxes nav-icon"></i><p>เพิ่มข้อมูลกลุ่มสินค้า</p></a></li>
-              <li class="nav-item"><a href="fixed.php" class="nav-link"><i class="fas fa-industry nav-icon"></i><p>เพิ่มข้อมูลอุตสาหกรรม</p></a></li>
-              <li class="nav-item"><a href="Source_of_the_budget.php" class="nav-link"><i class="fas fa-file-invoice-dollar nav-icon"></i><p>เพิ่มข้อมูลที่มาของงบประมาณ</p></a></li>
-              <li class="nav-item"><a href="collapsed-sidebar.php" class="nav-link"><i class="fas fa-tasks nav-icon"></i><p>ขั้นตอนการขาย</p></a></li>
-              <li class="nav-item"><a href="of_winning.php" class="nav-link"><i class="fas fa-trophy nav-icon"></i><p>โอกาสการชนะ</p></a></li>
-              <li class="nav-item"><a href="Saleteam.php" class="nav-link"><i class="fas fa-users nav-icon"></i><p>ทีมขาย</p></a></li>
-              <li class="nav-item"><a href="position_u.php" class="nav-link"><i class="fas fa-user-tag nav-icon"></i><p>ตำแหน่ง</p></a></li>
-              <li class="nav-item"><a href="Profile_user.php" class="nav-link"><i class="fas fa-id-card nav-icon"></i><p>รายละเอียดผู้ใช้งาน</p></a></li>
-              <li class="nav-item"><a href="newuser.php" class="nav-link"><i class="fas fa-user-plus nav-icon"></i><p>เพิ่มผู้ใช้งาน</p></a></li>
+            <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+              <li class="user-header" style="background-color: #0056b3; color: #fff;">
+                <img src="../../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image">
+                <p><?= $email ?><small>Administrator</small></p>
+              </li>
+              <li class="user-footer">
+                <a href="../../logout.php" class="btn btn-default btn-flat float-right">Sign out</a>
+              </li>
             </ul>
           </li>
         </ul>
-      </nav>
-    </div>
-  </aside>
+    </nav>
+    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="../../home_admin.php" class="brand-link" style="background-color: #0056b3; text-align: center;">
+            <span class="brand-text font-weight-light"><b>Prime</b>Forecast</span>
+        </a>
+        <div class="sidebar">
+          <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
+            <div class="image">
+              <img src="../../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image" style="width: 45px; height: 45px;">
+            </div>
+            <div class="info">
+              <a href="#" class="d-block"><?= $email ?></a>
+              <a href="#" class="d-block" style="color: #c2c7d0; font-size: 0.9em;"><i class="fa fa-circle text-success" style="font-size: 0.7em;"></i> Online</a>
+            </div>
+          </div>
+          <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+              <li class="nav-header">MAIN NAVIGATION</li>
+              <li class="nav-item menu-is-opening menu-open">
+                <a href="#" class="nav-link active">
+                  <i class="nav-icon fas fa-tachometer-alt"></i>
+                  <p>Dashboard<i class="right fas fa-angle-left"></i></p>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item"><a href="../../home_admin.php" class="nav-link"><i class="far fa-chart-bar nav-icon"></i><p>Dashboard (กราฟ)</p></a></li>
+                  <li class="nav-item"><a href="super_admin_table.php" class="nav-link active"><i class="fas fa-table nav-icon"></i><p>Dashboard (ตาราง)</p></a></li>
+                </ul>
+              </li>
+              <li class="nav-item">
+                <a href="#" class="nav-link">
+                  <i class="nav-icon fas fa-folder-open"></i><p>เพิ่มข้อมูล....<i class="right fas fa-angle-left"></i></p>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item"><a href="top-nav.php" class="nav-link"><i class="fas fa-building nav-icon"></i><p>เพิ่มข้อมูลบริษัท</p></a></li>
+                  <li class="nav-item"><a href="boxed.php" class="nav-link"><i class="fas fa-boxes nav-icon"></i><p>เพิ่มข้อมูลกลุ่มสินค้า</p></a></li>
+                  <li class="nav-item"><a href="fixed.php" class="nav-link"><i class="fas fa-industry nav-icon"></i><p>เพิ่มข้อมูลอุตสาหกรรม</p></a></li>
+                  <li class="nav-item"><a href="Source_of_the_budget.php" class="nav-link"><i class="fas fa-file-invoice-dollar nav-icon"></i><p>เพิ่มข้อมูลที่มาของงบประมาณ</p></a></li>
+                  <li class="nav-item"><a href="collapsed-sidebar.php" class="nav-link"><i class="fas fa-tasks nav-icon"></i><p>ขั้นตอนการขาย</p></a></li>
+                  <li class="nav-item"><a href="of_winning.php" class="nav-link"><i class="fas fa-trophy nav-icon"></i><p>โอกาสการชนะ</p></a></li>
+                  <li class="nav-item"><a href="Saleteam.php" class="nav-link"><i class="fas fa-users nav-icon"></i><p>ทีมขาย</p></a></li>
+                  <li class="nav-item"><a href="position_u.php" class="nav-link"><i class="fas fa-user-tag nav-icon"></i><p>ตำแหน่ง</p></a></li>
+                  <li class="nav-item"><a href="Profile_user.php" class="nav-link"><i class="fas fa-id-card nav-icon"></i><p>รายละเอียดผู้ใช้งาน</p></a></li>
+                  <li class="nav-item"><a href="newuser.php" class="nav-link"><i class="fas fa-user-plus nav-icon"></i><p>เพิ่มผู้ใช้งาน</p></a></li>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </div>
+    </aside>
 
     <div class="content-wrapper">
         <section class="content-header">
@@ -216,16 +215,64 @@ if ($rs) {
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap4.min.js"></script>
 <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
 <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap4.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.colVis.min.js"></script>
+
 <script src="../../dist_v3/js/adminlte.min.js"></script>
 
 <script>
   $(function () {
-    console.log('Script has been loaded and is ready.');
-    const salesDataFromPHP = <?php echo json_encode($all_data); ?>;
-    console.log('Data from Server:', salesDataFromPHP);
+    // ▼▼▼ 3. แก้ไข JavaScript ทั้งหมดในส่วนนี้ ▼▼▼
     $("#salesTable").DataTable({
-      "responsive": true, "lengthChange": true, "autoWidth": false,
-      "language": { "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/th.json" }
+      "responsive": true, 
+      "lengthChange": true, 
+      "autoWidth": false,
+      "language": { "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/th.json" },
+      // กำหนด layout ให้มีปุ่ม (B)
+      "dom": 'lBfrtip',
+      "buttons": [
+        {
+          extend: 'excelHtml5',
+          text: '<i class="fas fa-file-excel"></i> Export to Excel',
+          className: 'btn btn-success',
+          titleAttr: 'Export to Excel',
+          bom: true
+        },
+        {
+          extend: 'colvis',
+          text: 'เลือกคอลัมน์',
+          className: 'btn btn-info'
+        }
+      ],
+      // ฟังก์ชันที่จะทำงานหลังตารางถูกสร้างเสร็จ
+      "initComplete": function () {
+        var api = this.api();
+
+        // สร้าง Dropdown และ Label ด้วย jQuery
+        var filterDiv = $('<div class="form-group"></div>');
+        var filterLabel = $('<label for="userFilter" class="mr-2">ชื่อผู้ใช้:</label>');
+        var select = $('<select id="userFilter" class="form-control form-control-sm" style="width: 200px;"></select>')
+            .append('<option value="">-- ผู้ใช้ทั้งหมด --</option>')
+            .on('change', function () {
+                var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                // กรองข้อมูลในคอลัมน์ที่ 7 (ชื่อผู้ใช้)
+                api.column(7).search(val ? '^' + val + '$' : '', true, false).draw();
+            });
+
+        // ดึงข้อมูลชื่อผู้ใช้ที่ไม่ซ้ำกันมาใส่ใน select
+        api.column(7).data().unique().sort().each(function (d) {
+            if (d) {
+                select.append($('<option></option>').attr('value', d).text(d));
+            }
+        });
+
+        // นำ Label และ Select ไปต่อท้ายกลุ่มปุ่ม .dt-buttons
+        filterDiv.append(filterLabel).append(select);
+        $('.dt-buttons').append(filterDiv);
+      }
     });
   });
 </script>

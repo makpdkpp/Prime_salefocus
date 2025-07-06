@@ -21,20 +21,19 @@ $avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap4.min.css">
     <link rel="stylesheet" href="dist_v3/css/adminlte.min.css">
 </head>
 <style>
-        /* ==== ปรับขนาดรูปใน sidebar ให้เท่ากันตอนยุบ/ขยาย ==== */
     body.sidebar-mini .main-sidebar .user-panel .image img,
     body:not(.sidebar-mini) .main-sidebar .user-panel .image img {
       width: 40px;
       height: 40px;
       object-fit: cover;
     }
-    </style>
+</style>
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">
-
     <nav class="main-header navbar navbar-expand navbar-dark bg-danger">
         <ul class="navbar-nav">
             <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a></li>
@@ -162,14 +161,42 @@ $avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap4.min.js"></script>
 <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
 <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap4.min.js"></script>
+
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.colVis.min.js"></script>
+
 <script src="dist_v3/js/adminlte.min.js"></script>
 
 <script>
   $(function () {
-    // The "responsive: true" option will now work correctly
+    // ▼▼▼ 3. แก้ไขส่วนนี้เพื่อเพิ่มปุ่ม ▼▼▼
     $("#salesTable").DataTable({
-      "responsive": true, "lengthChange": true, "autoWidth": false,
-      "language": { "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/th.json" }
+      "responsive": true, 
+      "lengthChange": true, 
+      "autoWidth": false,
+      "language": { "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/th.json" },
+      // กำหนด layout ของตารางให้มีปุ่ม (B)
+      "dom": 'lBfrtip',
+      "buttons": [
+        {
+          extend: 'excelHtml5',
+          text: '<i class="fas fa-file-excel"></i> Export to Excel',
+          className: 'btn btn-success',
+          titleAttr: 'Export to Excel',
+          bom: true, // สำหรับให้ Excel อ่านภาษาไทยได้ถูกต้อง
+          exportOptions: {
+            columns: ':not(:last-child)' // ไม่เอาคอลัมน์สุดท้าย (Action) ไปด้วย
+          }
+        },
+        {
+          extend: 'colvis',
+          text: 'เลือกคอลัมน์',
+          className: 'btn btn-info'
+        }
+      ]
     });
   });
 </script>

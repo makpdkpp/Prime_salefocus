@@ -14,11 +14,7 @@ if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 3) {
     exit;
 }
 
-// ─────────────────── 1) Auth – เฉพาะผู้ใช้ role_id = 2 ───────────────────
-if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {
-    header('Location: ../index.php');
-    exit;
-}
+
 
 $mysqli  = connectDb();
 $user_id = (int)$_SESSION['user_id'];
@@ -33,7 +29,6 @@ function loadOptions(mysqli $db, string $table, string $idCol, string $labelCol)
 
 $productOpts      = loadOptions($mysqli, 'product_group', 'product_id', 'product');
 $companyOpts      = loadOptions($mysqli, 'company_catalog', 'company_id', 'company');
-$teamOpts         = loadOptions($mysqli, 'team_catalog', 'team_id', 'team');
 $priorityOpts     = loadOptions($mysqli, 'priority_level', 'priority_id', 'priority');
 $Source_budgeOpts = loadOptions($mysqli, 'source_of_the_budget', 'Source_budget_id', 'Source_budge');
 
@@ -67,6 +62,17 @@ while ($row = $result2->fetch_assoc()) {
     $stepData[$row['level_id']] = $row['date'];
 }
 $res2->close();
+
+// ดึงเฉพาะทีมที่ user นี้อยู่ (จาก transactional_team)
+$teamOpts = [];
+$stmt = $mysqli->prepare("SELECT transactional_team.team_id, team_catalog.team FROM transactional_team JOIN team_catalog on team_catalog.team_id = transactional_team.team_id WHERE transactional_team.user_id = ? ORDER BY team_catalog.team");
+if ($stmt) {
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    if ($res) $teamOpts = $res->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+}
 
 // ─────────────────── 5) บันทึกข้อมูล (Save) ───────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -126,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-=======
+
 
 ?>
 <!doctype html>
@@ -233,10 +239,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <select name="company_id" id="company_id" class="form-control" required>
                           <option value="">-- เลือกบริษัท/หน่วยงาน --</option>
                           <?php foreach($companyOpts as $o): ?>
-
+                        
                             <option value="<?= $o['company_id'] ?>" <?= $rec['company_id'] == $o['company_id'] ? 'selected' : '' ?>><?= htmlspecialchars($o['company']) ?></option>
-
-
+                        
+                          <?php endforeach; ?>
                         </select>
                       </div>
                       <div class="col-md-6 form-group">
