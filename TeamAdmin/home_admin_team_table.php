@@ -2,7 +2,7 @@
 require_once '../functions.php';
 session_start();
 
-if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 2) {
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 2) {
     header('Location: ../index.php'); exit;
 }
 $mysqli = connectDb();
@@ -20,7 +20,7 @@ $avatar = (!empty($user_avatar_data['avatar_path']))
 $avatar_res->free();
 // --- สิ้นสุดส่วนที่เพิ่ม ---
 
-// ตรวจสอบ team_id จาก transactional_team (โค้ดเดิมของคุณ ไม่ได้แก้ไข)
+// ส่วนนี้ไม่ได้ใช้งานในหน้า แต่เก็บไว้ตามโค้ดเดิม
 $q = "SELECT team_id FROM transactional_team WHERE user_id = $userId";
 $teamIDS = $mysqli->query($q);
 
@@ -36,6 +36,7 @@ $teamIDS = $mysqli->query($q);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap4.min.css">
     <link rel="stylesheet" href="../dist_v3/css/adminlte.min.css">
 </head>
 <body class="hold-transition sidebar-mini">
@@ -63,12 +64,11 @@ $teamIDS = $mysqli->query($q);
             </li>
         </ul>
     </nav>
-
     <aside class="main-sidebar sidebar-dark-success elevation-4">
-    <a href="../home_admin_team.php" class="brand-link navbar-success" style="text-align: center;">
-         <span class="brand-text font-weight-light"><b>Prime</b>Forecast</span>
-    </a>
-    <div class="sidebar">
+        <a href="../home_admin_team.php" class="brand-link navbar-success" style="text-align: center;">
+             <span class="brand-text font-weight-light"><b>Prime</b>Forecast</span>
+        </a>
+        <div class="sidebar">
             <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                 <div class="image"><a href="edit_profile_adminteam.php"><img src="../<?= $avatar ?>" class="img-circle elevation-2" alt="User Image"></a></div>
                 <div class="info"><a href="#" class="d-block"><?= $email ?></a></div>
@@ -173,13 +173,42 @@ $teamIDS = $mysqli->query($q);
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap4.min.js"></script>
 <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
 <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap4.min.js"></script>
+
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.colVis.min.js"></script>
+
 <script src="../dist_v3/js/adminlte.min.js"></script>
 
 <script>
   $(function () {
+    // ▼▼▼ 3. แก้ไขส่วนนี้เพื่อเพิ่มปุ่ม ▼▼▼
     $("#salesTable").DataTable({
-      "responsive": true, "lengthChange": true, "autoWidth": false,
-      "language": { "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/th.json" }
+      "responsive": true, 
+      "lengthChange": true, 
+      "autoWidth": false,
+      "language": { "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/th.json" },
+      // กำหนด layout ของตารางให้มีปุ่ม (B)
+      "dom": 'lBfrtip',
+      "buttons": [
+        {
+          extend: 'excelHtml5',
+          text: '<i class="fas fa-file-excel"></i> Export to Excel',
+          className: 'btn btn-success',
+          titleAttr: 'Export to Excel',
+          bom: true, // สำหรับให้ Excel อ่านภาษาไทยได้ถูกต้อง
+          exportOptions: {
+            columns: ':not(:last-child)' // ไม่เอาคอลัมน์สุดท้าย (Action)
+          }
+        },
+        {
+          extend: 'colvis',
+          text: 'เลือกคอลัมน์',
+          className: 'btn btn-info'
+        }
+      ]
     });
   });
 </script>
