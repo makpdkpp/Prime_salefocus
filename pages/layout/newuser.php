@@ -292,16 +292,24 @@ $db->close();
                   <?php endif; ?>
                 </td>
                 <td class="text-center">
-                  <button class="btn btn-sm btn-warning btn-edit" 
-                          data-toggle="modal" 
-                          data-target="#editUserModal"
-                          data-user-id="<?= $u['user_id'] ?>"
-                          data-role-id="<?= $u['role_id'] ?>"
-                          data-position-id="<?= $u['position_id'] ?>"
-                          data-team-ids="<?= htmlspecialchars($u['team_ids']) ?>">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                </td>
+  <button class="btn btn-sm btn-warning btn-edit" 
+          data-toggle="modal" 
+          data-target="#editUserModal"
+          data-user-id="<?= $u['user_id'] ?>"
+          data-role-id="<?= $u['role_id'] ?>"
+          data-position-id="<?= $u['position_id'] ?>"
+          data-team-ids="<?= htmlspecialchars($u['team_ids']) ?>">
+    <i class="fas fa-edit"></i>
+  </button>
+  
+  <?php if (!$u['is_active']): // ตรวจสอบว่าถ้ายังไม่ Active (เป็น Pending) ให้แสดงปุ่มรีเซ็ต ?>
+    <button class="btn btn-sm btn-info btn-reset-invitation" 
+            data-userid="<?= $u['user_id'] ?>" 
+            title="รีเซ็ตและส่งคำเชิญใหม่">
+        <i class="fas fa-sync-alt"></i>
+    </button>
+    <?php endif; ?>
+</td>
               </tr>
               <?php endforeach; ?>
               <?php if (empty($userRows)): ?>
@@ -394,10 +402,10 @@ $(document).ready(function() {
     const inviteTeamGroup = $('#invite_team_group').closest('.form-group');
     function toggleInviteFields() {
         const selectedRole = inviteRoleSelect.val();
-        if (selectedRole === '2' || selectedRole === '3') {
+        if (selectedRole === '2' || selectedRole === '3') { // AdminTeam or Sale
             invitePositionGroup.show();
             inviteTeamGroup.show();
-        } else {
+        } else { // Superadmin or other roles
             invitePositionGroup.hide();
             inviteTeamGroup.hide();
         }
@@ -411,10 +419,10 @@ $(document).ready(function() {
     const editTeamGroup = $('#edit_team_group').closest('.form-group');
     function toggleEditFields() {
         const selectedRole = editRoleSelect.val();
-        if (selectedRole === '2' || selectedRole === '3') {
+        if (selectedRole === '2' || selectedRole === '3') { // AdminTeam or Sale
             editPositionGroup.show();
             editTeamGroup.show();
-        } else {
+        } else { // Superadmin or other roles
             editPositionGroup.hide();
             editTeamGroup.hide();
         }
@@ -434,10 +442,37 @@ $(document).ready(function() {
         if (teamIds && teamIds !== 'null' && teamIds !== null && teamIds !== undefined) {
           let ids = String(teamIds).split(',').map(id => id.trim()).filter(id => id !== '' && id !== 'null');
           ids.forEach(function(id) {
-            if (id) $('#edit_team_' + id).prop('checked', true);
+            if (id) $('#edit_team_' . id).prop('checked', true);
           });
         }
         toggleEditFields(); 
+    });
+
+    // --- ส่วนสำหรับ Reset Invitation ---
+    $(document).on('click', '.btn-reset-invitation', function(e) {
+        e.preventDefault();
+        const userId = $(this).data('userid');
+        
+        if (confirm('คุณต้องการรีเซ็ตและส่งคำเชิญสำหรับผู้ใช้นี้ใหม่ใช่หรือไม่?')) {
+            $.ajax({
+                url: 'reset_invitation.php',
+                type: 'POST',
+                dataType: 'json',
+                data: JSON.stringify({ user_id: userId }),
+                contentType: 'application/json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        alert('ส่งคำเชิญใหม่เรียบร้อยแล้ว!');
+                        window.location.reload();
+                    } else {
+                        alert('เกิดข้อผิดพลาด: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
+                }
+            });
+        }
     });
 });
 </script>
