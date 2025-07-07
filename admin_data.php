@@ -213,14 +213,29 @@ $output['salestatusvalue'] = queryList($mysqli,
 $output['saleforecast'] = queryList($mysqli,
     "SELECT
       u.forecast AS Target,
-      SUM(t.product_value) AS Forecast,
-      SUM(CASE WHEN s.level = '5.WIN' THEN t.product_value ELSE 0 END) AS Win,
+      COALESCE(uf.TotalForecast, 0) AS Forecast,
+      COALESCE(uw.TotalWin, 0) AS Win,
       u.nname
-    FROM transactional_step ts
-    JOIN transactional t ON t.transac_id = ts.transac_id
-    JOIN `user` u ON u.user_id = t.user_id
-    JOIN step s ON s.level_id = ts.level_id
-    GROUP BY u.nname"
+    FROM `user` u
+    LEFT JOIN (
+        -- Subquery 1: คำนวณยอด Forecast ทั้งหมด
+        SELECT
+            user_id,
+            SUM(product_value) AS TotalForecast
+        FROM transactional
+        GROUP BY user_id
+    ) AS uf ON u.user_id = uf.user_id
+    LEFT JOIN (
+        -- Subquery 2: คำนวณยอด Win
+        SELECT
+            t.user_id,
+            SUM(t.product_value) AS TotalWin
+        FROM transactional t
+        JOIN transactional_step ts ON t.transac_id = ts.transac_id
+        JOIN step s ON s.level_id = ts.level_id
+        WHERE s.level = '5.WIN'
+        GROUP BY t.user_id
+    ) AS uw ON u.user_id = uw.user_id"
 );
 
 // 11. Productortderbywinrate (productwinrate, latest step is WIN)
