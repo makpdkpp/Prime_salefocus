@@ -217,7 +217,7 @@ $output['saleforecast'] = queryList($mysqli,
       COALESCE(uw.TotalWin, 0) AS Win,
       u.nname
     FROM `user` u
-    LEFT JOIN (
+    INNER JOIN ( -- << เปลี่ยนจาก LEFT JOIN เป็น INNER JOIN ตรงนี้
         -- Subquery 1: คำนวณยอด Forecast ทั้งหมด
         SELECT
             user_id,
