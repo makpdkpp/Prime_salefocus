@@ -58,7 +58,7 @@ if ($stmt->affected_rows > 0) {
     $stmt_email->close();
 
     // 3. ส่งอีเมลด้วย PHPMailer
-    $link = 'http://' . $_SERVER['HTTP_HOST'] . '/Prime_saleficus/pages/layout/set-password.php?token=' . $newToken;
+    $link = 'http://' . $_SERVER['HTTP_HOST'] . '/pages/layout/set-password.php?token=' . $newToken;
     $subject = 'Re: User Invitation to PrimeForecast';
     $body = "Your invitation has been renewed. Please click on the link to set your password: $link";
     
