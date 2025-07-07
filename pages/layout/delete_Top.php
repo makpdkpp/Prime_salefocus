@@ -1,7 +1,10 @@
 <?php
 require_once '../../functions.php';      // ← ปรับ path ให้ถูกกับโปรเจ็กต์
 $mysqli = connectDb();
-
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 1) {
+    header('Location: ../../index.php');
+    exit;
+  }
 if (isset($_GET['company_id'])) {
     $company_id = $_GET['company_id'];
 

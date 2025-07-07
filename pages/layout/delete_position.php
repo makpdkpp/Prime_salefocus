@@ -2,6 +2,10 @@
 session_start();
 require_once '../../functions.php';
 $mysqli = connectDb();
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 1) {
+    header('Location: ../../index.php');
+    exit;
+  }
 
 if (isset($_GET['position_id']) && is_numeric($_GET['position_id'])) {
     $position_id = (int)$_GET['position_id'];

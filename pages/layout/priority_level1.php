@@ -2,6 +2,10 @@
 session_start();
 require_once '../../functions.php';
 $mysqli = connectDb();
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 1) {
+    header('Location: ../../index.php');
+    exit;
+  }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $priority = trim($_POST['priority'] ?? '');

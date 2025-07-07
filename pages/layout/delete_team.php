@@ -2,6 +2,10 @@
 session_start();
 require_once '../../functions.php';
 $conn = connectDb();
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 1) {
+    header('Location: ../../index.php');
+    exit;
+  }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['team_id']) && is_numeric($_GET['team_id'])) {
     $team_id = (int)$_GET['team_id'];

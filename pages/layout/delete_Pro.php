@@ -2,6 +2,10 @@
 session_start();
 include("../../functions.php");
 $conn = connectDb();
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 1) {
+    header('Location: ../../index.php');
+    exit;
+  }
 
 if (isset($_GET['user_id'])) {
     $user_id = intval($_GET['user_id']); // แปลงให้เป็นตัวเลขเพื่อความปลอดภัย

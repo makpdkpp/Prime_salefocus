@@ -4,6 +4,10 @@ require_once '../../functions.php';
 $mysqli = connectDb();
 $mysqli->set_charset('utf8');
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 1) {
+    header('Location: ../../index.php');
+    exit;
+  }
 
 /* ทำเฉพาะ POST */
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

@@ -1,5 +1,6 @@
 <?php
 // เพิ่มโค้ดแสดง Error เพื่อช่วยในการดีบัก
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -13,6 +14,10 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 $db = connectDb();
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 1) {
+  header('Location: ../../index.php');
+  exit;
+}
 $message = '';
 $message_type = ''; 
 

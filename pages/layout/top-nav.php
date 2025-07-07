@@ -115,9 +115,6 @@ $industries = $mysqli->query("
       object-fit: cover;
     }
 </style>
-=======
-
-  </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">

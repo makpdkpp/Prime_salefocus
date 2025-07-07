@@ -6,6 +6,10 @@
 session_start();
 require_once '../../functions.php';      // ฟังก์ชัน connectDb()
 $conn = connectDb();
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 1) {
+  header('Location: ../../index.php');
+  exit;
+}
 
 /* ตรวจว่าเป็น GET และมี id ที่เป็นตัวเลข */
 if ($_SERVER['REQUEST_METHOD'] === 'GET'

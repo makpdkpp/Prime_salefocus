@@ -2,7 +2,10 @@
 session_start();
 require_once __DIR__ . '/../../functions.php';
 $mysqli = connectDb();
-
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 1) {
+    header('Location: ../../index.php');
+    exit;
+  }
 
 /* ——— รับค่าจากฟอร์ม ——— */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

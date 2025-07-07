@@ -3,6 +3,11 @@ session_start();
 require_once '../../functions.php';      // ← ปรับ path ให้ถูกกับโปรเจ็กต์
 $mysqli = connectDb();
 
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 1) {
+  header('Location: ../../index.php');
+  exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $company = trim($_POST['company'] ?? '');
   $industry_id = $_POST['industry'] ?? '';

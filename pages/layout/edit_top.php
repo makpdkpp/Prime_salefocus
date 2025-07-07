@@ -3,6 +3,10 @@ session_start();
 include("../../functions.php");
 
 $mysqli = connectDb();
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 1) {
+  header('Location: ../../index.php');
+  exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $company_id = intval($_POST['company_id'] ?? 0);

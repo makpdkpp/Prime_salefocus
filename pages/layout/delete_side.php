@@ -2,6 +2,10 @@
 session_start();
 require_once '../../functions.php';
 $conn = connectDb();
+if (empty($_SESSION['user_id']) || (int)$_SESSION['role_id'] !== 1) {
+    header('Location: ../../index.php');
+    exit;
+  }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['level_id']) && is_numeric($_GET['level_id'])) {
     $level_id = (int)$_GET['level_id'];
