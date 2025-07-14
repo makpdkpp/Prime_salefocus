@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->close();
                 if ($token_expiry > $now) {
                     $hashed = md5($password);
-                    $stmt = $db->prepare('UPDATE user SET password=?, is_active=1, reset_token=NULL, token_expiry=NULL, role_id=2 WHERE user_id=?');
+                    $stmt = $db->prepare('UPDATE user SET password=?, is_active=1, reset_token=NULL, token_expiry=NULL WHERE user_id=?');
                     if ($stmt) {
                         $stmt->bind_param('si', $hashed, $uid);
                         $stmt->execute();
