@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_email'])) {
             }
         }
         if (empty($message)) {
-            $link = 'http://' . $_SERVER['HTTP_HOST'] . '../pages/layout/set-password.php?token=' . $token;
+            $link = 'http://' . $_SERVER['HTTP_HOST'] . '/pages/layout/set-password.php?token=' . $token;
             $subject = 'User Invitation to PrimeForecast';
             $body = "Please click on the link to set your password: $link";
             try {
