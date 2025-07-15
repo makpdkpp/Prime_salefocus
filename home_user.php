@@ -89,9 +89,17 @@ $avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
     </aside>
 
     <div class="content-wrapper">
-        <section class="content-header">
-            <div class="container-fluid"><div class="row mb-2"><div class="col-sm-6"><h1>Sales Dashboard (Charts)</h1></div></div></div>
-        </section>
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Sales Dashboard (Charts)</h1>
+                </div><div class="col-sm-6">
+                    <a href="คู่มือการใช้งาน.pdf" target="_blank" class="btn btn-info float-right">
+                        <i class="fas fa-book mr-1"></i>
+                        คู่มือการใช้งาน
+                    </a>
+                </div></div></div></section>
         
         <section class="content">
             <div class="container-fluid">
