@@ -71,7 +71,7 @@ if (!$stmt) {
 // Type string = 13 ตัวอักษร
 // i = int, s = string, d = double
 $stmt->bind_param(
-    "iiisiiisisiids", // ← แก้ให้เป็น 13 ตัวเท่านั้น
+    "iiisiisssssids", // ← แก้ให้เป็น 13 ตัวเท่านั้น
     $user_id,
     $company_id,
     $product_id,
