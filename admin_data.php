@@ -275,13 +275,23 @@ $output['TopProductGroup'] = queryList($mysqli,
 // 13. Top10custopmer (sum by company, all steps)
 $output['TopCustopmer'] = queryList($mysqli,
     "SELECT
-      cc.company,
-      SUM(t.product_value) AS sum_value
-    FROM transactional t
-    JOIN company_catalog cc ON t.company_id = cc.company_id
-    GROUP BY cc.company
-    ORDER BY sum_value DESC
-    LIMIT 10"
+    cc.company,
+    SUM(t.product_value) AS sum_value
+FROM
+    transactional t
+JOIN
+    company_catalog cc ON t.company_id = cc.company_id
+WHERE
+    EXISTS (
+        SELECT 1
+        FROM transactional_step ts
+        WHERE ts.transac_id = t.transac_id AND ts.level_id = 5
+    )
+GROUP BY
+    cc.company
+ORDER BY
+    sum_value DESC
+LIMIT 10;"
 );
 
 $mysqli->close();
