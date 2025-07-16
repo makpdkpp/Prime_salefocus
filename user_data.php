@@ -66,13 +66,20 @@ $stmt->close();
 // 2. personforecast: actual vs forecast for current user
 $sql = "
 SELECT
-  SUM(t.product_value) AS Forecast,
-  u.forecast AS Target,
-  SUM(CASE WHEN ts.level_id = 5 THEN t.product_value ELSE 0 END) AS Win
-FROM transactional_step ts
-JOIN transactional t ON t.transac_id = ts.transac_id
-JOIN `user` u ON u.user_id = t.user_id
-WHERE t.user_id = ?
+    u.forecast AS Target,
+    (SELECT SUM(t.product_value) FROM transactional t WHERE t.user_id = u.user_id) AS Forecast,
+    (
+        SELECT SUM(t_win.product_value)
+        FROM transactional t_win
+        WHERE t_win.user_id = u.user_id AND EXISTS (
+            SELECT 1 FROM transactional_step ts
+            WHERE ts.transac_id = t_win.transac_id AND ts.level_id = 5
+        )
+    ) AS Win
+FROM
+    `user` u
+WHERE
+    u.user_id = ?
 ";
 
 $stmt = $mysqli->prepare($sql);
@@ -89,11 +96,10 @@ SELECT
   t.Product_id,
   p.product,
   SUM(t.product_value) AS sum_value
-FROM transactional_step ts
-JOIN transactional t ON t.transac_id = ts.transac_id
+FROM transactional t
 JOIN product_group p ON t.Product_id = p.product_id
 WHERE t.user_id = ?
-GROUP BY t.Product_id
+GROUP BY t.Product_id, p.product
 ";
 
 $stmt = $mysqli->prepare($sql);
