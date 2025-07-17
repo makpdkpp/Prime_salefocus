@@ -304,7 +304,7 @@ $email = htmlspecialchars($_SESSION['email']);
             document.getElementById('lostcount').innerText = Number(data.lostcount).toLocaleString('th-TH');
 
             // Render all charts
-            renderWinStatusValueChart(data.salestatusvalue || []);
+            renderWinStatusValueChart(data.cumulativewin || []);
             renderTeamSumChart(data.sumbyperteam || []);
             renderPersonSumChart(data.sumbyperson || []);
             renderSaleStatusChart(data.salestatus || []);
