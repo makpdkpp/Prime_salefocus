@@ -320,20 +320,34 @@ $email = htmlspecialchars($_SESSION['email']);
 
     // ฟังก์ชันสำหรับวาดกราฟแต่ละตัว
     function renderWinStatusValueChart(rawData) {
-        if (!document.getElementById('winstatusValueChart')) return;
-        const labels = rawData.map(r => r.month);
-        const winData = rawData.map(r => Number(r.win_value));
-        const ctx = document.getElementById('winstatusValueChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{ label: 'Win', data: winData, backgroundColor: 'rgba(34, 139, 34, 1)' }]
-            },
-            options: { scales: { y: { ticks: { callback: v => v.toLocaleString('th-TH') } } } }
-        });
-    }
+    if (!document.getElementById('winstatusValueChart')) return;
 
+    const labels = rawData.map(r => r.sale_month);
+    const cumulativeData = rawData.map(r => Number(r.cumulative_win_value));
+
+    const ctx = document.getElementById('winstatusValueChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar', // <--- เปลี่ยนกลับเป็น 'bar'
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'ยอด Win สะสม',
+                data: cumulativeData,
+                backgroundColor: 'rgba(40, 167, 69, 0.8)' // <--- ปรับสีให้เข้มขึ้นสำหรับกราฟแท่ง
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: v => v.toLocaleString('th-TH')
+                    }
+                }
+            }
+        }
+    });
+}
     function renderTeamSumChart(rawData) {
         if (!document.getElementById('teamSumChart')) return;
         const labels = rawData.map(item => item.team);
