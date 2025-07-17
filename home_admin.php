@@ -253,7 +253,10 @@ $email = htmlspecialchars($_SESSION['email']);
                 <h3 class="card-title">กราฟเปรียบเทียบ Target/Forecast/Win</h3>
                 <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
               </div>
-              <div class="card-body"><canvas id="saleForecastChart" height="180"></canvas></div>
+              <div class="card-body">
+                <canvas id="saleForecastChart" height="180"></canvas>
+                <div id="saleForecastChartFilter" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px 20px; justify-content: center; font-size: 0.9em;"></div>
+                </div>
             </div>
           </div>
         </div>
@@ -288,6 +291,10 @@ $email = htmlspecialchars($_SESSION['email']);
 <script src="dist_v3/js/adminlte.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // START: โค้ดที่เพิ่มเข้ามาสำหรับ SaleForecastChart
+    let saleForecastChartInstance;
+    // END: โค้ดที่เพิ่มเข้ามา
+
     // สคริปต์สำหรับดึงข้อมูลและวาดกราฟ (เหมือนเดิม)
     async function loadDashboardData() {
         try {
@@ -309,7 +316,7 @@ $email = htmlspecialchars($_SESSION['email']);
             renderPersonSumChart(data.sumbyperson || []);
             renderSaleStatusChart(data.salestatus || []);
             renderStatusValueChart(data.salestatusvalue || []);
-            renderSaleForecastChart(data.saleforecast || []);
+            renderSaleForecastChart(data.saleforecast || []); // <-- จุดนี้จะเรียกใช้ฟังก์ชันที่แก้ไขแล้ว
             renderTopProductsChart(data.TopProductGroup || []);
             renderTopCustomerChart(data.TopCustopmer || []);
 
@@ -409,17 +416,76 @@ $email = htmlspecialchars($_SESSION['email']);
         new Chart(ctx, { type: 'bar', data: { labels, datasets }, options: { scales: { y: { ticks: { callback: v => v.toLocaleString('th-TH') } } } } });
     }
 
+    // START: โค้ดฟังก์ชันที่ถูกแก้ไขทั้งหมด
     function renderSaleForecastChart(rawData) {
-        if (!document.getElementById('saleForecastChart')) return;
-        const labels = rawData.map(item => item.nname);
-        const datasets = [
-            { label: 'Target', data: rawData.map(item => +item.Target), backgroundColor: 'rgba(153,102,255,0.7)' },
-            { label: 'Forecast', data: rawData.map(item => +item.Forecast), backgroundColor: 'rgba(54,162,235,0.7)' },
-            { label: 'Win', data: rawData.map(item => +item.Win), backgroundColor: 'rgba(34, 139, 34, 1)' }
-        ];
-        const ctx = document.getElementById('saleForecastChart').getContext('2d');
-        new Chart(ctx, { type: 'bar', data: { labels, datasets }, options: { scales: { y: { ticks: { callback: v => v.toLocaleString('th-TH') } } } } });
+        const chartCanvas = document.getElementById('saleForecastChart');
+        if (!chartCanvas) return;
+
+        const filterContainer = document.getElementById('saleForecastChartFilter');
+        if (!filterContainer) return;
+
+        // ฟังก์ชันสำหรับอัปเดตกราฟ (ทำงานภายใน)
+        const updateTheChart = () => {
+            if (!saleForecastChartInstance) return;
+            const selectedPeople = Array.from(filterContainer.querySelectorAll('input:checked')).map(cb => cb.value);
+            const filteredData = rawData.filter(item => selectedPeople.includes(item.nname));
+
+            saleForecastChartInstance.data.labels = filteredData.map(item => item.nname);
+            saleForecastChartInstance.data.datasets[0].data = filteredData.map(item => +item.Target);
+            saleForecastChartInstance.data.datasets[1].data = filteredData.map(item => +item.Forecast);
+            saleForecastChartInstance.data.datasets[2].data = filteredData.map(item => +item.Win);
+            saleForecastChartInstance.update();
+        };
+
+        // ตรวจสอบว่าเคยสร้างกราฟและ Filter แล้วหรือยัง
+        // ถ้ายังไม่เคยสร้าง (ครั้งแรกที่โหลดหน้า) ให้สร้างใหม่
+        if (!saleForecastChartInstance) {
+            // 1. สร้าง Checkboxes
+            rawData.forEach(item => {
+                const personName = item.nname;
+                const wrapper = document.createElement('div');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `sfc-check-${personName}`;
+                checkbox.value = personName;
+                checkbox.checked = true;
+                checkbox.addEventListener('change', updateTheChart);
+
+                const label = document.createElement('label');
+                label.htmlFor = `sfc-check-${personName}`;
+                label.textContent = personName;
+                label.style.marginLeft = '5px';
+                label.style.cursor = 'pointer';
+
+                wrapper.appendChild(checkbox);
+                wrapper.appendChild(label);
+                filterContainer.appendChild(wrapper);
+            });
+
+            // 2. สร้าง instance ของ Chart.js
+            const ctx = chartCanvas.getContext('2d');
+            saleForecastChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: 'Target', data: [], backgroundColor: 'rgba(153,102,255,0.7)' },
+                        { label: 'Forecast', data: [], backgroundColor: 'rgba(54,162,235,0.7)' },
+                        { label: 'Win', data: [], backgroundColor: 'rgba(34, 139, 34, 1)' }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { ticks: { callback: v => v.toLocaleString('th-TH') } }
+                    }
+                }
+            });
+        }
+        
+        // 3. เรียกอัปเดตข้อมูลกราฟ (เพื่อให้แสดงผลครั้งแรก)
+        updateTheChart();
     }
+    // END: โค้ดฟังก์ชันที่ถูกแก้ไขทั้งหมด
 
     function renderTopProductsChart(rawData) {
         if (!document.getElementById('topProductsChart')) return;
