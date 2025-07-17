@@ -237,25 +237,23 @@ $email = htmlspecialchars($_SESSION['email']);
             </div>
           </div>
         </div>
-        <div class="row">
-          <div class="col-md-6">
-            <div class="card card-success">
-              <div class="card-header d-flex align-items-center">
-                <h3 class="card-title">ประมาณการมูลค่าในแต่ละขั้นตอนการขาย</h3>
-                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
-              </div>
-              <div class="card-body"><canvas id="statusValueChart" height="180"></canvas></div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="card card-info">
-              <div class="card-header d-flex align-items-center">
-                <h3 class="card-title">กราฟเปรียบเทียบ Target/Forecast/Win</h3>
-                <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
-              </div>
-              <div class="card-body">
-                <canvas id="saleForecastChart" height="180"></canvas>
-                <div id="saleForecastChartFilter" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px 20px; justify-content: center; font-size: 0.9em;"></div>
+        <div class="row d-flex mb-3"> <div class="col-md-6">
+    <div class="card card-success h-100"> <div class="card-header d-flex align-items-center">
+        <h3 class="card-title">ประมาณการมูลค่าในแต่ละขั้นตอนการขาย</h3>
+        <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+      </div>
+      <div class="card-body"><canvas id="statusValueChart" height="180"></canvas></div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card card-info h-100"> <div class="card-header d-flex align-items-center">
+        <h3 class="card-title">กราฟเปรียบเทียบ Target/Forecast/Win</h3>
+        <button class="btn btn-tool btn-fullscreen ms-auto float-end" style="margin-left:auto;" title="ขยายเต็มจอ" type="button"><i class="fas fa-expand"></i></button>
+      </div>
+      <div class="card-body">
+        <canvas id="saleForecastChart" height="180"></canvas>
+        <div id="saleForecastChartFilter" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px 20px; justify-content: center; font-size: 0.9em;"></div>
                 </div>
             </div>
           </div>
