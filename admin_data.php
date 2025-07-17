@@ -295,21 +295,21 @@ LIMIT 10;"
 );
 // 14. cumulativewin (ยอด Win สะสมรายเดือน - แก้ไขสำหรับ DB ทุกเวอร์ชัน)
 $output['cumulativewin'] = queryList($mysqli,
-    "SELECT
-        all_months.sale_month,
-        (SELECT SUM(t2.product_value)
-         FROM transactional t2
-         JOIN transactional_step ts2 ON t2.transac_id = ts2.transac_id
-         WHERE ts2.level_id = 5
-           AND DATE_FORMAT(ts2.date, '%Y-%m') <= all_months.sale_month
-           AND ts2.date IS NOT NULL AND ts2.date > '0001-01-01'
-        ) AS cumulative_win_value
-    FROM
-        (SELECT DISTINCT DATE_FORMAT(ts.date, '%Y-%m') AS sale_month
-         FROM transactional_step ts
-         WHERE ts.level_id = 5 AND ts.date IS NOT NULL AND ts.date > '0001-01-01'
-        ) AS all_months
-    ORDER BY all_months.sale_month"
+"SELECT
+all_months.sale_month,
+COALESCE((SELECT SUM(t2.product_value)
+    FROM transactional t2
+    JOIN transactional_step ts2 ON t2.transac_id = ts2.transac_id
+    WHERE ts2.level_id = 5
+    AND DATE_FORMAT(ts2.date, '%Y-%m') <= all_months.sale_month
+    AND ts2.date IS NOT NULL AND ts2.date > '0001-01-01'
+), 0) AS cumulative_win_value
+FROM
+(SELECT DISTINCT DATE_FORMAT(date, '%Y-%m') AS sale_month
+ FROM transactional_step
+ WHERE date IS NOT NULL AND date > '0001-01-01'
+) AS all_months
+ORDER BY all_months.sale_month"
 );
 
 $mysqli->close();
