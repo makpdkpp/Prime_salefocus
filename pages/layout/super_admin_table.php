@@ -169,40 +169,42 @@ if ($rs) {
                 <div class="card">
                     <div class="card-header"><h3 class="card-title">Forecast Data Table (All Users)</h3></div>
                     <div class="card-body">
-                        <table id="salesTable" class="table table-bordered table-striped">
-                            <thead>
-                                <tr>
-                                  <th>ชื่อโครงการ</th><th>หน่วยงาน/บริษัท</th><th>มูลค่า (฿)</th><th>แหล่งงบประมาณ</th><th>ปีงบประมาณ</th><th>กลุ่มสินค้า</th>
-                                  <th>ทีม</th><th>ชื่อผู้ใช้</th><th>โอกาสชนะ</th><th>วันที่เริ่ม</th><th>วันยื่น Bidding</th><th>วันเซ็นสัญญา</th><th>สถานะ</th><th>หมายเหตุ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                              <?php
-                                if (!empty($all_data)):
-                                    foreach($all_data as $r):
-                              ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($r['Product_detail']) ?></td>
-                                    <td><?= htmlspecialchars($r['company']) ?></td>
-                                    <td><?= number_format($r['product_value']) ?></td>
-                                    <td><?= htmlspecialchars($r['Source_budge']) ?></td>
-                                    <td><?= htmlspecialchars($r['fiscalyear']) ?></td>
-                                    <td><?= htmlspecialchars($r['product']) ?></td>
-                                    <td><?= htmlspecialchars($r['team']) ?></td>
-                                    <td><?= htmlspecialchars($r['nname']) ?></td>
-                                    <td><?= htmlspecialchars($r['priority']) ?></td>
-                                    <td><?= htmlspecialchars($r['contact_start_date']) ?></td>
-                                    <td><?= htmlspecialchars($r['date_of_closing_of_sale']) ?></td>
-                                    <td><?= htmlspecialchars($r['sales_can_be_close']) ?></td>
-                                    <td><?= htmlspecialchars($r['level']) ?></td>
-                                    <td><?= htmlspecialchars($r['remark']) ?></td>
-                                </tr>
-                              <?php
-                                    endforeach;
-                                endif;
-                              ?>
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table id="salesTable" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                      <th>ชื่อโครงการ</th><th>หน่วยงาน/บริษัท</th><th>มูลค่า (฿)</th><th>แหล่งงบประมาณ</th><th>ปีงบประมาณ</th><th>กลุ่มสินค้า</th>
+                                      <th>ทีม</th><th>ชื่อผู้ใช้</th><th>โอกาสชนะ</th><th>วันที่เริ่ม</th><th>วันยื่น Bidding</th><th>วันเซ็นสัญญา</th><th>สถานะ</th><th>หมายเหตุ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                  <?php
+                                    if (!empty($all_data)):
+                                        foreach($all_data as $r):
+                                  ?>
+                                    <tr>
+                                        <td><?= htmlspecialchars($r['Product_detail']) ?></td>
+                                        <td><?= htmlspecialchars($r['company']) ?></td>
+                                        <td><?= number_format($r['product_value']) ?></td>
+                                        <td><?= htmlspecialchars($r['Source_budge']) ?></td>
+                                        <td><?= htmlspecialchars($r['fiscalyear']) ?></td>
+                                        <td><?= htmlspecialchars($r['product']) ?></td>
+                                        <td><?= htmlspecialchars($r['team']) ?></td>
+                                        <td><?= htmlspecialchars($r['nname']) ?></td>
+                                        <td><?= htmlspecialchars($r['priority']) ?></td>
+                                        <td><?= htmlspecialchars($r['contact_start_date']) ?></td>
+                                        <td><?= htmlspecialchars($r['date_of_closing_of_sale']) ?></td>
+                                        <td><?= htmlspecialchars($r['sales_can_be_close']) ?></td>
+                                        <td><?= htmlspecialchars($r['level']) ?></td>
+                                        <td><?= htmlspecialchars($r['remark']) ?></td>
+                                    </tr>
+                                  <?php
+                                        endforeach;
+                                    endif;
+                                  ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -225,13 +227,12 @@ if ($rs) {
 
 <script>
   $(function () {
-    // ▼▼▼ 3. แก้ไข JavaScript ทั้งหมดในส่วนนี้ ▼▼▼
     $("#salesTable").DataTable({
-      "responsive": true, 
+      // "responsive": true, // ปิดตัวนี้
+      "scrollX": true,       // ## จุดที่ 2: เปิดใช้ scrollX แทน ##
       "lengthChange": true, 
       "autoWidth": false,
       "language": { "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/th.json" },
-      // กำหนด layout ให้มีปุ่ม (B)
       "dom": 'lBfrtip',
       "buttons": [
         {
@@ -247,29 +248,24 @@ if ($rs) {
           className: 'btn btn-info'
         }
       ],
-      // ฟังก์ชันที่จะทำงานหลังตารางถูกสร้างเสร็จ
       "initComplete": function () {
         var api = this.api();
 
-        // สร้าง Dropdown และ Label ด้วย jQuery
         var filterDiv = $('<div class="form-group"></div>');
         var filterLabel = $('<label for="userFilter" class="mr-2">ชื่อผู้ใช้:</label>');
         var select = $('<select id="userFilter" class="form-control form-control-sm" style="width: 200px;"></select>')
             .append('<option value="">-- ผู้ใช้ทั้งหมด --</option>')
             .on('change', function () {
                 var val = $.fn.dataTable.util.escapeRegex($(this).val());
-                // กรองข้อมูลในคอลัมน์ที่ 7 (ชื่อผู้ใช้)
                 api.column(7).search(val ? '^' + val + '$' : '', true, false).draw();
             });
 
-        // ดึงข้อมูลชื่อผู้ใช้ที่ไม่ซ้ำกันมาใส่ใน select
         api.column(7).data().unique().sort().each(function (d) {
             if (d) {
                 select.append($('<option></option>').attr('value', d).text(d));
             }
         });
 
-        // นำ Label และ Select ไปต่อท้ายกลุ่มปุ่ม .dt-buttons
         filterDiv.append(filterLabel).append(select);
         $('.dt-buttons').append(filterDiv);
       }
