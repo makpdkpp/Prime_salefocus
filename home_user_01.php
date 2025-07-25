@@ -155,6 +155,37 @@ $avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
         </section>
     </div>
 </div>
+
+<div class="modal fade" id="requestCompanyModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel">แบบฟอร์มขอเพิ่มหน่วยงาน/บริษัท</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="companyRequestForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="newCompanyName">ชื่อหน่วยงาน/บริษัทที่ต้องการเพิ่ม</label>
+                        <input type="text" class="form-control" id="newCompanyName" name="company_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="companyNotes">รายละเอียดเพิ่มเติม (ถ้ามี)</label>
+                        <textarea class="form-control" id="companyNotes" name="notes" rows="3"></textarea>
+                    </div>
+                    <div id="requestStatus" class="mt-3"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">ปิด</button>
+                    <button type="submit" class="btn btn-primary">ส่งคำขอ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
@@ -172,23 +203,30 @@ $avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
 
 <script>
   $(function () {
-    // ▼▼▼ 3. แก้ไขส่วนนี้เพื่อเพิ่มปุ่ม ▼▼▼
     $("#salesTable").DataTable({
-      "responsive": true, 
-      "lengthChange": true, 
+      "responsive": true,
+      "lengthChange": true,
       "autoWidth": false,
       "language": { "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/th.json" },
-      // กำหนด layout ของตารางให้มีปุ่ม (B)
       "dom": 'lBfrtip',
       "buttons": [
+        {
+          text: '<i class="fas fa-plus-circle"></i> ขอเพิ่มหน่วยงาน',
+          className: 'btn btn-primary',
+          action: function ( e, dt, node, config ) {
+            $('#requestCompanyModal').modal('show');
+            $('#companyRequestForm')[0].reset();
+            $('#requestStatus').html('');
+          }
+        },
         {
           extend: 'excelHtml5',
           text: '<i class="fas fa-file-excel"></i> Export to Excel',
           className: 'btn btn-success',
           titleAttr: 'Export to Excel',
-          bom: true, // สำหรับให้ Excel อ่านภาษาไทยได้ถูกต้อง
+          bom: true,
           exportOptions: {
-            columns: ':not(:last-child)' // ไม่เอาคอลัมน์สุดท้าย (Action) ไปด้วย
+            columns: ':not(:last-child)'
           }
         },
         {
@@ -197,6 +235,42 @@ $avatar  = htmlspecialchars($_SESSION['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
           className: 'btn btn-info'
         }
       ]
+    });
+
+    $('#companyRequestForm').on('submit', function(e) {
+        e.preventDefault();
+
+        var companyName = $('#newCompanyName').val();
+        if (companyName.trim() === '') {
+            alert('กรุณากรอกชื่อบริษัท');
+            return;
+        }
+
+        $('#requestStatus').html('<div class="alert alert-info">กำลังส่งคำขอ...</div>');
+        $('button[type="submit"]', this).prop('disabled', true);
+
+        $.ajax({
+            url: 'process_company_request.php',
+            type: 'POST',
+            dataType: 'json',
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.success) {
+                    $('#requestStatus').html('<div class="alert alert-success">ส่งคำขอเรียบร้อยแล้ว!</div>');
+                    setTimeout(function() {
+                        $('#requestCompanyModal').modal('hide');
+                    }, 2000);
+                } else {
+                    $('#requestStatus').html('<div class="alert alert-danger">เกิดข้อผิดพลาด: ' + response.message + '</div>');
+                }
+            },
+            error: function() {
+                $('#requestStatus').html('<div class="alert alert-danger">เกิดข้อผิดพลาดในการเชื่อมต่อ</div>');
+            },
+            complete: function() {
+                $('button[type="submit"]', '#companyRequestForm').prop('disabled', false);
+            }
+        });
     });
   });
 </script>
