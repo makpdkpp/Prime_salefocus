@@ -71,6 +71,11 @@ if ($rs) {
             margin-right: 5px;
             white-space: nowrap;
         }
+        /* --- CSS ที่เพิ่มเข้ามาเพื่อให้ Scrollbar ทำงาน --- */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
     </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -237,7 +242,7 @@ if ($rs) {
 <script>
   $(function () {
     $("#salesTable").DataTable({
-      "responsive": true, // คงการตั้งค่าเดิมไว้
+      "responsive": false, /* --- จุดที่แก้ไข 1 --- */
       "lengthChange": true, 
       "autoWidth": false,
       "language": { "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/th.json" },
@@ -265,10 +270,12 @@ if ($rs) {
             .append('<option value="">-- ผู้ใช้ทั้งหมด --</option>')
             .on('change', function () {
                 var val = $.fn.dataTable.util.escapeRegex($(this).val());
-                api.column(7).search(val ? '^' + val + '$' : '', true, false).draw();
+                /* --- จุดที่แก้ไข 2.1 --- */
+                api.column(10).search(val ? '^' + val + '$' : '', true, false).draw();
             });
-
-        api.column(7).data().unique().sort().each(function (d) {
+        
+        /* --- จุดที่แก้ไข 2.2 --- */
+        api.column(10).data().unique().sort().each(function (d) {
             if (d) {
                 select.append($('<option></option>').attr('value', d).text(d));
             }
