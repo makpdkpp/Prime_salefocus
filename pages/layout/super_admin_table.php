@@ -60,7 +60,6 @@ if ($rs) {
         }
         .sidebar {padding-bottom: 30px; }
 
-        /* CSS สำหรับจัดวาง Filter ข้างๆ ปุ่ม */
         .dt-buttons .form-group {
             margin-bottom: 0;
             margin-left: 15px;
@@ -228,8 +227,7 @@ if ($rs) {
 <script>
   $(function () {
     $("#salesTable").DataTable({
-      // "responsive": true, // ปิดตัวนี้
-      "scrollX": true,       // ## จุดที่ 2: เปิดใช้ scrollX แทน ##
+      "responsive": true, // คงการตั้งค่าเดิมไว้
       "lengthChange": true, 
       "autoWidth": false,
       "language": { "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/th.json" },
