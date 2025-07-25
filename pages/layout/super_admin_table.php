@@ -170,38 +170,48 @@ if ($rs) {
                     <div class="card-body">
                         <div class="table-responsive">
                             <table id="salesTable" class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                      <th>ชื่อโครงการ</th><th>หน่วยงาน/บริษัท</th><th>มูลค่า (฿)</th><th>แหล่งงบประมาณ</th><th>ปีงบประมาณ</th><th>กลุ่มสินค้า</th>
-                                      <th>ทีม</th><th>ชื่อผู้ใช้</th><th>โอกาสชนะ</th><th>วันที่เริ่ม</th><th>วันยื่น Bidding</th><th>วันเซ็นสัญญา</th><th>สถานะ</th><th>หมายเหตุ</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                  <?php
-                                    if (!empty($all_data)):
-                                        foreach($all_data as $r):
-                                  ?>
-                                    <tr>
-                                        <td><?= htmlspecialchars($r['Product_detail']) ?></td>
-                                        <td><?= htmlspecialchars($r['company']) ?></td>
-                                        <td><?= number_format($r['product_value']) ?></td>
-                                        <td><?= htmlspecialchars($r['Source_budge']) ?></td>
-                                        <td><?= htmlspecialchars($r['fiscalyear']) ?></td>
-                                        <td><?= htmlspecialchars($r['product']) ?></td>
-                                        <td><?= htmlspecialchars($r['team']) ?></td>
-                                        <td><?= htmlspecialchars($r['nname']) ?></td>
-                                        <td><?= htmlspecialchars($r['priority']) ?></td>
-                                        <td><?= htmlspecialchars($r['contact_start_date']) ?></td>
-                                        <td><?= htmlspecialchars($r['date_of_closing_of_sale']) ?></td>
-                                        <td><?= htmlspecialchars($r['sales_can_be_close']) ?></td>
-                                        <td><?= htmlspecialchars($r['level']) ?></td>
-                                        <td><?= htmlspecialchars($r['remark']) ?></td>
-                                    </tr>
-                                  <?php
-                                        endforeach;
-                                    endif;
-                                  ?>
-                                </tbody>
+                            <thead>
+    <tr>
+        <th>ชื่อโครงการ</th>
+        <th>หน่วยงาน/บริษัท</th>
+        <th>มูลค่า (฿)</th>
+        <th>สถานะ</th>
+        <th>โอกาสชนะ</th>
+        <th>ปีงบประมาณ</th>
+        <th>วันที่เริ่ม</th>
+        <th>วันยื่น Bidding</th>
+        <th>วันเซ็นสัญญา</th>
+        <th>กลุ่มสินค้า</th>
+        <th>ชื่อผู้ใช้</th>
+        <th>ทีม</th>
+        <th>หมายเหตุ</th>
+    </tr>
+</thead>
+<tbody>
+  <?php
+    if (!empty($all_data)):
+        foreach($all_data as $r):
+  ?>
+    <tr>
+        <td><?= htmlspecialchars($r['Product_detail']) ?></td>
+        <td><?= htmlspecialchars($r['company']) ?></td>
+        <td><?= number_format($r['product_value']) ?></td>
+        <td><?= htmlspecialchars($r['level']) ?></td>
+        <td><?= htmlspecialchars($r['priority']) ?></td>
+        <td><?= htmlspecialchars($r['fiscalyear']) ?></td>
+        <td><?= htmlspecialchars($r['contact_start_date']) ?></td>
+        <td><?= htmlspecialchars($r['date_of_closing_of_sale']) ?></td>
+        <td><?= htmlspecialchars($r['sales_can_be_close']) ?></td>
+        <td><?= htmlspecialchars($r['product']) ?></td>
+        <td><?= htmlspecialchars($r['nname']) ?></td>
+        <td><?= htmlspecialchars($r['team']) ?></td>
+        <td><?= htmlspecialchars($r['remark']) ?></td>
+    </tr>
+  <?php
+        endforeach;
+    endif;
+  ?>
+</tbody>
                             </table>
                         </div>
                     </div>
