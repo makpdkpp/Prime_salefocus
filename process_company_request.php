@@ -1,18 +1,16 @@
 <?php
 // process_company_request.php
 
-// --- ส่วนเรียกใช้งาน PHPMailer แบบ Manual ---
 session_start();
-require_once 'functions.php'; // ตรวจสอบว่า path ไปยัง functions.php ถูกต้อง
+require_once 'functions.php';
 
-// แก้ไข path ไปยังโฟลเดอร์ lib ให้ถูกต้องตามโครงสร้างโปรเจกต์ของคุณ
+// --- ส่วนเรียกใช้งาน PHPMailer แบบ Manual ---
 require_once 'lib/PHPMailer/src/Exception.php';
 require_once 'lib/PHPMailer/src/PHPMailer.php';
 require_once 'lib/PHPMailer/src/SMTP.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-// --- สิ้นสุดส่วนเรียกใช้งาน ---
 
 header('Content-Type: application/json');
 
@@ -26,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_SESSION['user_id']) || $_SE
 $companyName = trim($_POST['company_name'] ?? '');
 $notes = trim($_POST['notes'] ?? '');
 $userId = (int)$_SESSION['user_id'];
-$userEmail = htmlspecialchars($_SESSION['email']);
+$userEmail = htmlspecialchars($_SESSION['email']); // อีเมลของคนส่งคำขอ
 
 if (empty($companyName)) {
     echo json_encode(['success' => false, 'message' => 'กรุณากรอกชื่อบริษัท']);
@@ -54,44 +52,58 @@ if (!$stmt->execute()) {
 }
 $stmt->close();
 
-// 4. ส่งอีเมลแจ้งเตือน
-$superAdminEmail = 'superadmin@example.com'; // <<<<<< ใส่อีเมลของ Super Admin
-$mail = new PHPMailer(true);
+// 4. ดึงอีเมล Super Admin (role_id = 1) และส่งอีเมลแจ้งเตือน
+$admin_emails = [];
+$result = $mysqli->query("SELECT email FROM user WHERE role_id = 1");
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $admin_emails[] = $row['email'];
+    }
+}
 
-try {
-    //การตั้งค่า Server
-    $mail->CharSet = "UTF-8";
-    $mail->isSMTP();
-    $mail->Host       = 'smtp.example.com';        // <<<<<< ใส่ SMTP Server ของคุณ
-    $mail->SMTPAuth   = true;
-    $mail->Username   = 'your_email@example.com';  // <<<<<< ใส่อีเมลที่จะใช้ส่ง
-    $mail->Password   = 'your_email_password';     // <<<<<< ใส่รหัสผ่านของอีเมล
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-    $mail->Port       = 587;
+if (!empty($admin_emails)) {
+    $mail = new PHPMailer(true);
+    try {
+        // --- ส่วนการตั้งค่า PHPMailer ที่คุณให้มา ---
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'immsendermail@gmail.com';
+        $mail->Password = 'npou efln pgpf bhxd'; // This is a Gmail App Password
+        $mail->SMTPSecure = 'ssl';
+        $mail->Port = 465;
+        $mail->CharSet = 'UTF-8';
 
-    //ผู้รับ
-    $mail->setFrom('your_email@example.com', 'PrimeForecast System');
-    $mail->addAddress($superAdminEmail);
+        // --- ผู้ส่งและผู้รับ ---
+        $mail->setFrom('no-reply@primeforecast.com', 'PrimeForecast System');
+        
+        // เพิ่มอีเมล Super Admin ทุกคนเป็นผู้รับ
+        foreach ($admin_emails as $admin_email) {
+            $mail->addAddress($admin_email);
+        }
 
-    //เนื้อหา
-    $mail->isHTML(true);
-    $mail->Subject = 'มีคำขอเพิ่มบริษัทใหม่';
-    $mail->Body    = "
-        <h2>มีคำขอเพิ่มบริษัทใหม่เข้าระบบ</h2>
-        <p>คุณ <strong>{$userEmail}</strong> ได้ส่งคำขอเพิ่มข้อมูลบริษัทใหม่ ดังนี้:</p>
-        <hr>
-        <p><strong>ชื่อบริษัทที่ขอเพิ่ม:</strong> {$sanitizedCompanyName}</p>
-        <p><strong>รายละเอียดเพิ่มเติม:</strong><br>{$sanitizedNotes}</p>
-        <hr>
-        <p>กรุณาเข้าระบบเพื่อตรวจสอบและดำเนินการอนุมัติคำขอนี้</p>
-    ";
+        // --- เนื้อหาอีเมล ---
+        $mail->isHTML(true);
+        $mail->Subject = 'มีคำขอเพิ่มบริษัทใหม่';
+        $mail->Body    = "
+            <h2>มีคำขอเพิ่มบริษัทใหม่เข้าระบบ</h2>
+            <p>คุณ <strong>{$userEmail}</strong> ได้ส่งคำขอเพิ่มข้อมูลบริษัทใหม่ ดังนี้:</p>
+            <hr>
+            <p><strong>ชื่อบริษัทที่ขอเพิ่ม:</strong> {$sanitizedCompanyName}</p>
+            <p><strong>รายละเอียดเพิ่มเติม:</strong><br>{$sanitizedNotes}</p>
+            <hr>
+            <p>กรุณาเข้าระบบเพื่อตรวจสอบและดำเนินการอนุมัติคำขอนี้</p>
+        ";
 
-    $mail->send();
-    echo json_encode(['success' => true]);
+        $mail->send();
+        echo json_encode(['success' => true]);
 
-} catch (Exception $e) {
-    // กรณีส่งอีเมลไม่สำเร็จ ให้ส่ง error message กลับไป
-    echo json_encode(['success' => false, 'message' => "บันทึกข้อมูลสำเร็จ แต่ส่งอีเมลไม่สำเร็จ: {$mail->ErrorInfo}"]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => "บันทึกข้อมูลสำเร็จ แต่ส่งอีเมลไม่สำเร็จ: {$mail->ErrorInfo}"]);
+    }
+} else {
+    // กรณีที่ไม่พบ Super Admin ในระบบ
+    echo json_encode(['success' => true, 'message' => 'บันทึกข้อมูลสำเร็จ แต่ไม่พบอีเมลผู้ดูแลระบบที่จะแจ้งเตือน']);
 }
 
 $mysqli->close();
