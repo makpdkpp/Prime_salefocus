@@ -34,7 +34,7 @@ if (empty($companyName)) {
 $mysqli = connectDb();
 
 // 3. บันทึกข้อมูลลง DB
-$stmt = $mysqli->prepare("INSERT INTO company_requests (company_name, notes, requested_by_user_id) VALUES (?, ?, ?)");
+$stmt = $mysqli->prepare("INSERT INTO company_requests (company_name, notes, user_id) VALUES (?, ?, ?)");
 if ($stmt === false) {
     echo json_encode(['success' => false, 'message' => 'Database prepare failed']);
     exit;
