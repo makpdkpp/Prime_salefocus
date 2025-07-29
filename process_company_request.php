@@ -1,19 +1,18 @@
 <?php
 // process_company_request.php
 
+// --- ส่วนเรียกใช้งาน PHPMailer แบบ Manual ---
+session_start();
+require_once 'functions.php'; // ตรวจสอบว่า path ไปยัง functions.php ถูกต้อง
+
+// แก้ไข path ไปยังโฟลเดอร์ lib ให้ถูกต้องตามโครงสร้างโปรเจกต์ของคุณ
+require_once 'lib/PHPMailer/src/Exception.php';
+require_once 'lib/PHPMailer/src/PHPMailer.php';
+require_once 'lib/PHPMailer/src/SMTP.php';
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-
-// หากติดตั้ง PHPMailer ผ่าน Composer ให้ใช้บรรทัดนี้
-require 'vendor/autoload.php';
-
-// หากใช้วิธีอื่น ให้ระบุ path ไปยังไฟล์ของ PHPMailer ให้ถูกต้อง
-// require 'path/to/PHPMailer/src/Exception.php';
-// require 'path/to/PHPMailer/src/PHPMailer.php';
-// require 'path/to/PHPMailer/src/SMTP.php';
-
-require_once 'functions.php';
-session_start();
+// --- สิ้นสุดส่วนเรียกใช้งาน ---
 
 header('Content-Type: application/json');
 
@@ -56,7 +55,6 @@ if (!$stmt->execute()) {
 $stmt->close();
 
 // 4. ส่งอีเมลแจ้งเตือน
-// *** แก้ไขข้อมูลตรงนี้ ***
 $superAdminEmail = 'superadmin@example.com'; // <<<<<< ใส่อีเมลของ Super Admin
 $mail = new PHPMailer(true);
 
@@ -72,8 +70,8 @@ try {
     $mail->Port       = 587;
 
     //ผู้รับ
-    $mail->setFrom('your_email@example.com', 'PrimeForecast System'); //อีเมลผู้ส่ง (ควรเป็นอีเมลเดียวกับ Username)
-    $mail->addAddress($superAdminEmail); //เพิ่มอีเมลผู้รับ (Super Admin)
+    $mail->setFrom('your_email@example.com', 'PrimeForecast System');
+    $mail->addAddress($superAdminEmail);
 
     //เนื้อหา
     $mail->isHTML(true);
@@ -92,10 +90,8 @@ try {
     echo json_encode(['success' => true]);
 
 } catch (Exception $e) {
-    // กรณีส่งอีเมลไม่สำเร็จ (แต่ข้อมูลบันทึกแล้ว) ก็ยังให้แจ้งว่าสำเร็จไปก่อน
-    // สามารถเขียน Log ข้อผิดพลาดไว้ตรวจสอบภายหลังได้
-    // error_log("Mailer Error: {$mail->ErrorInfo}");
-    echo json_encode(['success' => true, 'message' => 'บันทึกข้อมูลสำเร็จ แต่ส่งอีเมลไม่สำเร็จ']);
+    // กรณีส่งอีเมลไม่สำเร็จ ให้ส่ง error message กลับไป
+    echo json_encode(['success' => false, 'message' => "บันทึกข้อมูลสำเร็จ แต่ส่งอีเมลไม่สำเร็จ: {$mail->ErrorInfo}"]);
 }
 
 $mysqli->close();
